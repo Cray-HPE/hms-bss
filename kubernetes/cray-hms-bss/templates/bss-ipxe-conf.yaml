@@ -1,0 +1,56 @@
+## TODO: This will be synced from default namespace, it's no longer needed here
+## Once Ansible Install Roles are removed, please uncomment this.
+# apiVersion: v1
+# kind: ConfigMap
+# metadata:
+#   name: cray-bss-ipxe-conf
+# data:
+#   bss_ipxe.conf: |
+#     # This template provides default configuration settings for DHCP.
+#     # The resultant file created from this template is referenced via an include
+#     # statement in the system's dhcpd.conf file.
+#     #
+#     # It provides a generic set of defaults at the top.
+#     # It also provides routers, domain-name-servers, and IP address ranges as
+#     # defined by the BSS service.
+#     #
+#     # This file will be overwritten whenever the SMS-installer is run.
+
+#     default-lease-time 600;
+#     max-lease-time 7200;
+#     ddns-update-style none;
+#     authoritative;
+#     option routers {{ index .Values.ipxe.routers 0 }};
+#     option domain-name-servers {{ .Values.ipxe.dnsServerIp }};
+
+#     # Standard ipxe headers for performant boot
+#     option space ipxe;
+#     option ipxe-encap-opts code 175 = encapsulate ipxe;
+#     option ipxe.priority code 1 = signed integer 8;
+#     option ipxe.keep-san code 8 = unsigned integer 8;
+#     option ipxe.skip-san-boot code 9 = unsigned integer 8;
+#     option ipxe.syslogs code 85 = string;
+#     option ipxe.cert code 91 = string;
+#     option ipxe.privkey code 92 = string;
+#     option ipxe.crosscert code 93 = string;
+#     option ipxe.no-pxedhcp code 176 = unsigned integer 8;
+#     option ipxe.bus-id code 177 = string;
+#     option ipxe.san-filename code 188 = string;
+#     option ipxe.bios-drive code 189 = unsigned integer 8;
+#     option ipxe.username code 190 = string;
+#     option ipxe.password code 191 = string;
+#     option ipxe.reverse-username code 192 = string;
+#     option ipxe.reverse-password code 193 = string;
+#     option ipxe.version code 235 = string;
+#     option iscsi-initiator-iqn code 203 = string;
+#     option ipxe.no-pxedhcp 1;
+#     option client-arch code 93 = unsigned integer 16;
+
+#     # The location where BSS lives
+#     next-server {{ .Values.ipxe.bssIp }};
+
+#     subnet {{ .Values.ipxe.networkIp }} netmask {{ .Values.ipxe.netmask }} {
+#         # The functional range of IP Addrs to assign to NICs on this network
+#         range {{ .Values.ipxe.dhcpStart }} {{ .Values.ipxe.dhcpStop }};
+
+#         filename "ipxe.efi";

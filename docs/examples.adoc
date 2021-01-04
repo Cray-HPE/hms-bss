@@ -1,0 +1,172 @@
+== Examples
+Use the Boot Script Service to perform the following tasks. 
+
+=== Set/update boot parameters
+Set the boot parameters for one or more hosts. Receive a list of
+one or more hosts.  Boot parameters can be associated with the default setting,
+specific nodes, kernels, or initrd images.  The use of PATCH rather than
+PUT results in only the specified items, such as "params", "kernel", or
+"initrd" replacing existing settings.  Unspecified settings for a given host
+remain unchanged.
+
+
+.Use curl command to set parameters associated with a kernel image
+[source, bash]
+----
+    curl -k -X PUT -d '{
+            "kernel" : "https://sms-1/apis/ars/assets/artifacts/generic/vmlinuz_801",
+            "params" : "console=tty0 console=ttyS0,115200n8 initrd=initramfs-cray_1058.img root=nfs:10.100.160.2:/var/lib/nfsroot/cmp49_image rw nofb selinux=0 rd.shell rd.retry=60 ip=eno1:dhcp rd.net.timeout.carrier=40"
+        }' https://sms-1/apis/bss/boot/v1/bootparameters
+
+----
+
+.Use curl command to change parameters associated with a host
+[source, bash]
+----
+    curl -k -X PATCH -d '{
+            "hosts" : ["x0c0s0b0n0"],
+            "params" : "bootname=compute-00"
+        }' https://sms-1/apis/bss/boot/v1/bootparameters
+
+----
+
+
+[source, bash]
+.Sample request payload to specify default kernel and initrd images
+----
+
+        {
+            "hosts" : [ "Default" ],
+            "kernel" : "https://sms-1/apis/ars/assets/artifacts/generic/vmlinuz_801",
+            "initrd" : "https://sms-1/apis/ars/assets/artifacts/generic/initramfs-cray_1058.img"
+        }
+----
+
+[source]
+.Sample request payload to update boot parameters for specific kernel
+----
+
+        {
+            "kernel" : "https://sms-1/apis/ars/assets/artifacts/generic/vmlinuz_801",
+            "params" : "console=tty0 console=ttyS0,115200n8 initrd=initramfs-cray_1058.img root=nfs:10.100.160.2:/var/lib/nfsroot/cmp49_image rw nofb selinux=0 rd.shell rd.retry=60 ip=eno1:dhcp rd.net.timeout.carrier=40"
+        }
+
+----
+
+
+[source]
+.Sample request payload to specify kernel and initrd for a series of hosts
+----
+
+        {
+            "hosts" : [ "x0c0s0b0n0", "x0c0s1b0n0", "x0c0s2b0n0", "x0c0s3b0n0", "x0c0s4b0n0", "x0c0s5b0n0", "x0c0s6b0n0", "x0c0s7b0n0" ],
+            "kernel" : "https://sms-1/apis/ars/assets/artifacts/generic/vmlinuz_1406",
+            "initrd" : "https://sms-1/apis/ars/assets/artifacts/generic/initramfs-cray_1261.img"
+        }
+----
+
+[source]
+.Sample request payload to specify kernel and initrd images along with bootname
+----
+
+        {
+            "hosts" : [ "x0c0s9b0n0" ],
+            "kernel" : "https://sms-1/apis/ars/assets/artifacts/generic/vmlinuz_801",
+            "initrd" : "https://sms-1/apis/ars/assets/artifacts/generic/initramfs-cray_1058.img",
+            "params" : "bootname=compute09"
+        }
+----
+
+=== Get the boot script for a node
+Make a GET request to the /bootscript endpoint.  
+This request is normally made by the iPXE kernel running on the node that is in the process of booting itself.
+Identify the node which expects to receive an iPXE boot script.
+
+[source, bash]
+.Use curl to request a boot script
+----
+
+    curl https://sms-1/apis/bss/boot/v1/bootscript?mac=44:A8:42:21:A8:AD
+----
+
+[source, bash]
+.A script similar to the following will be returned:
+----
+
+    #!ipxe
+    kernel http://sms-1/apis/ars/assets/artifacts/generic/vmlinuz_801 bootname=x0c0s7b0n0 console=ttyS0,115200 console=tty0 unregistered=1 heartbeat_url=http://sms-1/apis/hbtd/heartbeat bootmac=44:A8:42:21:A8:AD || goto boot_retry
+    initrd http://sms-1/apis/ars/assets/artifacts/generic/initramfs-cray_1058.img || goto boot_retry
+    boot || goto boot_retry
+    :boot_retry
+    sleep 30
+    chain http://${next-server}/apis/bss/boot/v1/bootscript?mac=${net0/mac}&retry=1
+
+----
+
+=== Retrieve current boot parameters for one or more nodes
+Make a GET request to /bootparameters endpoint.
+Specifiy a list of nodes to retrieve parameters for. If no nodes are given, will return all nodes which currently have parameter settings.
+
+
+[source, bash]
+.Use curl to retrieve all current boot parameter settings
+----
+
+    curl -k https://sms-1/apis/bss/boot/v1/bootparameters
+----
+
+
+This will return json formatted data containing all current parameter settings.
+
+
+[source, bash]
+.Use curl to look up a specific host's boot parameter settings
+----
+
+    curl -k -X GET -d '{"hosts":["x0c0s4b0n0"]}' https://sms-1/apis/bss/boot/v1/bootparameters
+
+----
+[source]
+.JSON output
+----
+
+    [
+      {
+        "hosts": [
+                "x0c0s4b0n0"
+            ],
+        "initrd": "https://sms-1/apis/ars/assets/artifacts/generic/initramfs-cray_1261.img",
+        "kernel": "https://sms-1/apis/ars/assets/artifacts/generic/vmlinuz_1406"
+      }
+    ]
+----
+
+
+=== Delete existing boot parameters
+Make a DELETE request to /bootparameters endpoint.
+Remove an existing boot parameter setting.
+Expects to receive either:
+- A specific host via the host name, mac, or nid.  In this case, that host's entry is deleted.
+- A specific kernel or initrd image.  In this case, the image entry is removed, and the references by any existing hosts are removed. (Note that this can leave a host unbootable)
+
+[source, bash]
+.Use curl to delete settings for a specific host
+----
+
+    curl -k -X DELETE -d '{"hosts":["x0c0s9b0n0"]}' https://sms-1/apis/bss/boot/v1/bootparameters
+
+----
+
+
+=== Dump internal state of boot script service
+Make a GET request to the /dumpstate endpoint.
+This service endpoint is primarily for debugging purposes.  It dumps out the known hosts and associated information, along with the known boot parameters.
+
+[source, bash]
+.Use curl to display known hosts, associated information, and known boot paramters
+
+----
+    curl -k https://sms-1/apis/bss/boot/v1/dumpstate | python -m json.tool
+----
+
+This will show the current internal state of the BSS service.  The python tool will format the JSON output for easier reading.

@@ -1,0 +1,3 @@
+== About this Document
+This document contains reference information about the Boot Script Service API used for delivering the boot script information to nodes when booting.
+

@@ -1,0 +1,13 @@
+---
+apiVersion: "networking.istio.io/v1alpha3"
+kind: "DestinationRule"
+metadata:
+  name: "cray-bss-datastore"
+  labels:
+    app.kubernetes.io/name: cray-datastore
+spec:
+  host: "cray-datastore"
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL
+
