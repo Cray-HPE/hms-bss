@@ -1,0 +1,267 @@
+# Copyright 2020 Hewlett Packard Enterprise Development LP
+
+# Tavern test cases for the Boot Script Service (BSS) bootscript API.
+# Author: Isa Wazirzada, Mitch Schooler
+# Service: Boot Script Service
+
+# HMS test metrics test cases: 18
+# 1. GET /dumpstate API response code
+# 2. GET /dumpstate API response body
+# 3. GET /bootscript?nid={nid} API response code
+# 4. Disabled (Bad MAC address data in dumpstate issue CASMHMS-3216) - GET /bootscript?mac={mac_address} API response code
+# 5. GET /bootscript?name={node_name} API response code
+# 6. GET /bootscript?nid={nid}&retry={retry} API response code
+# 7. GET /bootscript?nid={nid}&retry={retry} API response body
+# 8. GET /bootscript?nid={invalid_nid} out-of-range nid API response code
+# 9. GET /bootscript?nid={invalid_nid} out-of-range nid API response body
+# 10. GET /bootscript?nid={invalid_nid} string nid API response code
+# 11. GET /bootscript?nid={invalid_nid} string nid API response body
+# 12. GET /bootscript?nid={invalid_nid} negative nid API response code
+# 13. GET /bootscript?nid={invalid_nid} negative nid API response body
+# 14. GET /bootscript?nid={invalid_nid} character (*) nid API response code
+# 15. GET /bootscript?nid={invalid_nid} character (*) nid API response body
+# 16. GET /bootscript?nid={invalid_nid} empty string nid API response code
+# 17. GET /bootscript?nid={invalid_nid} empty string nid API response body
+# 18. GET /bootscript?{invalid_parameter} API response code
+# 19. GET /bootscript?{invalid_parameter} API response body
+---
+test_name: Verify the dumpstate resource
+
+stages:
+  # 1. GET /dumpstate API response code
+  # 2. GET /dumpstate API response body
+  - name: Ensure the boot script service can dump its state
+    request:
+      url: "{base_url}/bss/boot/v1/dumpstate"
+      method: GET
+      headers:
+        Authorization: "Bearer {access_token}"
+      verify: !bool "{verify}"
+    response:
+      status_code: 200
+      verify_response_with:
+        function: tavern.testutils.helpers:validate_pykwalify
+        extra_kwargs:
+          schema:
+            type: map
+            required: True
+            mapping:
+              Components:
+                type: seq
+                matching: all
+                sequence:
+                  - type: map
+                    matching: all
+                    mapping:
+                      Arch:
+                        type: str
+                      Class:
+                        type: str
+                        #TODO: workaround CAN NCNs in HSM issue CASMHMS-2913
+                        #required: True
+                        required: False
+                      Enabled:
+                        type: bool
+                      EndpointEnabled:
+                        type: bool
+                        required: False
+                      FQDN:
+                        type: str
+                      Flag:
+                        type: str
+                      ID:
+                        type: str
+                      MAC:
+                        type: seq
+                        matching: all
+                        sequence:
+                          - type: str
+                      NID:
+                        type: int
+                      NetType:
+                        type: str
+                      Role:
+                        type: str
+                      SoftwareStatus:
+                        type: str
+                        required: False
+                      State:
+                        type: str
+                      SubRole:
+                        type: str
+                        required: False
+                      Type:
+                        type: str
+              Params:
+                type: seq
+                sequence:
+                  - type: map
+                    matching: all
+                    mapping:
+                      hosts:
+                        type: seq
+                        required: False
+                        sequence:
+                          - type: str
+                      params:
+                        type: str
+                        required: False
+                      kernel:
+                        type: str
+                        required: False
+                      initrd:
+                        type: str
+                        required: False
+                      cloud-init:
+                        type: map
+                        required: False
+                        matching: all
+                        mapping:
+                          meta-data:
+                            type: str
+                          user-data:
+                            type: str
+                          phone-home:
+                            type: map
+                            matching: all
+                            mapping:
+                              pub_key_dsa:
+                                type: str
+                              pub_key_rsa:
+                                type: str
+                              pub_key_ecdsa:
+                                type: str
+                              instance_id:
+                                type: str
+                              hostname:
+                                type: str
+                              fdqn:
+                                type: str
+---
+test_name: Verify the bootscript resource
+
+stages:
+  - name: Save the node name, nid, and mac address for use in later stages
+    request:
+      url: "{base_url}/bss/boot/v1/dumpstate"
+      method: GET
+      headers:
+        Authorization: "Bearer {access_token}"
+      verify: !bool "{verify}"
+    response:
+      status_code: 200
+      save:
+        json:
+          nid: Components[0].NID
+          node_name: Components[0].ID
+          mac_address: Components[0].MAC[0]
+
+  # 3. GET /bootscript?nid={nid} API response code
+  - name: Ensure the boot script service can provide the bootscript for a given node
+    request:
+      url: "{base_url}/bss/boot/v1/bootscript?nid={nid}"
+      method: GET
+      headers:
+        Authorization: "Bearer {access_token}"
+      verify: !bool "{verify}"
+    response:
+      status_code: 200
+
+  ## 4. Disabled (Bad MAC address data in dumpstate issue CASMHMS-3216) - GET /bootscript?mac={mac_address} API response code
+  #- name: Ensure the boot script service can provide the bootscript for a given mac address
+  #  request:
+  #    url: "{base_url}/bss/boot/v1/bootscript?mac={mac_address}"
+  #    method: GET
+  #    headers:
+  #      Authorization: "Bearer {access_token}"
+  #    verify: !bool "{verify}"
+  #  response:
+  #    status_code: 200
+
+  # 5. GET /bootscript?name={node_name} API response code
+  - name: Ensure the boot script service can provide the bootscript for a given node name
+    request:
+      url: "{base_url}/bss/boot/v1/bootscript?name={node_name}"
+      method: GET
+      headers:
+        Authorization: "Bearer {access_token}"
+      verify: !bool "{verify}"
+    response:
+      status_code: 200
+
+  # 6. GET /bootscript?nid={nid}&retry={retry} API response code
+  # 7. GET /bootscript?nid={nid}&retry={retry} API response body
+  - name: Ensure the boot script service can retrieve a bootscript for a particular nid with the number of retries set to 7
+    request:
+      url: "{base_url}/bss/boot/v1/bootscript?nid=1&retry=7"
+      method: GET
+      headers:
+        Authorization: "Bearer {access_token}"
+      verify: !bool "{verify}"
+    response:
+      status_code: 200
+      verify_response_with:
+        function: tavern.testutils.helpers:validate_regex
+        extra_kwargs:
+            expression: "retry=8"
+            expression: "ipxe"
+
+---
+test_name: Verify the bootscript service gracefully handles invalid nids for the bootscript resource
+
+marks:
+  - parametrize:
+      key: invalid_nid
+      vals:
+        # 8. GET /bootscript?nid={invalid_nid} out-of-range nid API response code
+        # 9. GET /bootscript?nid={invalid_nid} out-of-range nid API response body
+        - 9999999999999999999999999999
+        # 10. GET /bootscript?nid={invalid_nid} string nid API response code
+        # 11. GET /bootscript?nid={invalid_nid} string nid API response body
+        - one
+        # 12. GET /bootscript?nid={invalid_nid} negative nid API response code
+        # 13. GET /bootscript?nid={invalid_nid} negative nid API response body
+        - -1
+        # 14. GET /bootscript?nid={invalid_nid} character (*) nid API response code
+        # 15. GET /bootscript?nid={invalid_nid} character (*) nid API response body
+        - "*"
+        # 16. GET /bootscript?nid={invalid_nid} empty string nid API response code
+        # 17. GET /bootscript?nid={invalid_nid} empty string nid API response body
+        - ""
+
+stages:
+  - name: Validate a graceful failure when providing an invalid nid
+    request:
+      url: "{base_url}/bss/boot/v1/bootscript?nid={invalid_nid}"
+      method: GET
+      headers:
+        Authorization: "Bearer {access_token}"
+      verify: !bool "{verify}"
+    response:
+      status_code: 400
+      json:
+        type: about:blank
+        title: Bad Request
+        status: 400
+        detail: !anystr
+
+---
+test_name: Verify the bootscript service gracefully handles invalid query paramters for the bootscript resource
+
+stages:
+  # 18. GET /bootscript?{invalid_parameter} API response code
+  # 19. GET /bootscript?{invalid_parameter} API response body
+  - name: Validate a graceful failure when providing an invalid query parameter
+    request:
+      url: "{base_url}/bss/boot/v1/bootscript?foo"
+      method: GET
+      headers:
+        Authorization: "Bearer {access_token}"
+      verify: !bool "{verify}"
+    response:
+      status_code: 400
+      json:
+        type: about:blank
+        title: Bad Request
+        status: 400
+        detail: !anystr

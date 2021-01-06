@@ -1,0 +1,108 @@
+#! /bin/bash
+
+VERBOSE=-v
+
+HOST=localhost
+PORT=27778
+
+CURL="curl $VERBOSE"
+
+# First, define the boot image(s) and associated boot parameters
+# You can define more than one.  Presumanbly, one will be the default
+# boot image.
+# If you are using the artifact repository service (ARS), then you need to
+# obtain the kernel and initrd image URLs from that service in order to
+# properly configure the boot script service
+
+J[0]='{
+    "kernel" : "http://localhost:8000/bootd/resource/default/vmlinuz",
+    "params" : "console=ttyS0,115200 console=tty0 unregistered=1 heartbeat_url=http://x0c0s0n0.triton.us.cray.com:8000/bootd/heartbeat"
+}'
+
+# Second, define the initrd image(s) and associated boot parameters.
+# If there are no boot parameters associated specifically with the initrd
+# images, then this is not required, but would look like this:
+
+# J[#]='{
+#     "initrd" : "http://localhost:8000/bootd/resource/default/initrd.gz",
+#     "params" : "some_param=some_val"
+# }'
+
+
+# Now define the Default kernel/initrd images.  You can also specify
+# boot parameters here if you want.  Assuming you use the same kernel/initrd
+# as above, the associated boot parameters from above will be used.  If you
+# specify additional boot parameters here, they will be concatenated with
+# those from the kernel and/or initrd images above.
+J[1]='{
+    "hosts" : ["Default" ],
+    "kernel" : "http://localhost:8000/bootd/resource/default/vmlinuz",
+    "initrd" : "http://localhost:8000/bootd/resource/default/initrd.gz",
+    "cloud-init": {"meta-data": {"instance-id": "default"}}
+}'
+
+# This is global meta-data that will be injected into every meta-data
+# request under the 'global' key.
+J[2]='{
+    "hosts" : ["Global" ],
+    "cloud-init": {"meta-data": {"foo": "bar"}}
+}'
+
+## A HSM Shasta SubRole can be used as a base, which is merged with a per node data.
+J[3]='{
+    "hosts" : ["Storage" ],
+    "cloud-init": {"meta-data": {"foo": "barz", "baz": "bazz"}, "user-data":{"foo": "foos", "baz": "bazz"}}
+}'
+
+# Finally, you can define boot parameters and images for specific hosts.
+J[4]='{
+    "hosts" : ["x3000c0s17b0n0" ],
+    "params" : "bootname=compute24",
+    "kernel" : "http://localhost:8000/bootd/resource/default/vmlinuz",
+    "initrd" : "http://localhost:8000/bootd/resource/default/initrd.gz",
+    "cloud-init": {"meta-data": {"foo": "bar", "local-hostname": "ncn-s001"}, "user-data": {"foo":"bar"}}
+}'
+
+J[5]='{
+    "hosts" : [ "x0c3s3b0n0", "x0c0s1b0n0", "x0c2s1b0n0", "x0c4s1b0n0", "x0c1s1b0n0", "x0c3s1b0n0", "x0c3s2b0n0" ],
+    "params" : "spire_join_token=${SPIRE_JOIN_TOKEN}",
+    "kernel" : "http://localhost:8000/bootd/resource/default/vmlinuz",
+    "initrd" : "http://localhost:8000/bootd/resource/default/initrd.gz",
+    "cloud-init": {"meta-data": {"foo": "bar", "local-hostname": "ncn-s002"}, "user-data": {"foo":"bar"}}
+}'
+
+J[6]='{
+    "hosts": [
+        "x0c3s3b0n0",
+        "x0c0s1b0n0",
+        "x0c2s1b0n0",
+        "x0c4s1b0n0",
+        "x0c1s1b0n0",
+        "x0c3s1b0n0",
+        "x0c3s2b0n0"
+    ],
+    "params": "console=tty0 console=ttyS0,115200n8 selinux=0 rd.shell rd.net.timeout.carrier=40 rd.retry=40 ip=dhcp rd.neednet=1 crashkernel=256M bad_page=panic crashkernel=256M hugepagelist=2m-2g intel_iommu=off intel_pstate=disable iommu=pt ip=dhcp numa_interleave_omit=headless numa_zonelist_order=node oops=panic pageblock_order=14 pcie_ports=native printk.synchronous=y rd.neednet=1 rd.retry=40 rd.shell turbo_boost_limit=999 root=craycps-s3:s3://boot-images/58172a14-f482-4c04-b353-b830ca355247/rootfs:c1ab0e49c9dbe12587ddd7337f822799-145 nmd_data=url=s3://boot-images/58172a14-f482-4c04-b353-b830ca355247/rootfs,etag=c1ab0e49c9dbe12587ddd7337f822799-145 bos_session_id=7eaf56f9-a493-443f-a226-5e69bc85863f",
+    "kernel": "s3://boot-images/58172a14-f482-4c04-b353-b830ca355247/kernel",
+    "initrd": "s3://boot-images/58172a14-f482-4c04-b353-b830ca355247/initrd",
+    "cloud-init": {
+      "meta-data": null,
+      "user-data": null,
+      "phone-home": {
+        "pub_key_dsa": "",
+        "pub_key_rsa": "",
+        "pub_key_ecdsa": "",
+        "instance_id": "",
+        "hostname": "",
+        "fdqn": ""
+      }
+    }
+}'
+
+# Number of different expressions to send to the boot-script-server
+N=5
+
+for ((i=0; i < N; ++i)); do
+    (test "$VERBOSE" && set -x
+    $CURL -X PUT -d "${J[$i]}" http://$HOST:$PORT/boot/v1/bootparameters
+    )
+done
