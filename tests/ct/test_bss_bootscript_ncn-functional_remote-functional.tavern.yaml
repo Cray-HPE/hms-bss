@@ -135,7 +135,7 @@ stages:
                                 type: str
                               hostname:
                                 type: str
-                              fdqn:
+                              fqdn:
                                 type: str
 ---
 test_name: Verify the bootscript resource
