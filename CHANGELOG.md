@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.6] - 2021-01-24
+
+### Changed
+
+- CASMINST-1074: Use HTTP S3 endpoint instead of HTTPS. The HTTPS endpoint was causing iPXE to be unable to fetch boot artifacts from S3. The switch to using http will enable iPXE to fetch these boot artifacts.
+
 ## [1.5.5] - 2020-12-17
 
 ### Changed
