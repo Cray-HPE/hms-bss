@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -27,6 +28,7 @@ import (
 )
 
 const badMAC = "not available"
+const undefinedMAC = "ff:ff:ff:ff:ff:ff"
 
 type SMComponent struct {
 	base.Component
@@ -123,6 +125,30 @@ func getMacs(comp *SMComponent, eth []*rf.EthernetNICInfo) {
 	}
 }
 
+func ensureLegalMAC(mac string) string {
+	hw, err := net.ParseMAC(mac)
+	if err != nil {
+		var macPieces []string
+		currentPiece := ""
+		for i, r := range mac {
+			currentPiece = fmt.Sprintf("%s%c", currentPiece, r)
+			if i%2 == 1 {
+				macPieces = append(macPieces, currentPiece)
+				currentPiece = ""
+			}
+		}
+
+		mac = strings.Join(macPieces, ":")
+
+		hw, err = net.ParseMAC(mac)
+		if err != nil {
+			return badMAC
+		}
+	}
+
+	return hw.String()
+}
+
 func getStateFromHSM() *SMData {
 	if smClient != nil {
 		log.Printf("Retrieving state info from %s", smBaseURL)
@@ -177,7 +203,8 @@ func getStateFromHSM() *SMData {
 			debugf("Endpoint: %v\n", e)
 			if cIndex, gotIt := compsIndex[e.ID]; gotIt {
 				comps.Components[cIndex].Fqdn = e.FQDN
-				if e.MACAddr != "" && !strings.EqualFold(e.MACAddr, badMAC) {
+				if e.MACAddr != "" && !strings.EqualFold(e.MACAddr, badMAC) &&
+					!strings.EqualFold(e.MACAddr, undefinedMAC) {
 					comps.Components[cIndex].Mac = append(comps.Components[cIndex].Mac, e.MACAddr)
 				}
 				if mep.CompEndpts[idx].Enabled != nil {
@@ -221,6 +248,15 @@ func getStateFromHSM() *SMData {
 			debugf("EthInterface: %v\n", e)
 			if e.IPAddr != "" {
 				addresses[e.IPAddr] = e
+
+				// Also see if this EthernetInterface belongs to any Components.
+				for index, _ := range comps.Components {
+					component := comps.Components[index]
+
+					if component.ID == e.CompID {
+						comps.Components[index].Mac = append(comps.Components[index].Mac, ensureLegalMAC(e.MACAddr))
+					}
+				}
 			}
 		}
 
