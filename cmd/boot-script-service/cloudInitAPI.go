@@ -247,10 +247,10 @@ func userDataGetAPI(w http.ResponseWriter, r *http.Request) {
 		base.SendProblemDetailsGeneric(w, http.StatusBadRequest, "Invalid YAML")
 		return
 	}
-	out := "#cloud-config\n" + string(databytes)
+
 	w.Header().Set("Content-Type", "text/yaml")
 	w.WriteHeader(httpStatus)
-	yaml.NewEncoder(w).Encode(out)
+	_, _ = fmt.Fprintf(w, "#cloud-config\n%s", string(databytes))
 	return
 }
 
