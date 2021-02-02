@@ -1,7 +1,8 @@
 #!/bin/bash -l
+#
 # MIT License
 #
-# (C) Copyright [2021] Hewlett Packard Enterprise Development LP
+# (C) Copyright [2020-2021] Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -20,6 +21,7 @@
 # OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
+#
 ###############################################################
 #
 #     CASM Test - Cray Inc.
@@ -33,7 +35,7 @@
 #
 #     DATE STARTED      : 01/21/2020
 #
-#     LAST MODIFIED     : 09/14/2020
+#     LAST MODIFIED     : 02/01/2021
 #
 #     SYNOPSIS
 #       This is a test wrapper for HMS Boot Script Service (BSS) API
@@ -65,6 +67,7 @@
 #       -------------------------------------------------------
 #       schooler   01/21/2020   initial implementation
 #       schooler   09/14/2020   use latest hms_common_file_generator
+#       schooler   02/01/2021   set VERIFY=False for running on PIT nodes
 #
 #     DEPENDENCIES
 #       - hms-pytest wrapper script which is expected to be packaged
@@ -107,8 +110,8 @@ COMMON_FILE_PATH="/opt/cray/tests/ncn-functional/hms/hms-bss/common.yaml"
 BSS_TEST_DIR="/opt/cray/tests/ncn-functional/hms/hms-bss"
 API_TARGET="https://api-gw-service-nmn.local/apis"
 
-# set SSL certificate checking to True for test execution from the NCN
-VERIFY="True"
+# set SSL certificate checking to False for test execution from PIT nodes
+VERIFY="False"
 echo "VERIFY=${VERIFY}"
 
 # set up signal handling
