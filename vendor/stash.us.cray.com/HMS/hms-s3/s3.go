@@ -1,4 +1,24 @@
-// Copyright 2020 Cray Inc. All Rights Reserved.
+// MIT License
+//
+// (C) Copyright [2020-2021] Hewlett Packard Enterprise Development LP
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+// THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+// OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+// ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
 
 package hms_s3
 
@@ -6,14 +26,15 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"net/http"
+	"os"
+	"time"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"net/http"
-	"os"
-	"time"
 )
 
 type ConnectionInfo struct {
@@ -33,6 +54,25 @@ func (obj *ConnectionInfo) Equals(other ConnectionInfo) (equals bool) {
 		equals = true
 	}
 	return equals
+}
+
+func (obj *ConnectionInfo) Validate() error {
+	if obj.AccessKey == "" {
+		return errors.New("s3 access key is empty")
+	}
+	if obj.SecretKey == "" {
+		return errors.New("s3 secret key is empty")
+	}
+	if obj.Endpoint == "" {
+		return errors.New("s3 endpoint is empty")
+	}
+	if obj.Bucket == "" {
+		return errors.New("s3 bucket is empty")
+	}
+	if obj.Region == "" {
+		return errors.New("s3 region is empty")
+	}
+	return nil
 }
 
 func NewConnectionInfo(AccessKey string, SecretKey string, Endpoint string, Bucket string,
@@ -107,6 +147,18 @@ func NewS3Client(info ConnectionInfo, httpClient *http.Client) (*S3Client, error
 	return &client, nil
 }
 
+func GetCreateBucketInputWithACL(bucketName string, acl string) *s3.CreateBucketInput {
+	return &s3.CreateBucketInput{
+		ACL:    aws.String(acl),
+		Bucket: aws.String(bucketName),
+	}
+}
+
+// CreateBucketWithACL creates a new bucket in S3 with the provided ACL.
+func (client *S3Client) CreateBucketWithACL(bucketName string, acl string) (*s3.CreateBucketOutput, error) {
+	return client.S3.CreateBucket(GetCreateBucketInputWithACL(bucketName, acl))
+}
+
 // PingBucket will test the connection to S3 a single time. If you're using this as a measure for whether S3 is
 // responsive, call it in a loop looking for nil err returned.
 func (client *S3Client) PingBucket() error {
@@ -158,7 +210,7 @@ func (client *S3Client) GetURL(key string, expire time.Duration) (string, error)
 
 // PUT
 
-func (client *S3Client) PutObjectInput(key string, payloadBytes []byte) *s3.PutObjectInput {
+func (client *S3Client) PutObjectInputBytes(key string, payloadBytes []byte) *s3.PutObjectInput {
 	r := bytes.NewReader(payloadBytes)
 
 	return &s3.PutObjectInput{
@@ -168,6 +220,43 @@ func (client *S3Client) PutObjectInput(key string, payloadBytes []byte) *s3.PutO
 	}
 }
 
+func (client *S3Client) PutObjectInputFile(key string, file *os.File) *s3.PutObjectInput {
+	return &s3.PutObjectInput{
+		Bucket: aws.String(client.ConnInfo.Bucket),
+		Key:    aws.String(key),
+		Body:   file,
+	}
+}
+
+func (client *S3Client) PutObjectInputFileACL(key string, file *os.File, acl string) *s3.PutObjectInput {
+	return &s3.PutObjectInput{
+		ACL:    aws.String(acl),
+		Bucket: aws.String(client.ConnInfo.Bucket),
+		Key:    aws.String(key),
+		Body:   file,
+	}
+}
+
 func (client *S3Client) PutObject(key string, payloadBytes []byte) (*s3.PutObjectOutput, error) {
-	return client.S3.PutObject(client.PutObjectInput(key, payloadBytes))
+	return client.S3.PutObject(client.PutObjectInputBytes(key, payloadBytes))
+}
+
+func (client *S3Client) PutFile(key string, file *os.File) (*s3.PutObjectOutput, error) {
+	return client.S3.PutObject(client.PutObjectInputFile(key, file))
+}
+
+func (client *S3Client) PutFileWithACL(key string, file *os.File, acl string) (*s3.PutObjectOutput, error) {
+	return client.S3.PutObject(client.PutObjectInputFileACL(key, file, acl))
+}
+
+// Delete
+func (client *S3Client) DeleteObjectInput(key string) *s3.DeleteObjectInput {
+	return &s3.DeleteObjectInput{
+		Bucket: aws.String(client.ConnInfo.Bucket),
+		Key:    aws.String(key),
+	}
+}
+
+func (client *S3Client) DeleteObject(key string) (*s3.DeleteObjectOutput, error) {
+	return client.S3.DeleteObject(client.DeleteObjectInput(key))
 }

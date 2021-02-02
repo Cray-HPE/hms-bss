@@ -1,4 +1,25 @@
-// Copyright 2018-2020 Hewlett Packard Enterprise Development LP
+// MIT License
+//
+// (C) Copyright [2021] Hewlett Packard Enterprise Development LP
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+// THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+// OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+// ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+
 //
 // Shasta State Manager interface code.
 //
@@ -15,6 +36,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -27,6 +49,7 @@ import (
 )
 
 const badMAC = "not available"
+const undefinedMAC = "ff:ff:ff:ff:ff:ff"
 
 type SMComponent struct {
 	base.Component
@@ -123,6 +146,30 @@ func getMacs(comp *SMComponent, eth []*rf.EthernetNICInfo) {
 	}
 }
 
+func ensureLegalMAC(mac string) string {
+	hw, err := net.ParseMAC(mac)
+	if err != nil {
+		var macPieces []string
+		currentPiece := ""
+		for i, r := range mac {
+			currentPiece = fmt.Sprintf("%s%c", currentPiece, r)
+			if i%2 == 1 {
+				macPieces = append(macPieces, currentPiece)
+				currentPiece = ""
+			}
+		}
+
+		mac = strings.Join(macPieces, ":")
+
+		hw, err = net.ParseMAC(mac)
+		if err != nil {
+			return badMAC
+		}
+	}
+
+	return hw.String()
+}
+
 func getStateFromHSM() *SMData {
 	if smClient != nil {
 		log.Printf("Retrieving state info from %s", smBaseURL)
@@ -177,7 +224,8 @@ func getStateFromHSM() *SMData {
 			debugf("Endpoint: %v\n", e)
 			if cIndex, gotIt := compsIndex[e.ID]; gotIt {
 				comps.Components[cIndex].Fqdn = e.FQDN
-				if e.MACAddr != "" && !strings.EqualFold(e.MACAddr, badMAC) {
+				if e.MACAddr != "" && !strings.EqualFold(e.MACAddr, badMAC) &&
+					!strings.EqualFold(e.MACAddr, undefinedMAC) {
 					comps.Components[cIndex].Mac = append(comps.Components[cIndex].Mac, e.MACAddr)
 				}
 				if mep.CompEndpts[idx].Enabled != nil {
@@ -221,6 +269,15 @@ func getStateFromHSM() *SMData {
 			debugf("EthInterface: %v\n", e)
 			if e.IPAddr != "" {
 				addresses[e.IPAddr] = e
+
+				// Also see if this EthernetInterface belongs to any Components.
+				for index, _ := range comps.Components {
+					component := comps.Components[index]
+
+					if component.ID == e.CompID {
+						comps.Components[index].Mac = append(comps.Components[index].Mac, ensureLegalMAC(e.MACAddr))
+					}
+				}
 			}
 		}
 

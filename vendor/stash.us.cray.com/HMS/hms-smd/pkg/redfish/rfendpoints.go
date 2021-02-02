@@ -1,4 +1,24 @@
-// Copyright 2018-2020 Hewlett Packard Enterprise Development LP
+// MIT License
+//
+// (C) Copyright [2019-2021] Hewlett Packard Enterprise Development LP
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+// THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+// OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+// ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
 
 package rf
 
@@ -60,8 +80,11 @@ const (
 	StorageGroupType      = "StorageGroup"
 	PowerSupplyType       = "PowerSupply"
 	PowerType             = "Power"
+	NodeAccelRiserType    = "GPUSubsystem"
+	AssemblyType          = "Assembly"
 	OutletType            = "Outlet"
 	PDUType               = "PowerDistribution"
+	NetworkAdapterType    = "NetworkAdapter"
 	AccountServiceType    = "AccountService"
 	EventServiceType      = "EventService"
 	LogServiceType        = "LogService"
@@ -560,13 +583,13 @@ func NewRedfishEp(rep *RedfishEPDescription) (*RedfishEP, error) {
 	ep.OdataID = "/redfish/v1"
 	ep.NumSystems = 0
 	// Add client handle.  Allow for proxy if configured.
-/*
-	if httpClientProxyURL != "" {
-		ep.client = RfProxyClient(httpClientProxyURL)
-	} else {
-		ep.client = RfDefaultClient()
-	}
-*/
+	/*
+		if httpClientProxyURL != "" {
+			ep.client = RfProxyClient(httpClientProxyURL)
+		} else {
+			ep.client = RfDefaultClient()
+		}
+	*/
 	ep.client = RfDefaultClient()
 	err := ep.CheckPrePhase1()
 	if err != nil {
@@ -643,7 +666,7 @@ func (ep *RedfishEP) GETRelative(rpath string) (json.RawMessage, error) {
 	// Check the ID (xname) and:
 	// o If ep.client.SecureClient != nil && != InsecureClient:
 	//   o If ID shows 'c0', then scrutinize:
-	//     o If there have been > 1 failovers with successful Do() calls, then set 
+	//     o If there have been > 1 failovers with successful Do() calls, then set
 	//       ep.client.SecureClient = InsecureClient
 
 	// Do retries on errors. They could be temporary interuptions in service.
@@ -1246,6 +1269,7 @@ func (ep *RedfishEP) getChassisHMSType(c *EpChassis) string {
 	default:
 		// Other types are usually subcomponents we don't track and are
 		// often not represented very consistently by different manufacturers.
+		errlog.Printf("getChassisHMSType default case: c.RedfishSubtype: %s", c.RedfishSubtype)
 		return base.HMSTypeInvalid.String()
 	}
 }
@@ -1383,7 +1407,17 @@ func (ep *RedfishEP) getNodeSvcNetEthIfaceId(s *EpSystem) string {
 // processor ordinal is, i.e. the n0p[0-n] in the xname.
 func (ep *RedfishEP) getProcessorOrdinal(p *EpProcessor) int {
 	// Always use the order in the System's ProcessorCollection for now.
-	return p.RawOrdinal
+	//look at the EpProcessor's ProcessorRF.ProcessorType field
+	//to determine processor type
+	ordinal := 0
+	if p.ProcessorRF.ProcessorType == "GPU" || p.ProcessorRF.ProcessorType == "Accelerator" {
+		ordinal = p.sysRF.accelCount
+		p.sysRF.accelCount = p.sysRF.accelCount + 1
+	} else {
+		ordinal = p.sysRF.cpuCount
+		p.sysRF.cpuCount = p.sysRF.cpuCount + 1
+	}
+	return ordinal
 }
 
 // Determines based on discovered info and original list order what the
@@ -1438,7 +1472,6 @@ func (ep *RedfishEP) getPowerSupplyHMSID(p *EpPowerSupply, hmsType string, ordin
 // Post phase 1 discovery.
 func (ep *RedfishEP) getPowerSupplyHMSType(p *EpPowerSupply) string {
 	parentChassisType := ep.getChassisHMSType(p.chassisRF)
-	fmt.Printf("getPowerSupplyHMSType, parent chassis type: [%s]\n", parentChassisType)
 	if parentChassisType == base.NodeEnclosure.String() {
 		return base.NodeEnclosurePowerSupply.String()
 	}
@@ -1471,6 +1504,101 @@ func (ep *RedfishEP) getPowerSupplyOrdinal(p *EpPowerSupply) int {
 		}
 	}
 	return ordinal
+}
+
+// Determined based on discovered info the xname of the Chassis.
+// Need to know real (not raw ordinal) and HMS type first.
+// Post phase 1 discovery.
+func (ep *RedfishEP) getNodeAccelRiserHMSID(r *EpNodeAccelRiser, hmsType string, ordinal int) string {
+	hmsTypeStr := base.VerifyNormalizeType(hmsType)
+	if hmsTypeStr == "" {
+		// This is an error or a skipped type.
+		return ""
+	}
+	//get the parent Assembly.Assemblies array
+	if ordinal < 0 || ordinal >= len(r.assemblyRF.AssemblyRF.Assemblies) {
+		// Invalid ordinal or initial -1 value.
+		return ""
+	}
+	return r.systemRF.ID + "r" + strconv.Itoa(r.Ordinal)
+}
+
+// Gets the HMS type of the NodeAccelRiser - Note Invalid means something
+// special here, namely, "skip it"/"not supported".
+// Post phase 1 discovery.
+func (ep *RedfishEP) getNodeAccelRiserHMSType(r *EpNodeAccelRiser) string {
+	return base.NodeAccelRiser.String()
+}
+
+// Determined based on discovered info and original list order that the
+// NodeAccelRiser ordinal is.
+func (ep *RedfishEP) getNodeAccelRiserOrdinal(r *EpNodeAccelRiser) int {
+	//The position of any node accel riser in relation to its siblings is indicated
+	//by the basename of its OdataID, so it is possible to retrieve and sort the keys of the
+	//chassis NodeAccelRisers OIDS map to determine the proper Ordinal of any particular NodeAccelRiser
+	var ordinal = r.RawOrdinal
+	if len(r.systemRF.NodeAccelRisers.OIDs) > 0 {
+		rsOIDs := make([]string, 0, len(r.systemRF.NodeAccelRisers.OIDs))
+		for oid := range r.systemRF.NodeAccelRisers.OIDs {
+			rsOIDs = append(rsOIDs, oid)
+		}
+		//sort the OIDs in NodeAccelRisers.OIDs map
+		sort.Strings(rsOIDs)
+		//the proper ordinal for this Node Accel Riser is now the position of its OdataID in the rsOIDs slice
+		for i, rsOID := range rsOIDs {
+			if rsOID == r.OdataID {
+				ordinal = i
+				break
+			}
+		}
+	}
+	return ordinal
+}
+
+// Determined based on discovered info the xname of the Chassis.
+// Need to know real (not raw ordinal) and HMS type first.
+// Post phase 1 discovery.
+func (ep *RedfishEP) getNetworkAdapterHMSID(na *EpNetworkAdapter, hmsType string, ordinal int) string {
+	hmsTypeStr := base.VerifyNormalizeType(hmsType)
+	if hmsTypeStr == "" {
+		// This is an error or a skipped type.
+		return ""
+	}
+	//get the parent Assembly.Assemblies array
+	if ordinal < 0 || ordinal >= len(na.systemRF.NetworkAdapters.OIDs) {
+		// Invalid ordinal or initial -1 value.
+		return ""
+	}
+	//unsupported parent chassis type
+	return na.systemRF.ID + "h" + strconv.Itoa(na.Ordinal)
+}
+
+// Gets the HMS type of the NetworkAdapter - Note Invalid means something
+// special here, namely, "skip it"/"not supported".
+// Post phase 1 discovery.
+func (ep *RedfishEP) getNetworkAdapterHMSType(na *EpNetworkAdapter) string {
+	return base.NodeHsnNic.String()
+}
+
+// Determined based on discovered info and original list order that the
+// NetworkAdapter ordinal is.
+func (ep *RedfishEP) getNetworkAdapterOrdinal(na *EpNetworkAdapter) int {
+	//The position of any NetworkAdapter in relation to its siblings is indicated
+	//by the basename of its OdataID. This ordering is already reflected in the RawOrdinal
+
+	return na.RawOrdinal
+}
+
+// Build FRUID using standard fields: <Type>.<Manufacturer>.<PartNumber>.<SerialNumber>
+// else return an error.
+func GetNetworkAdapterFRUID(na *EpNetworkAdapter) (fruid string, err error) {
+	return getStandardFRUID(na.Type, na.ID, na.NetworkAdapterRF.Manufacturer, na.NetworkAdapterRF.PartNumber, na.NetworkAdapterRF.SerialNumber)
+}
+
+// Build FRUID using standard fields: <Type>.<Manufacturer>.<PartNumber>.<SerialNumber>
+// else return an error.
+func GetNodeAccelRiserFRUID(r *EpNodeAccelRiser) (fruid string, err error) {
+	return getStandardFRUID(r.Type, r.ID, r.NodeAccelRiserRF.Producer, r.NodeAccelRiserRF.PartNumber, r.NodeAccelRiserRF.SerialNumber)
 }
 
 // Build FRUID using standard fields: <Type>.<Manufacturer>.<PartNumber>.<SerialNumber>

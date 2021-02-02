@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.2] - 2021-01-26
+
+## Changed
+
+- CASMHMS-4459: Added logic for any MACs found in the EthernetInterfaces table belonging to a component to be added to that component so subsequent bootscript queries will make the proper association despite HSM not having discovered that MAC in Redfish.
+
 ## [1.7.1] - 2021-01-24
 
 ### Changed
