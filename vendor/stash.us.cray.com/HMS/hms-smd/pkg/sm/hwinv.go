@@ -1,4 +1,24 @@
-// Copyright 2018-2020 Hewlett Packard Enterprise Development LP
+// MIT License
+//
+// (C) Copyright [2018-2021] Hewlett Packard Enterprise Development LP
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+// THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+// OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+// ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
 
 package sm
 
@@ -53,8 +73,13 @@ type hmsTypeArrays struct {
 	Memory     *[]*HWInvByLoc `json:"Memory,omitempty"`
 	Drives     *[]*HWInvByLoc `json:"Drives,omitempty"`
 
-	CabinetPDUs       *[]*HWInvByLoc `json:"CabinetPDUs,omitempty"`
-	CabinetPDUOutlets *[]*HWInvByLoc `json:"CabinetPDUPowerConnectors,omitempty"`
+	CabinetPDUs                *[]*HWInvByLoc `json:"CabinetPDUs,omitempty"`
+	CabinetPDUOutlets          *[]*HWInvByLoc `json:"CabinetPDUPowerConnectors,omitempty"`
+	CMMRectifiers              *[]*HWInvByLoc `json:"CMMRectifiers,omitempty"`
+	NodeAccels                 *[]*HWInvByLoc `json:"NodeAccels,omitempty"`
+	NodeAccelRisers            *[]*HWInvByLoc `json:"NodeAccelRisers,omitempty"`
+	NodeEnclosurePowerSupplies *[]*HWInvByLoc `json:"NodeEnclosurePowerSupplies,omitempty"`
+	NodeHsnNICs                *[]*HWInvByLoc `json:"NodeHsnNics,omitempty"`
 
 	// These don't have hardware inventory location/FRU info yet,
 	// either because they aren't known yet or because they are manager
@@ -64,9 +89,7 @@ type hmsTypeArrays struct {
 	CECs           *[]*HWInvByLoc `json:"CECs,omitempty"`
 	CDUs           *[]*HWInvByLoc `json:"CDUs,omitempty"`
 	CabinetCDUs    *[]*HWInvByLoc `json:"CabinetCDUs,omitempty"`
-	CMMRectifiers  *[]*HWInvByLoc `json:"CMMRectifiers,omitempty"`
 	CMMFpgas       *[]*HWInvByLoc `json:"CMMFpgas,omitempty"`
-	NodeAccels     *[]*HWInvByLoc `json:"NodeAccels,omitempty"`
 	NodeFpgas      *[]*HWInvByLoc `json:"NodeFpgas,omitempty"`
 	RouterFpgas    *[]*HWInvByLoc `json:"RouterFpgas,omitempty"`
 	RouterTORFpgas *[]*HWInvByLoc `json:"RouterTORFpgas,omitempty"`
@@ -78,13 +101,11 @@ type hmsTypeArrays struct {
 	NodeBMCs              *[]*HWInvByLoc `json:"NodeBMCs,omitempty"`
 	RouterBMCs            *[]*HWInvByLoc `json:"RouterBMCs,omitempty"`
 
-	CabinetPDUNics             *[]*HWInvByLoc `json:"CabinetPDUNics,omitempty"`
-	NodeEnclosurePowerSupplies *[]*HWInvByLoc `json:"NodeEnclosurePowerSupplies,omitempty"`
-	NodePowerConnectors        *[]*HWInvByLoc `json:"NodePowerConnectors,omitempty"`
-	NodeBMCNics                *[]*HWInvByLoc `json:"NodeBMCNics,omitempty"`
-	NodeNICs                   *[]*HWInvByLoc `json:"NodeNICs,omitempty"`
-	NodeHsnNICs                *[]*HWInvByLoc `json:"NodeHsnNICs,omitempty"`
-	RouterBMCNics              *[]*HWInvByLoc `json:"RouterBMCNics,omitempty"`
+	CabinetPDUNics      *[]*HWInvByLoc `json:"CabinetPDUNics,omitempty"`
+	NodePowerConnectors *[]*HWInvByLoc `json:"NodePowerConnectors,omitempty"`
+	NodeBMCNics         *[]*HWInvByLoc `json:"NodeBMCNics,omitempty"`
+	NodeNICs            *[]*HWInvByLoc `json:"NodeNICs,omitempty"`
+	RouterBMCNics       *[]*HWInvByLoc `json:"RouterBMCNics,omitempty"`
 
 	// Also not implemented yet.  Not clear if these will have any interesting
 	// info, so they may never be,
@@ -180,7 +201,11 @@ func NewSystemHWInventory(hwlocs []*HWInvByLoc, xName, format string) (*SystemHW
 			}
 			*hwinv.Nodes = append(*hwinv.Nodes, hwloc)
 		case base.NodeAccel:
-			fallthrough
+			if hwinv.NodeAccels == nil {
+				arr := make([]*HWInvByLoc, 0, 1)
+				hwinv.NodeAccels = &arr
+			}
+			*hwinv.NodeAccels = append(*hwinv.NodeAccels, hwloc)
 		case base.Processor:
 			if hwinv.Processors == nil {
 				arr := make([]*HWInvByLoc, 0, 1)
@@ -231,6 +256,12 @@ func NewSystemHWInventory(hwlocs []*HWInvByLoc, xName, format string) (*SystemHW
 				hwinv.NodeEnclosurePowerSupplies = &arr
 			}
 			*hwinv.NodeEnclosurePowerSupplies = append(*hwinv.NodeEnclosurePowerSupplies, hwloc)
+		case base.NodeAccelRiser:
+			if hwinv.NodeAccelRisers == nil {
+				arr := make([]*HWInvByLoc, 0, 1)
+				hwinv.NodeAccelRisers = &arr
+			}
+			*hwinv.NodeAccelRisers = append(*hwinv.NodeAccelRisers, hwloc)
 		case base.NodeBMC:
 			if hwinv.NodeBMCs == nil {
 				arr := make([]*HWInvByLoc, 0, 1)
@@ -272,15 +303,19 @@ func NewSystemHWInventory(hwlocs []*HWInvByLoc, xName, format string) (*SystemHW
 		}
 
 		procArray := hwinv.Processors
+		nodeAccelArray := hwinv.NodeAccels
 		memArray := hwinv.Memory
 		driveArray := hwinv.Drives
 		hsnNicArray := hwinv.NodeHsnNICs
+		nodeAccelRiserArray := hwinv.NodeAccelRisers
 		// Moving these contents to underneath items in node array.
 		// Set these arrays to nil so we won't list them twice.
 		hwinv.Processors = nil
+		hwinv.NodeAccels = nil
 		hwinv.Memory = nil
 		hwinv.Drives = nil
 		hwinv.NodeHsnNICs = nil
+		hwinv.NodeAccelRisers = nil
 
 		// Processors are children of Node
 		if procArray != nil {
@@ -302,6 +337,29 @@ func NewSystemHWInventory(hwlocs []*HWInvByLoc, xName, format string) (*SystemHW
 						parent.Processors = &arr
 					}
 					*parent.Processors = append(*parent.Processors, p)
+				}
+			}
+		}
+		// NodeAccels (GPUs) are children of Node
+		if nodeAccelArray != nil {
+			for _, na := range *nodeAccelArray {
+				parentID := base.GetHMSCompParent(na.ID)
+				parent, ok := nmap[parentID]
+				if !ok {
+					errlog.Printf("ERROR: Could not find node key %s for %s",
+						parentID, na.ID)
+					if hwinv.NodeAccels == nil {
+						arr := make([]*HWInvByLoc, 0, 1)
+						hwinv.NodeAccels = &arr
+					}
+					// Put orphan components back in their array
+					*hwinv.NodeAccels = append(*hwinv.NodeAccels, na)
+				} else {
+					if parent.NodeAccels == nil {
+						arr := make([]*HWInvByLoc, 0, 1)
+						parent.NodeAccels = &arr
+					}
+					*parent.NodeAccels = append(*parent.NodeAccels, na)
 				}
 			}
 		}
@@ -376,6 +434,30 @@ func NewSystemHWInventory(hwlocs []*HWInvByLoc, xName, format string) (*SystemHW
 						parent.NodeHsnNICs = &arr
 					}
 					*parent.NodeHsnNICs = append(*parent.NodeHsnNICs, n)
+				}
+			}
+		}
+
+		// NodeAccelRisers are children of Nodes
+		if nodeAccelRiserArray != nil {
+			for _, n := range *nodeAccelRiserArray {
+				parentID := base.GetHMSCompParent(n.ID)
+				parent, ok := nmap[parentID]
+				if !ok {
+					errlog.Printf("ERROR: Could not find node key %s for %s",
+						parentID, n.ID)
+					if hwinv.NodeAccelRisers == nil {
+						arr := make([]*HWInvByLoc, 0, 1)
+						hwinv.NodeAccelRisers = &arr
+					}
+					// Put orphan components back in their array
+					*hwinv.NodeAccelRisers = append(*hwinv.NodeAccelRisers, n)
+				} else {
+					if parent.NodeAccelRisers == nil {
+						arr := make([]*HWInvByLoc, 0, 1)
+						parent.NodeAccelRisers = &arr
+					}
+					*parent.NodeAccelRisers = append(*parent.NodeAccelRisers, n)
 				}
 			}
 		}
@@ -588,7 +670,24 @@ func NewHWInvByLocs(hwlocs []HWInvByLoc) ([]*HWInvByLoc, error) {
 				return hls, err
 			}
 		case base.NodeAccel:
-			fallthrough
+			if hwloc.HMSNodeAccelLocationInfo == nil {
+				return hls, ErrHWInvMissingLoc
+			}
+			if hwloc.PopulatedFRU.HMSNodeAccelFRUInfo == nil {
+				return hls, ErrHWInvMissingFRUInfo
+			}
+			hwloc.HWInventoryByLocationType = HWInvByLocNodeAccel
+			hwloc.PopulatedFRU.HWInventoryByFRUType = HWInvByFRUNodeAccel
+			c := new(rf.EpProcessor)
+			c.Type = hwloc.Type
+			c.ID = hwloc.ID
+			c.ProcessorRF.Manufacturer = hwloc.PopulatedFRU.HMSNodeAccelFRUInfo.Manufacturer
+			c.ProcessorRF.PartNumber = hwloc.PopulatedFRU.HMSNodeAccelFRUInfo.PartNumber
+			c.ProcessorRF.SerialNumber = hwloc.PopulatedFRU.HMSNodeAccelFRUInfo.SerialNumber
+			hwloc.PopulatedFRU.FRUID, err = rf.GetProcessorFRUID(c)
+			if err != nil {
+				return hls, err
+			}
 		case base.Processor:
 			if hwloc.HMSProcessorLocationInfo == nil {
 				return hls, ErrHWInvMissingLoc
@@ -733,6 +832,25 @@ func NewHWInvByLocs(hwlocs []HWInvByLoc) ([]*HWInvByLoc, error) {
 			if err != nil {
 				return hls, err
 			}
+		case base.NodeAccelRiser:
+			if hwloc.HMSNodeAccelRiserLocationInfo == nil {
+				return hls, ErrHWInvMissingLoc
+			}
+			if hwloc.PopulatedFRU.HMSNodeAccelRiserFRUInfo == nil {
+				return hls, ErrHWInvMissingFRUInfo
+			}
+			hwloc.HWInventoryByLocationType = HWInvByLocNodeAccelRiser
+			hwloc.PopulatedFRU.HWInventoryByFRUType = HWInvByFRUNodeAccelRiser
+			c := new(rf.EpNodeAccelRiser)
+			c.Type = hwloc.Type
+			c.ID = hwloc.ID
+			c.NodeAccelRiserRF.Producer = hwloc.PopulatedFRU.HMSNodeAccelRiserFRUInfo.Producer
+			c.NodeAccelRiserRF.SerialNumber = hwloc.PopulatedFRU.HMSNodeAccelRiserFRUInfo.SerialNumber
+			c.NodeAccelRiserRF.PartNumber = hwloc.PopulatedFRU.HMSNodeAccelRiserFRUInfo.PartNumber
+			hwloc.PopulatedFRU.FRUID, err = rf.GetNodeAccelRiserFRUID(c)
+			if err != nil {
+				return hls, err
+			}
 		case base.NodeBMC:
 			if hwloc.HMSNodeBMCLocationInfo == nil {
 				return hls, ErrHWInvMissingLoc
@@ -814,9 +932,10 @@ type HWInvByLoc struct {
 	HMSHSNBoardLocationInfo      *rf.ChassisLocationInfoRF   `json:"HSNBoardLocationInfo,omitempty"`
 	HMSNodeLocationInfo          *rf.SystemLocationInfoRF    `json:"NodeLocationInfo,omitempty"`
 	HMSProcessorLocationInfo     *rf.ProcessorLocationInfoRF `json:"ProcessorLocationInfo,omitempty"`
+	HMSNodeAccelLocationInfo     *rf.ProcessorLocationInfoRF `json:"NodeAccelLocationInfo,omitempty"`
 	HMSMemoryLocationInfo        *rf.MemoryLocationInfoRF    `json:"MemoryLocationInfo,omitempty"`
 	HMSDriveLocationInfo         *rf.DriveLocationInfoRF     `json:"DriveLocationInfo,omitempty"`
-	HMSHSNNICLocationInfo        *HSNNICLocationInfo         `json:"HSNNICLocationInfo,omitempty"` // This is not discovered via redfish
+	HMSHSNNICLocationInfo        *rf.NALocationInfoRF        `json:"NodeHsnNicLocationInfo,omitempty"`
 
 	HMSPDULocationInfo                      *rf.PowerDistributionLocationInfo `json:"PDULocationInfo,omitempty"`
 	HMSOutletLocationInfo                   *rf.OutletLocationInfo            `json:"OutletLocationInfo,omitempty"`
@@ -824,6 +943,7 @@ type HWInvByLoc struct {
 	HMSNodeEnclosurePowerSupplyLocationInfo *rf.PowerSupplyLocationInfoRF     `json:"NodeEnclosurePowerSupplyLocationInfo,omitempty"`
 	HMSNodeBMCLocationInfo                  *rf.ManagerLocationInfoRF         `json:"NodeBMCLocationInfo,omitempty"`
 	HMSRouterBMCLocationInfo                *rf.ManagerLocationInfoRF         `json:"RouterBMCLocationInfo,omitempty"`
+	HMSNodeAccelRiserLocationInfo           *rf.NodeAccelRiserLocationInfoRF  `json:"NodeAccelRiserLocationInfo,omitempty"`
 	// TODO: Remaining types in hmsTypeArrays
 
 	// If status != empty, up to one of following, matching above *Info.
@@ -844,15 +964,17 @@ const (
 	HWInvByLocHSNBoard                 string = "HWInvByLocHSNBoard"
 	HWInvByLocNode                     string = "HWInvByLocNode"
 	HWInvByLocProcessor                string = "HWInvByLocProcessor"
+	HWInvByLocNodeAccel                string = "HWInvByLocNodeAccel"
 	HWInvByLocDrive                    string = "HWInvByLocDrive"
 	HWInvByLocMemory                   string = "HWInvByLocMemory"
-	HWInvByLocHSNNIC                   string = "HWInvByLocHSNNIC"
+	HWInvByLocHSNNIC                   string = "HWInvByLocNodeHsnNic"
 	HWInvByLocPDU                      string = "HWInvByLocPDU"
 	HWInvByLocOutlet                   string = "HWInvByLocOutlet"
 	HWInvByLocCMMRectifier             string = "HWInvByLocCMMRectifier"
 	HWInvByLocNodeEnclosurePowerSupply string = "HWInvByLocNodeEnclosurePowerSupply"
 	HWInvByLocNodeBMC                  string = "HWInvByLocNodeBMC"
 	HWInvByLocRouterBMC                string = "HWInvByLocRouterBMC"
+	HWInvByLocNodeAccelRiser           string = "HWInvByLocNodeAccelRiser"
 )
 
 ////////////////////////////////////////////////////////////////////////////
@@ -874,15 +996,17 @@ func (hw *HWInvByLoc) DecodeLocationInfo(locInfoJSON []byte) error {
 		rfChassisLocationInfo                  *rf.ChassisLocationInfoRF
 		rfSystemLocationInfo                   *rf.SystemLocationInfoRF
 		rfProcessorLocationInfo                *rf.ProcessorLocationInfoRF
+		rfNodeAccelLocationInfo                *rf.ProcessorLocationInfoRF
 		rfDriveLocationInfo                    *rf.DriveLocationInfoRF
 		rfMemoryLocationInfo                   *rf.MemoryLocationInfoRF
-		hmsHSNNICLocationInfo                  *HSNNICLocationInfo
+		rfHSNNICLocationInfo                   *rf.NALocationInfoRF
 		rfPDULocationInfo                      *rf.PowerDistributionLocationInfo
 		rfOutletLocationInfo                   *rf.OutletLocationInfo
 		rfCMMRectifierLocationInfo             *rf.PowerSupplyLocationInfoRF
 		rfNodeEnclosurePowerSupplyLocationInfo *rf.PowerSupplyLocationInfoRF
 		rfNodeBMCLocationInfo                  *rf.ManagerLocationInfoRF
 		rfRouterBMCLocationInfo                *rf.ManagerLocationInfoRF
+		rfNodeAccelRiserLocationInfo           *rf.NodeAccelRiserLocationInfoRF
 	)
 
 	switch base.ToHMSType(hw.Type) {
@@ -933,7 +1057,12 @@ func (hw *HWInvByLoc) DecodeLocationInfo(locInfoJSON []byte) error {
 		}
 	// HWInv based on "GPU" type
 	case base.NodeAccel:
-		fallthrough
+		rfNodeAccelLocationInfo = new(rf.ProcessorLocationInfoRF)
+		err = json.Unmarshal(locInfoJSON, rfNodeAccelLocationInfo)
+		if err == nil {
+			hw.HMSNodeAccelLocationInfo = rfNodeAccelLocationInfo
+			hw.HWInventoryByLocationType = HWInvByLocNodeAccel
+		}
 	// HWInv based on Redfish "Processor" Type.
 	case base.Processor:
 		rfProcessorLocationInfo = new(rf.ProcessorLocationInfoRF)
@@ -960,10 +1089,10 @@ func (hw *HWInvByLoc) DecodeLocationInfo(locInfoJSON []byte) error {
 		}
 	// HWInv based on Redfish "HSN NIC" Type.
 	case base.NodeHsnNic:
-		hmsHSNNICLocationInfo = new(HSNNICLocationInfo)
-		err = json.Unmarshal(locInfoJSON, hmsHSNNICLocationInfo)
+		rfHSNNICLocationInfo = new(rf.NALocationInfoRF)
+		err = json.Unmarshal(locInfoJSON, rfHSNNICLocationInfo)
 		if err == nil {
-			hw.HMSHSNNICLocationInfo = hmsHSNNICLocationInfo
+			hw.HMSHSNNICLocationInfo = rfHSNNICLocationInfo
 			hw.HWInventoryByLocationType = HWInvByLocHSNNIC
 		}
 	// HWInv based on Redfish "PowerDistribution" (aka PDU) Type.
@@ -997,6 +1126,13 @@ func (hw *HWInvByLoc) DecodeLocationInfo(locInfoJSON []byte) error {
 		if err == nil {
 			hw.HMSNodeEnclosurePowerSupplyLocationInfo = rfNodeEnclosurePowerSupplyLocationInfo
 			hw.HWInventoryByLocationType = HWInvByLocNodeEnclosurePowerSupply
+		}
+	case base.NodeAccelRiser:
+		rfNodeAccelRiserLocationInfo = new(rf.NodeAccelRiserLocationInfoRF)
+		err = json.Unmarshal(locInfoJSON, rfNodeAccelRiserLocationInfo)
+		if err == nil {
+			hw.HMSNodeAccelRiserLocationInfo = rfNodeAccelRiserLocationInfo
+			hw.HWInventoryByLocationType = HWInvByLocNodeAccelRiser
 		}
 	case base.NodeBMC:
 		rfNodeBMCLocationInfo = new(rf.ManagerLocationInfoRF)
@@ -1053,7 +1189,7 @@ func (hw *HWInvByLoc) EncodeLocationInfo() ([]byte, error) {
 		locInfoJSON, err = json.Marshal(hw.HMSNodeLocationInfo)
 	// HWInv based on "GPU" type
 	case base.NodeAccel:
-		fallthrough
+		locInfoJSON, err = json.Marshal(hw.HMSNodeAccelLocationInfo)
 	// HWInv based on Redfish "Processor" Type.
 	case base.Processor:
 		locInfoJSON, err = json.Marshal(hw.HMSProcessorLocationInfo)
@@ -1078,6 +1214,8 @@ func (hw *HWInvByLoc) EncodeLocationInfo() ([]byte, error) {
 		locInfoJSON, err = json.Marshal(hw.HMSCMMRectifierLocationInfo)
 	case base.NodeEnclosurePowerSupply:
 		locInfoJSON, err = json.Marshal(hw.HMSNodeEnclosurePowerSupplyLocationInfo)
+	case base.NodeAccelRiser:
+		locInfoJSON, err = json.Marshal(hw.HMSNodeAccelRiserLocationInfo)
 	case base.NodeBMC:
 		locInfoJSON, err = json.Marshal(hw.HMSNodeBMCLocationInfo)
 	case base.RouterBMC:
@@ -1121,9 +1259,10 @@ type HWInvByFRU struct {
 	HMSHSNBoardFRUInfo      *rf.ChassisFRUInfoRF   `json:"HSNBoardFRUInfo,omitempty"`
 	HMSNodeFRUInfo          *rf.SystemFRUInfoRF    `json:"NodeFRUInfo,omitempty"`
 	HMSProcessorFRUInfo     *rf.ProcessorFRUInfoRF `json:"ProcessorFRUInfo,omitempty"`
+	HMSNodeAccelFRUInfo     *rf.ProcessorFRUInfoRF `json:"NodeAccelFRUInfo,omitempty"`
 	HMSMemoryFRUInfo        *rf.MemoryFRUInfoRF    `json:"MemoryFRUInfo,omitempty"`
 	HMSDriveFRUInfo         *rf.DriveFRUInfoRF     `json:"DriveFRUInfo,omitempty"`
-	HMSHSNNICFRUInfo        *HSNNICFRUInfo         `json:"HSNNICFRUInfo,omitempty"` // Not discovered via redfish
+	HMSHSNNICFRUInfo        *rf.NAFRUInfoRF        `json:"NodeHsnNicFRUInfo,omitempty"`
 
 	HMSPDUFRUInfo                      *rf.PowerDistributionFRUInfo `json:"PDUFRUInfo,omitempty"`
 	HMSOutletFRUInfo                   *rf.OutletFRUInfo            `json:"OutletFRUInfo,omitempty"`
@@ -1131,8 +1270,9 @@ type HWInvByFRU struct {
 	HMSNodeEnclosurePowerSupplyFRUInfo *rf.PowerSupplyFRUInfoRF     `json:"NodeEnclosurePowerSupplyFRUInfo,omitempty"`
 	HMSNodeBMCFRUInfo                  *rf.ManagerFRUInfoRF         `json:"NodeBMCFRUInfo,omitempty"`
 	HMSRouterBMCFRUInfo                *rf.ManagerFRUInfoRF         `json:"RouterBMCFRUInfo,omitempty"`
+	HMSNodeAccelRiserFRUInfo           *rf.NodeAccelRiserFRUInfoRF  `json:"NodeAccelRiserFRUInfo,omitempty"`
 
-	// TODO: Remaining types in hmsTypeArrays
+	// TODO: Remaining types in hmsTypeArray
 }
 
 // HWInventoryByFRUType properties.  Used to select proper subtype in
@@ -1147,15 +1287,17 @@ const (
 	HWInvByFRUHSNBoard                 string = "HWInvByFRUHSNBoard"
 	HWInvByFRUNode                     string = "HWInvByFRUNode"
 	HWInvByFRUProcessor                string = "HWInvByFRUProcessor"
+	HWInvByFRUNodeAccel                string = "HWInvByFRUNodeAccel"
 	HWInvByFRUMemory                   string = "HWInvByFRUMemory"
 	HWInvByFRUDrive                    string = "HWInvByFRUDrive"
-	HWInvByFRUHSNNIC                   string = "HWInvByFRUHSNNIC"
+	HWInvByFRUHSNNIC                   string = "HWInvByFRUNodeHsnNic"
 	HWInvByFRUPDU                      string = "HWInvByFRUPDU"
 	HWInvByFRUOutlet                   string = "HWInvByFRUOutlet"
 	HWInvByFRUCMMRectifier             string = "HWInvByFRUCMMRectifier"
 	HWInvByFRUNodeEnclosurePowerSupply string = "HWInvByFRUNodeEnclosurePowerSupply"
 	HWInvByFRUNodeBMC                  string = "HWInvByFRUNodeBMC"
 	HWInvByFRURouterBMC                string = "HWInvByFRURouterBMC"
+	HWInvByFRUNodeAccelRiser           string = "HWInvByFRUNodeAccelRiser"
 )
 
 ////////////////////////////////////////////////////////////////////////////
@@ -1177,15 +1319,17 @@ func (hf *HWInvByFRU) DecodeFRUInfo(fruInfoJSON []byte) error {
 		rfChassisFRUInfo                  *rf.ChassisFRUInfoRF
 		rfSystemFRUInfo                   *rf.SystemFRUInfoRF
 		rfProcessorFRUInfo                *rf.ProcessorFRUInfoRF
+		rfNodeAccelFRUInfo                *rf.ProcessorFRUInfoRF
 		rfMemoryFRUInfo                   *rf.MemoryFRUInfoRF
 		rfDriveFRUInfo                    *rf.DriveFRUInfoRF
-		hsnNICFRUInfo                     *HSNNICFRUInfo
+		rfHSNNICFRUInfo                   *rf.NAFRUInfoRF
 		rfPDUFRUInfo                      *rf.PowerDistributionFRUInfo
 		rfOutletFRUInfo                   *rf.OutletFRUInfo
 		rfCMMRectifierFRUInfo             *rf.PowerSupplyFRUInfoRF
 		rfNodeEnclosurePowerSupplyFRUInfo *rf.PowerSupplyFRUInfoRF
 		rfNodeBMCFRUInfo                  *rf.ManagerFRUInfoRF
 		rfRouterBMCFRUInfo                *rf.ManagerFRUInfoRF
+		rfNodeAccelRiserFRUInfo           *rf.NodeAccelRiserFRUInfoRF
 	)
 
 	switch base.ToHMSType(hf.Type) {
@@ -1236,7 +1380,12 @@ func (hf *HWInvByFRU) DecodeFRUInfo(fruInfoJSON []byte) error {
 		}
 	// HWInv based on "GPU" type
 	case base.NodeAccel:
-		fallthrough
+		rfNodeAccelFRUInfo = new(rf.ProcessorFRUInfoRF)
+		err = json.Unmarshal(fruInfoJSON, rfNodeAccelFRUInfo)
+		if err == nil {
+			hf.HMSNodeAccelFRUInfo = rfNodeAccelFRUInfo
+			hf.HWInventoryByFRUType = HWInvByFRUNodeAccel
+		}
 	// HWInv based on Redfish "Processor" Type.
 	case base.Processor:
 		rfProcessorFRUInfo = new(rf.ProcessorFRUInfoRF)
@@ -1263,10 +1412,10 @@ func (hf *HWInvByFRU) DecodeFRUInfo(fruInfoJSON []byte) error {
 		}
 	// HWInv based on Redfish "Memory" Type.
 	case base.NodeHsnNic:
-		hsnNICFRUInfo = new(HSNNICFRUInfo)
-		err = json.Unmarshal(fruInfoJSON, hsnNICFRUInfo)
+		rfHSNNICFRUInfo = new(rf.NAFRUInfoRF)
+		err = json.Unmarshal(fruInfoJSON, rfHSNNICFRUInfo)
 		if err == nil {
-			hf.HMSHSNNICFRUInfo = hsnNICFRUInfo
+			hf.HMSHSNNICFRUInfo = rfHSNNICFRUInfo
 			hf.HWInventoryByFRUType = HWInvByFRUHSNNIC
 		}
 	// HWInv based on Redfish "PowerDistribution" Type.
@@ -1302,6 +1451,14 @@ func (hf *HWInvByFRU) DecodeFRUInfo(fruInfoJSON []byte) error {
 		if err == nil {
 			hf.HMSNodeEnclosurePowerSupplyFRUInfo = rfNodeEnclosurePowerSupplyFRUInfo
 			hf.HWInventoryByFRUType = HWInvByFRUNodeEnclosurePowerSupply
+		}
+	// HWInv based on Redfish "NodeAccelRiser" Type.
+	case base.NodeAccelRiser:
+		rfNodeAccelRiserFRUInfo = new(rf.NodeAccelRiserFRUInfoRF)
+		err = json.Unmarshal(fruInfoJSON, rfNodeAccelRiserFRUInfo)
+		if err == nil {
+			hf.HMSNodeAccelRiserFRUInfo = rfNodeAccelRiserFRUInfo
+			hf.HWInventoryByFRUType = HWInvByFRUNodeAccelRiser
 		}
 	// HWInv based on Redfish "Manager" Type.
 	case base.NodeBMC:
@@ -1360,7 +1517,7 @@ func (hf *HWInvByFRU) EncodeFRUInfo() ([]byte, error) {
 		fruInfoJSON, err = json.Marshal(hf.HMSNodeFRUInfo)
 	// HWInv based on "GPU" type
 	case base.NodeAccel:
-		fallthrough
+		fruInfoJSON, err = json.Marshal(hf.HMSNodeAccelFRUInfo)
 	// HWInv based on Redfish "Processor" Type.
 	case base.Processor:
 		fruInfoJSON, err = json.Marshal(hf.HMSProcessorFRUInfo)
@@ -1387,6 +1544,9 @@ func (hf *HWInvByFRU) EncodeFRUInfo() ([]byte, error) {
 	// HWInv based on Redfish "PowerSupply" Type.
 	case base.NodeEnclosurePowerSupply:
 		fruInfoJSON, err = json.Marshal(hf.HMSNodeEnclosurePowerSupplyFRUInfo)
+	// HWInv based on Redfish "NodeAccelRiser" Type.
+	case base.NodeAccelRiser:
+		fruInfoJSON, err = json.Marshal(hf.HMSNodeAccelRiserFRUInfo)
 	// HWInv based on Redfish "Manager" Type.
 	case base.NodeBMC:
 		fruInfoJSON, err = json.Marshal(hf.HMSNodeBMCFRUInfo)
