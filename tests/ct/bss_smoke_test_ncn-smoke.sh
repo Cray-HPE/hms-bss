@@ -1,7 +1,25 @@
 #!/bin/bash -l
+# MIT License
 #
-# Copyright 2019-2020 Hewlett Packard Enterprise Development LP
+# (C) Copyright [2021] Hewlett Packard Enterprise Development LP
 #
+# Permission is hereby granted, free of charge, to any person obtaining a
+# copy of this software and associated documentation files (the "Software"),
+# to deal in the Software without restriction, including without limitation
+# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+# and/or sell copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+# OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+# ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+# OTHER DEALINGS IN THE SOFTWARE.
 ###############################################################
 #
 #     CASM Test - Cray Inc.
@@ -11,7 +29,7 @@
 #     DESCRIPTION       : Automated test for verifying basic BSS API
 #                         infrastructure and installation on Cray Shasta
 #                         systems.
-#                         
+#
 #     AUTHOR            : Mitch Schooler
 #
 #     DATE STARTED      : 04/29/2019
@@ -25,7 +43,7 @@
 #
 #     INPUT SPECIFICATIONS
 #       Usage: bss_smoke_test
-#       
+#
 #       Arguments: None
 #
 #     OUTPUT SPECIFICATIONS
@@ -35,7 +53,7 @@
 #     DESIGN DESCRIPTION
 #       This smoke test is based on the Shasta health check srv_check.sh
 #       script in the CrayTest repository that verifies the basic health of
-#       various microservices but instead focuses exclusively on the BSS 
+#       various microservices but instead focuses exclusively on the BSS
 #       API. It was implemented to run on the NCN of the system under test
 #       within the DST group's Continuous Testing (CT) framework as part of
 #       the ncn-smoke test suite.
