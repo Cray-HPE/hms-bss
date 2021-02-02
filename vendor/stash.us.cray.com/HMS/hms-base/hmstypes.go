@@ -1,6 +1,24 @@
-/*
- * // Copyright 2018-2020  Hewlett Packard Enterprise Development LP
- */
+// MIT License
+//
+// (C) Copyright [2018-2021] Hewlett Packard Enterprise Development LP
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+// THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+// OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+// ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
 
 package base
 
@@ -34,6 +52,7 @@ type HMSType string
 // relationship.
 const (
 	CDU                      HMSType = "CDU"                      // dD
+	CDUMgmtSwitch            HMSType = "CDUMgmtSwitch"            // dDwW
 	CabinetCDU               HMSType = "CabinetCDU"               // xXdD
 	Cabinet                  HMSType = "Cabinet"                  // xX
 	CabinetBMC               HMSType = "CabinetBMC"               // xXbB
@@ -64,6 +83,7 @@ const (
 	NodeHsnNic               HMSType = "NodeHsnNic"               // xXcCsSbBnNhH
 	Memory                   HMSType = "Memory"                   // xXcCsSbBnNdD
 	NodeAccel                HMSType = "NodeAccel"                // xXcCsSbBnNaA
+	NodeAccelRiser           HMSType = "NodeAccelRiser"           // xXcCsSbBnNrR
 	NodeFpga                 HMSType = "NodeFpga"                 // xXcCsSbBfF
 	HSNAsic                  HMSType = "HSNAsic"                  // xXcCrRaA
 	RouterFpga               HMSType = "RouterFpga"               // xXcCrRfF
@@ -77,6 +97,7 @@ const (
 	HSNConnector        HMSType = "HSNConnector"        // xXcCrRjJ
 	HSNConnectorPort    HMSType = "HSNConnectorPort"    // xXcCrRjJpP
 	MgmtSwitch          HMSType = "MgmtSwitch"          // xXcCwW
+	MgmtHLSwitch        HMSType = "MgmtHLSwitch"        // xXcChHsS
 	MgmtSwitchConnector HMSType = "MgmtSwitchConnector" // xXcCwWjJ
 
 	// Special types and wildcards
@@ -134,7 +155,7 @@ var hmsCompRecognitionTable = map[string]hmsCompRecognitionEntry{
 	"partition": {
 		Partition,
 		HMSTypeInvalid,
-		regexp.MustCompile("^p([0-9]+).([0-9]+)$"),
+		regexp.MustCompile("^p([0-9]+)(.([0-9]+))?$"),
 		"p%d.%d",
 		2,
 	},
@@ -158,6 +179,13 @@ var hmsCompRecognitionTable = map[string]hmsCompRecognitionEntry{
 		regexp.MustCompile("^d([0-9]+)$"),
 		"d%d",
 		1,
+	},
+	"cdumgmtswitch": {
+		CDUMgmtSwitch,
+		CDU,
+		regexp.MustCompile("^d([0-9]+)w([0-9]+)$"),
+		"d%dw%d",
+		2,
 	},
 	"cabinetcdu": {
 		CabinetCDU,
@@ -355,6 +383,13 @@ var hmsCompRecognitionTable = map[string]hmsCompRecognitionEntry{
 		"x%dc%ds%db%dn%da%d",
 		6,
 	},
+	"nodeaccelriser": {
+		NodeAccelRiser,
+		Node,
+		regexp.MustCompile("^x([0-9]{1,4})c([0-7])s([0-9]+)b([0-9]+)n([0-9]+)r([0-7])$"),
+		"x%dc%ds%db%dn%dr%d",
+		6,
+	},
 	"memory": {
 		Memory,
 		Node, //parent is actually a socket but we'll use node
@@ -449,8 +484,15 @@ var hmsCompRecognitionTable = map[string]hmsCompRecognitionEntry{
 	"mgmtswitchconnector": {
 		MgmtSwitchConnector,
 		MgmtSwitch,
-		regexp.MustCompile("^x([0-9]{1,4})c([0-7])w([0-9]+)j([1-9][0-9]*)$"),
+		regexp.MustCompile("^x([0-9]{1,4})c([0-7])w([1-9][0-9]*)j([1-9][0-9]*)$"),
 		"x%dc%dw%dj%d",
+		4,
+	},
+	"mgmthlswitch": {
+		MgmtHLSwitch,
+		Chassis,
+		regexp.MustCompile("^x([0-9]{1,4})c([0-7])h([1-9][0-9]*)s([1-9])$"),
+		"x%dc%dh%ds%d",
 		4,
 	},
 	//	Module:  {  // ComputeModule or RouterModule.  Can we support this?

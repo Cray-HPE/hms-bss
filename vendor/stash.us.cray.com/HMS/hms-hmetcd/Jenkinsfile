@@ -1,6 +1,7 @@
 @Library('dst-shared@master') _
 
 dockerBuildPipeline {
+        githubPushRepo = "Cray-HPE/hms-hmetcd"
         repository = "cray"
         imagePrefix = "hms"
         app = "hmetcd"

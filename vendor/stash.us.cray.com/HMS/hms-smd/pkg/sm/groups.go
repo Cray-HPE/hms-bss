@@ -1,4 +1,25 @@
-// Copyright (c) 2019 Cray Inc. All Rights Reserved.
+// MIT License
+//
+// (C) Copyright [2019-2021] Hewlett Packard Enterprise Development LP
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+// THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+// OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+// ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+
 package sm
 
 // This package defines structures for groups and partitions
@@ -17,6 +38,8 @@ var e = base.NewHMSError("sm", "GenericError")
 
 var ErrGroupBadField = base.NewHMSError("sm",
 	"group or partition field has invalid characters")
+var ErrPartBadName = base.NewHMSError("sm",
+	"Bad partition name. Must be p# or p#.#")
 
 // Normalize group field by lowercasing
 func NormalizeGroupField(f string) string {
@@ -249,8 +272,8 @@ func (p *Partition) Verify() error {
 	}
 	p.verified = true
 
-	if err := VerifyGroupField(p.Name); err != nil {
-		return err
+	if base.GetHMSType(p.Name) != base.Partition {
+		return ErrPartBadName
 	}
 	for _, f := range p.Tags {
 		if err := VerifyGroupField(f); err != nil {
