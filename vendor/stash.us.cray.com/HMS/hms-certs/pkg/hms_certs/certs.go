@@ -1,4 +1,25 @@
-// Copyright 2020 Hewlett Packard Enterprise Development LP
+// MIT License
+// 
+// (C) Copyright [2020-2021] Hewlett Packard Enterprise Development LP
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+// THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+// OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+// ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+
 
 package hms_certs
 
@@ -23,6 +44,7 @@ import (
 	"stash.us.cray.com/HMS/hms-base"
 	sstorage "stash.us.cray.com/HMS/hms-securestorage"
 	"github.com/sirupsen/logrus"
+	"github.com/hashicorp/go-retryablehttp"
 )
 
 
@@ -101,8 +123,10 @@ type CertStorage struct {
 // HTTP client pack
 
 type HTTPClientPair struct {
-	SecureClient   *http.Client
-	InsecureClient *http.Client
+	SecureClient   *retryablehttp.Client
+	InsecureClient *retryablehttp.Client
+	MaxRetryCount  int
+	MaxRetryWait   int
 	FailedOver     bool			//true if most recent op failed over
 }
 
@@ -177,6 +201,7 @@ var __httpClient *http.Client
 var __vaultEnabled = true
 var cbmap  = make(map[string]bool)
 var vstore = make(map[string]VaultCertData)
+var instName string
 
 
 // Initialize the certs package.  This pretty much just sets up the logging.
@@ -195,6 +220,11 @@ func Init(loggerP *logrus.Logger) {
 	if ((ven == "0") || (strings.ToLower(ven) == "false")) {
 		__vaultEnabled = false
 	}
+}
+
+func InitInstance(loggerP *logrus.Logger, inst string) {
+	instName = inst
+	Init(loggerP)
 }
 
 func seclog_Errorf(fmt string, args ...interface{}) {
@@ -344,6 +374,7 @@ func getVaultToken() (string,error) {
 		return "", fmt.Errorf("ERROR creating a new request for kubernetes/login: %v",
 			reqerr)
 	}
+	base.SetHTTPUserAgent(req,instName)
 	defer req.Body.Close()
 	rsp,rsperr := client.Do(req)
 	if (rsperr != nil) {
@@ -477,6 +508,7 @@ func createTargCerts(reqData *vaultCertReq, vaultToken string,
 		return fmt.Errorf("ERROR creating req for vault cert data: %v",
 			reqerr)
 	}
+	base.SetHTTPUserAgent(req,instName)
 	req.Header.Set("X-Vault-Token",vaultToken)
 	rsp,rsperr := client.Do(req)
 	if (rsperr != nil) {
@@ -701,6 +733,7 @@ func FetchCAChain(uri string) (string,error) {
 			return "",fmt.Errorf("ERROR creating req for vault ca chain: %v",
 				reqerr)
 		}
+		base.SetHTTPUserAgent(req,instName)
 		req.Header.Set("X-Vault-Token",vaultToken)
 		rsp,rsperr := client.Do(req)
 		if (rsperr != nil) {
@@ -858,15 +891,18 @@ func FetchCertData(xname string, domain string) (VaultCertData,error) {
 	return jdata,nil
 }
 
-// Given the URI (pathname or vault URI) of a CA cert chain bundle,
-// create a secure HTTP client.
+// Do the grunt work of creating a secure HTTP client.  A retryable http client
+// is used underneath, but it can be created with no retries to mimic a "plain"
+// HTTP client.
 //
-// timeoutSecs(in): Timeout, in seconds, for HTTP transport/client connections
-// caURI(in):       URI of CA chain data.  Can be a pathname or VaultCAChainURI
-// Return:          Client for secure HTTP use.
-//                  nil on success, non-nil error if something went wrong.
+// caURI(in):         CA trust bundle URI
+// timeoutSecs(in)    Max timeout, in seconds.
+// maxRetryCount(in): Max number of times to retry failures.  0 == try once.
+// maxRetrySecs(in):  Max back-off time, in seconds, for retries.
+// Return:            HTTP client, err string on error, nil on success.
 
-func CreateSecureHTTPClient(timeoutSecs int, caURI string) (*http.Client,error) {
+func createSecHTTPClient(caURI string, timeoutSecs int,
+                         maxRetryCount int, maxRetrySecs int) (*retryablehttp.Client,error) {
 	caChain,err := FetchCAChain(caURI)
 	if (err != nil) {
 		return nil,err
@@ -883,21 +919,77 @@ func CreateSecureHTTPClient(timeoutSecs int, caURI string) (*http.Client,error) 
 	client := &http.Client{Transport: transport,
 	                       Timeout: (time.Duration(timeoutSecs) * time.Second),}
 
-	return client,nil
+	rtClient := retryablehttp.NewClient()
+	rtClient.RetryMax = maxRetryCount
+	rtClient.RetryWaitMax = time.Duration(maxRetrySecs) * time.Second
+	rtClient.HTTPClient = client
+
+	return rtClient,nil
 }
 
-// Create a non-cert-verified HTTP transport.
+// Given the URI (pathname or vault URI) of a CA cert chain bundle,
+// create a secure "normal" (non-retrying) HTTP client.
+//
+// timeoutSecs(in): Timeout, in seconds, for HTTP transport/client connections
+// caURI(in):       URI of CA chain data.  Can be a pathname or VaultCAChainURI
+// Return:          Client for secure HTTP use.
+//                  nil on success, non-nil error if something went wrong.
+
+func CreateSecureHTTPClient(timeoutSecs int, caURI string) (*retryablehttp.Client,error) {
+	cl,err := createSecHTTPClient(caURI,timeoutSecs,0,1)
+	return cl,err
+}
+
+// Given the URI (pathname or vault URI) of a CA cert chain bundle,
+// create a secure retryable (non-retrying) HTTP client.
+//
+// caURI(in):         CA trust bundle URI
+// timeoutSecs(in)    Max timeout, in seconds.
+// maxRetryCount(in): Max number of times to retry failures.  0 == try once.
+// maxRetrySecs(in):  Max back-off time, in seconds, for retries.
+// Return:            HTTP client pair, err string on error, nil on success.
+
+func CreateRetryableSecureHTTPClient(caURI string, timeoutSecs int,
+                                     maxRetryCount int, maxRetrySecs int) (*retryablehttp.Client,error) {
+	cl,err := createSecHTTPClient(caURI,timeoutSecs,maxRetryCount,maxRetrySecs)
+	return cl,err
+}
+
+// Do the grunt work of creating a non-TLS-validated HTTP client.
+//
+// timeoutSecs(in)    Max timeout, in seconds.
+// maxRetryCount(in): Max number of times to retry failures.  0 == try once.
+// maxRetrySecs(in):  Max back-off time, in seconds, for retries.
+// Return:            HTTP client, err string on error, nil on success.
+
+func createHTTPClient(timeoutSecs int, maxRetryCount int,
+                      maxRetrySecs int) (*retryablehttp.Client,error) {
+	client := &http.Client{Transport:
+	              &http.Transport{TLSClientConfig:
+	                  &tls.Config{InsecureSkipVerify: true,},},
+	                  Timeout: (time.Duration(timeoutSecs) * time.Second),}
+	rtClient := retryablehttp.NewClient()
+	rtClient.RetryMax = maxRetryCount
+	rtClient.RetryWaitMax = time.Duration(maxRetrySecs) * time.Second
+	rtClient.HTTPClient = client
+	return rtClient,nil
+}
+
+// Create a non-cert-verified HTTP transport, either normal or retryable.
 //
 // Args:   None.
 // Return: Client for secure HTTP use.
 //         nil on success, non-nil error if something went wrong.
 
-func CreateInsecureHTTPClient(timeoutSecs int) (*http.Client,error) {
-	client := &http.Client{Transport:
-	              &http.Transport{TLSClientConfig:
-	                  &tls.Config{InsecureSkipVerify: true,},},
-	                  Timeout: (time.Duration(timeoutSecs) * time.Second),}
-	return client,nil
+func CreateInsecureHTTPClient(timeoutSecs int) (*retryablehttp.Client,error) {
+	cl,err := createHTTPClient(timeoutSecs,0,1)
+	return cl,err
+}
+
+func CreateRetryableInsecureHTTPClient(timeoutSecs int, maxRetryCount int,
+                                       maxRetrySecs int) (*retryablehttp.Client,error) {
+	cl,err := createHTTPClient(timeoutSecs,maxRetryCount,maxRetrySecs)
+	return cl,err
 }
 
 // Create a struct containing both a cert-validated and a non-cert-validated
@@ -909,7 +1001,7 @@ func CreateInsecureHTTPClient(timeoutSecs int) (*http.Client,error) {
 //                  nil on success, non-nil error if something went wrong.
 
 func CreateHTTPClientPair(caURI string, timeoutSecs int) (*HTTPClientPair,error) {
-	var secClient,insecClient *http.Client
+	var secClient,insecClient *retryablehttp.Client
 	var err error
 
 	// No CA URI, create insecure transports and populate both with the same
@@ -937,16 +1029,46 @@ func CreateHTTPClientPair(caURI string, timeoutSecs int) (*HTTPClientPair,error)
 	return &HTTPClientPair{SecureClient: secClient, InsecureClient: insecClient,}, nil
 }
 
+func CreateRetryableHTTPClientPair(caURI string, timeoutSecs int,
+                                   maxRetryCount int, maxRetrySecs int) (*HTTPClientPair,error) {
+	var secClient,insecClient *retryablehttp.Client
+	var err error
+
+	// No CA URI, create insecure transports and populate both with the same
+	// transport.
+
+	if (caURI == "") {
+		logger.Warningf("CA URI is empty, creating non-cert validated HTTPS transport.")
+		secClient,err = CreateRetryableInsecureHTTPClient(timeoutSecs,maxRetryCount,maxRetrySecs)
+		if (err != nil) {
+			return nil,err
+		}
+		insecClient = secClient
+	} else {
+		secClient,err = CreateRetryableSecureHTTPClient(caURI,timeoutSecs,maxRetryCount,maxRetrySecs)
+		if (err != nil) {
+			return nil,err
+		}
+
+		insecClient,err = CreateRetryableInsecureHTTPClient(timeoutSecs,maxRetryCount,maxRetrySecs)
+		if (err != nil) {
+			return nil,err
+		}
+	}
+
+	return &HTTPClientPair{SecureClient: secClient, InsecureClient: insecClient,}, nil
+}
+
 func (p *HTTPClientPair) CloseIdleConnections() {
 	if (p == nil) {
 		return
 	}
 	p.FailedOver = false
 	if (p.SecureClient != nil) {
-		p.SecureClient.CloseIdleConnections()
+		p.SecureClient.HTTPClient.CloseIdleConnections()
 	}
 	if (p.InsecureClient != nil) {
-		p.InsecureClient.CloseIdleConnections()
+		p.InsecureClient.HTTPClient.CloseIdleConnections()
 	}
 }
 
@@ -958,6 +1080,12 @@ func (p *HTTPClientPair) Do(req *http.Request) (*http.Response,error) {
 	if (p == nil) {
 		return rsp,fmt.Errorf("%s: Client pair is nil.",funcName)
 	}
+	rtReq,rtErr := retryablehttp.FromRequest(req)
+	if (rtErr != nil) {
+		return rsp,fmt.Errorf("%s: Can't create retryable HTTP request: %v",
+					funcName,rtErr)
+	}
+	base.SetHTTPUserAgent(rtReq.Request,instName)
 	p.FailedOver = false
 	url := req.URL.Host + req.URL.Path
 
@@ -967,7 +1095,7 @@ func (p *HTTPClientPair) Do(req *http.Request) (*http.Response,error) {
 	}
 
 	if (p.SecureClient != nil) {
-		rsp,err = p.SecureClient.Do(req)
+		rsp,err = p.SecureClient.Do(rtReq)
 		if (err != nil) {
 			if (p.InsecureClient != p.SecureClient) {
 				seclog_Errorf("%s: TLS-secure transport failed for '%s': %v -- trying insecure client.",
@@ -979,7 +1107,7 @@ func (p *HTTPClientPair) Do(req *http.Request) (*http.Response,error) {
 				}
 
 				p.FailedOver = true
-				rsp,err = p.InsecureClient.Do(req)
+				rsp,err = p.InsecureClient.Do(rtReq)
 				if (err != nil) {
 					seclog_Errorf("%s: TLS-insecure transport failed for '%s': %v",
 						funcName,url,err)
@@ -992,7 +1120,7 @@ func (p *HTTPClientPair) Do(req *http.Request) (*http.Response,error) {
 	} else {
 		seclog_Warnf("%s: TLS-secure transport not available, using insecure.",
 				funcName)
-		rsp,err = p.InsecureClient.Do(req)
+		rsp,err = p.InsecureClient.Do(rtReq)
 		if (err != nil) {
 			seclog_Errorf("%s: TLS-insecure transport failed for '%s': %v",
 				funcName,url,err)
@@ -1006,53 +1134,14 @@ func (p *HTTPClientPair) Do(req *http.Request) (*http.Response,error) {
 func (p *HTTPClientPair) Get(url string) (*http.Response,error) {
 	funcName := "HTTPClientPair.Get()"
 	var rsp *http.Response
-	var err error
 
 	if (p == nil) {
 		return rsp,fmt.Errorf("%s: Client pair is nil.",funcName)
 	}
-	p.FailedOver = false
 
-	if ((p.SecureClient == nil) && (p.InsecureClient == nil)) {
-		return rsp,fmt.Errorf("%s: Client pair is uninitialized, not usable.",
-					funcName)
-	}
-
-	if (p.SecureClient != nil) {
-		rsp,err = p.SecureClient.Get(url)
-		if (err != nil) {
-			if (p.InsecureClient != p.SecureClient) {
-				seclog_Errorf("%s: TLS-secure transport failed for '%s': %v -- trying insecure client.",
-					funcName,url,err)
-				if (p.InsecureClient == nil) {
-					emsg := fmt.Sprintf("%s: Failover to insecure transport failed: insecure client is nil.",funcName)
-					seclog_Errorf(emsg)
-					return rsp,fmt.Errorf(emsg)
-				}
-
-				p.FailedOver = true
-				rsp,err = p.InsecureClient.Get(url)
-				if (err != nil) {
-					seclog_Errorf("%s: TLS-insecure transport failed for '%s': %v",
-						funcName,url,err)
-					return rsp,err
-				}
-			} else {
-				return rsp,err
-			}
-		}
-	} else {
-		seclog_Warnf("%s: TLS-secure transport not available, using insecure.",
-			funcName)
-		rsp,err = p.InsecureClient.Get(url)
-		if (err != nil) {
-			seclog_Errorf("%s: TLS-insecure transport failed for '%s': %v",
-				funcName,url,err)
-			return rsp,err
-		}
-	}
-
-	return rsp,nil
+	req,_ := http.NewRequest("GET",url,nil)
+	base.SetHTTPUserAgent(req,instName)
+	return p.Do(req)
 }
 
 func (p *HTTPClientPair) Head(url string) (*http.Response,error) {
@@ -1109,103 +1198,31 @@ func (p *HTTPClientPair) Head(url string) (*http.Response,error) {
 func (p *HTTPClientPair) Post(url, contentType string, body io.Reader) (*http.Response,error) {
 	funcName := "HTTPClientPair.Post()"
 	var rsp *http.Response
-	var err error
 
 	if (p == nil) {
 		return rsp,fmt.Errorf("%s: Client pair is nil.",funcName)
 	}
-	p.FailedOver = false
 
-	if ((p.SecureClient == nil) && (p.InsecureClient == nil)) {
-		return rsp,fmt.Errorf("%s: Client pair is uninitialized, not usable.",
-					funcName)
-	}
-
-	if (p.SecureClient != nil) {
-		rsp,err = p.SecureClient.Post(url,contentType,body)
-		if (err != nil) {
-			if (p.InsecureClient != p.SecureClient) {
-				seclog_Errorf("%s: TLS-secure transport failed for '%s': %v -- trying insecure client.",
-					funcName,url,err)
-				if (p.InsecureClient == nil) {
-					emsg := fmt.Sprintf("%s: Failover to insecure transport failed: insecure client is nil.",funcName)
-					seclog_Errorf(emsg)
-					return rsp,fmt.Errorf(emsg)
-				}
-				p.FailedOver = true
-				rsp,err = p.InsecureClient.Post(url,contentType,body)
-				if (err != nil) {
-					seclog_Errorf("%s: TLS-insecure transport failed for '%s': %v",
-						funcName,url,err)
-					return rsp,err
-				}
-			} else {
-				return rsp,err
-			}
-		}
-	} else {
-		seclog_Warnf("%s: TLS-secure transport not available, using insecure.",
-			funcName)
-		rsp,err = p.InsecureClient.Post(url,contentType,body)
-		if (err != nil) {
-			seclog_Errorf("%s: TLS-insecure transport failed for '%s': %v",
-				funcName,url,err)
-			return rsp,err
-		}
-	}
-
-	return rsp,nil
+	req,_ := http.NewRequest("POST",url,body)
+	req.Header.Add("Content-Type",contentType)
+	base.SetHTTPUserAgent(req,instName)
+	return p.Do(req)
 }
 
 func (p *HTTPClientPair) PostForm(url string, data url.Values) (*http.Response,error) {
 	funcName := "HTTPClientPair.PostForm()"
 	var rsp *http.Response
-	var err error
 
 	if (p == nil) {
 		return rsp,fmt.Errorf("%s: Client pair is nil.",funcName)
 	}
-	p.FailedOver = false
 
-	if ((p.SecureClient == nil) && (p.InsecureClient == nil)) {
-		return rsp,fmt.Errorf("%s: Client pair is uninitialized, not usable.",
-					funcName)
-	}
-
-	if (p.SecureClient != nil) {
-		rsp,err = p.SecureClient.PostForm(url,data)
-		if (err != nil) {
-			if (p.InsecureClient != p.SecureClient) {
-				seclog_Errorf("%s: TLS-secure transport failed for '%s': %v -- trying insecure client.",
-					funcName,url,err)
-				p.FailedOver = true
-				if (p.InsecureClient == nil) {
-					emsg := fmt.Sprintf("%s: Failover to insecure transport failed: insecure client is nil.",funcName)
-					seclog_Errorf(emsg)
-					return rsp,fmt.Errorf(emsg)
-				}
-				rsp,err = p.InsecureClient.PostForm(url,data)
-				if (err != nil) {
-					seclog_Errorf("%s: TLS-insecure transport failed for '%s': %v",
-						funcName,url,err)
-					return rsp,err
-				}
-			} else {
-				return rsp,err
-			}
-		}
-	} else {
-		seclog_Warnf("%s: TLS-secure transport not available, using insecure.",
-			funcName)
-		rsp,err = p.InsecureClient.PostForm(url,data)
-		if (err != nil) {
-			seclog_Errorf("%s: TLS-insecure transport failed for '%s': %v",
-				funcName,url,err)
-			return rsp,err
-		}
-	}
-
-	return rsp,nil
+	//Gotta emulate this, then call Do()
+	vals := data.Encode()
+	req,_ := http.NewRequest("POST",url,bytes.NewBuffer([]byte(vals)))
+	base.SetHTTPUserAgent(req,instName)
+	req.Header.Add("Content-Type","application/x-www-form-urlencoded")
+	return p.Do(req)
 }
 
 
