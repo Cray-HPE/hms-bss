@@ -48,6 +48,7 @@ import (
 	"strings"
 	"time"
 
+	base "stash.us.cray.com/HMS/hms-base"
 	hmetcd "stash.us.cray.com/HMS/hms-hmetcd"
 )
 
@@ -235,6 +236,10 @@ func main() {
 	flag.UintVar(&hsmRetrievalDelay, "hsm-retrieval-delay", hsmRetrievalDelay, "SM Retrieval delay in seconds")
 	flag.Parse()
 
+	sn,snerr := base.GetServiceInstanceName()
+	if (snerr == nil) {
+		serviceName = sn
+	}
 	log.Printf("Service %s started", serviceName)
 	initHandlers()
 
