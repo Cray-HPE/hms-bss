@@ -175,7 +175,14 @@ func getStateFromHSM() *SMData {
 		log.Printf("Retrieving state info from %s", smBaseURL)
 		url := smBaseURL + "/State/Components?type=Node"
 		debugf("url: %s, smClient: %v\n", url, smClient)
-		r, err := smClient.Get(url)
+		req,rerr := http.NewRequest(http.MethodGet,url,nil)
+		if rerr != nil {
+			log.Printf("Failed to create HTTP request for '%s': %v",url,rerr)
+			return nil
+		}
+		req.Close = true
+		base.SetHTTPUserAgent(req,serviceName)
+		r, err := smClient.Do(req)
 		if err != nil {
 			log.Printf("Sm State request %s failed: %v", url, err)
 			return nil
@@ -191,7 +198,14 @@ func getStateFromHSM() *SMData {
 		}
 
 		url = smBaseURL + "/Inventory/ComponentEndpoints?type=Node"
-		r, err = smClient.Get(url)
+		req,rerr = http.NewRequest(http.MethodGet,url,nil)
+		if err != nil {
+			log.Printf("Failed to create HTTP request for '%s': %v",url,rerr)
+			return nil
+		}
+		req.Close = true
+		base.SetHTTPUserAgent(req,serviceName)
+		r, err = smClient.Do(req)
 		if err != nil {
 			log.Printf("Sm Inventory request %s failed: %v", url, err)
 			return nil
@@ -251,7 +265,14 @@ func getStateFromHSM() *SMData {
 
 		//ip address
 		url = smBaseURL + "/Inventory/EthernetInterfaces?type=Node"
-		r, err = smClient.Get(url)
+		req,rerr = http.NewRequest(http.MethodGet,url,nil)
+		if err != nil {
+			log.Printf("Failed to create HTTP request for '%s': %v",url,rerr)
+			return nil
+		}
+		req.Close = true
+		base.SetHTTPUserAgent(req,serviceName)
+		r, err = smClient.Do(req)
 		if err != nil {
 			log.Printf("Sm Inventory request %s failed: %v", url, err)
 			return nil
