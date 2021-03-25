@@ -1,7 +1,8 @@
 #!/bin/bash -l
+#
 # MIT License
 #
-# (C) Copyright [2021] Hewlett Packard Enterprise Development LP
+# (C) Copyright [2019-2021] Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -20,6 +21,7 @@
 # OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
+#
 ###############################################################
 #
 #     CASM Test - Cray Inc.
@@ -34,7 +36,7 @@
 #
 #     DATE STARTED      : 04/29/2019
 #
-#     LAST MODIFIED     : 09/14/2020
+#     LAST MODIFIED     : 03/25/2021
 #
 #     SYNOPSIS
 #       This is a smoke test for the HMS BSS API that makes basic HTTP
@@ -68,7 +70,7 @@
 #       schooler   07/10/2019   add AuthN support for API calls
 #       schooler   07/10/2019   update smoke test library location
 #                               from hms-services to hms-common
-#       schooler   08/19/2019   add initial check_pod_status test
+#       schooler   08/19/2019   add check_pod_status test
 #       schooler   09/06/2019   add test case documentation
 #       schooler   09/09/2019   update smoke test library location
 #                               from hms-common to hms-test
@@ -76,6 +78,7 @@
 #       schooler   10/07/2019   switch from SMS to NCN naming convention
 #       schooler   06/23/2020   add service version and status API tests
 #       schooler   09/14/2020   use latest hms_smoke_test_lib
+#       schooler   03/25/2021   add check_job_status test
 #
 #     DEPENDENCIES
 #       - hms_smoke_test_lib_ncn-resources_remote-resources.sh which is
@@ -87,14 +90,15 @@
 #
 ###############################################################
 
-# HMS test metrics test cases: 7
+# HMS test metrics test cases: 8
 # 1. Check cray-bss pod statuses
-# 2. GET /service/version API response code
-# 3. GET /service/status API response code
-# 4. GET /bootparameters API response code
-# 5. GET /dumpstate API response code
-# 6. GET /bootscript?nid=<nid> API response code
-# 7. GET /hosts API response code
+# 2. Check cray-bss job statuses
+# 3. GET /service/version API response code
+# 4. GET /service/status API response code
+# 5. GET /bootparameters API response code
+# 6. GET /dumpstate API response code
+# 7. GET /bootscript?nid=<nid> API response code
+# 8. GET /hosts API response code
 
 # initialize test variables
 TEST_RUN_TIMESTAMP=$(date +"%Y%m%dT%H%M%S")
@@ -157,6 +161,13 @@ function check_pod_status()
     return $?
 }
 
+# check_job_status
+function check_job_status()
+{
+    run_check_job_status "cray-bss"
+    return $?
+}
+
 trap ">&2 echo \"recieved kill signal, exiting with status of '1'...\" ; \
     cleanup ; \
     exit 1" SIGHUP SIGINT SIGTERM
@@ -181,6 +192,14 @@ echo "Running bss_smoke_test..."
 
 # run initial pod status test
 check_pod_status
+if [[ $? -ne 0 ]] ; then
+    echo "FAIL: bss_smoke_test ran with failures"
+    cleanup
+    exit 1
+fi
+
+# run initial job status test
+check_job_status
 if [[ $? -ne 0 ]] ; then
     echo "FAIL: bss_smoke_test ran with failures"
     cleanup
