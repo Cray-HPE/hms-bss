@@ -1,7 +1,8 @@
 #!/bin/bash -l
+#
 # MIT License
 #
-# (C) Copyright [2021] Hewlett Packard Enterprise Development LP
+# (C) Copyright [2020-2021] Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -20,6 +21,7 @@
 # OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
+#
 ###############################################################
 #
 #     CASM Test - Cray Inc.
@@ -34,7 +36,7 @@
 #
 #     DATE STARTED      : 09/21/2020
 #
-#     LAST MODIFIED     : 09/21/2020
+#     LAST MODIFIED     : 03/26/2021
 #
 #     SYNOPSIS
 #       This is a smoke test for the HMS BSS API that makes basic HTTP
@@ -54,12 +56,12 @@
 #       This smoke test is based on the Shasta health check srv_check.sh
 #       script in the CrayTest repository that verifies the basic health of
 #       various microservices but instead focuses exclusively on the BSS 
-#       API. It was implemented to run from the ct-pipelines container off
+#       API. It was implemented to run from the ct-portal container off
 #       of the NCN of the system under test within the DST group's Continuous
 #       Testing (CT) framework as part of the remote-smoke test suite.
 #
 #     SPECIAL REQUIREMENTS
-#       Must be executed from the ct-pipelines container on a remote host
+#       Must be executed from the ct-portal container on a remote host
 #       (off of the NCNs of the test system) with the Continuous Test
 #       infrastructure installed.
 #
@@ -67,11 +69,12 @@
 #       user       date         description
 #       -------------------------------------------------------
 #       schooler   09/21/2020   initial implementation
+#       schooler   03/26/2021   add check_job_status test
 #
 #     DEPENDENCIES
 #       - hms_smoke_test_lib_ncn-resources_remote-resources.sh which is
 #         expected to be packaged in
-#         /opt/cray/tests/remote-resources/hms/hms-test in the ct-pipelines
+#         /opt/cray/tests/remote-resources/hms/hms-test in the ct-portal
 #         container.
 #
 #     BUGS/LIMITATIONS
@@ -79,14 +82,15 @@
 #
 ###############################################################
 
-# HMS test metrics test cases: 7
+# HMS test metrics test cases: 8
 # 1. Check cray-bss pod statuses
-# 2. GET /service/version API response code
-# 3. GET /service/status API response code
-# 4. GET /bootparameters API response code
-# 5. GET /dumpstate API response code
-# 6. GET /bootscript?nid=<nid> API response code
-# 7. GET /hosts API response code
+# 2. Check cray-bss job statuses
+# 3. GET /service/version API response code
+# 4. GET /service/status API response code
+# 5. GET /bootparameters API response code
+# 6. GET /dumpstate API response code
+# 7. GET /bootscript?nid=<nid> API response code
+# 8. GET /hosts API response code
 
 # initialize test variables
 TEST_RUN_TIMESTAMP=$(date +"%Y%m%dT%H%M%S")
@@ -141,7 +145,14 @@ function check_pod_status()
     return $?
 }
 
-# TARGET_SYSTEM is expected to be set in the ct-pipelines container
+# check_job_status
+function check_job_status()
+{
+    run_check_job_status "cray-bss"
+    return $?
+}
+
+# TARGET_SYSTEM is expected to be set in the ct-portal container
 if [[ -z ${TARGET_SYSTEM} ]] ; then
     >&2 echo "ERROR: TARGET_SYSTEM environment variable is not set"
     cleanup
@@ -152,7 +163,7 @@ else
     echo "TARGET=${TARGET}"
 fi
 
-# TOKEN is expected to be set in the ct-pipelines container
+# TOKEN is expected to be set in the ct-portal container
 if [[ -z ${TOKEN} ]] ; then
     >&2 echo "ERROR: TOKEN environment variable is not set"
     cleanup
@@ -185,6 +196,14 @@ echo "Running bss_smoke_test..."
 
 # run initial pod status test
 check_pod_status
+if [[ $? -ne 0 ]] ; then
+    echo "FAIL: bss_smoke_test ran with failures"
+    cleanup
+    exit 1
+fi
+
+# run initial job status test
+check_job_status
 if [[ $? -ne 0 ]] ; then
     echo "FAIL: bss_smoke_test ran with failures"
     cleanup
