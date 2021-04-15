@@ -290,14 +290,14 @@ func getStateFromHSM() *SMData {
 			debugf("EthInterface: %v\n", e)
 			if e.IPAddr != "" {
 				addresses[e.IPAddr] = e
+			}
 
-				// Also see if this EthernetInterface belongs to any Components.
-				for index, _ := range comps.Components {
-					component := comps.Components[index]
+			// Also see if this EthernetInterface belongs to any Components.
+			for index, _ := range comps.Components {
+				component := comps.Components[index]
 
-					if component.ID == e.CompID {
-						comps.Components[index].Mac = append(comps.Components[index].Mac, ensureLegalMAC(e.MACAddr))
-					}
+				if component.ID == e.CompID {
+					comps.Components[index].Mac = append(comps.Components[index].Mac, ensureLegalMAC(e.MACAddr))
 				}
 			}
 		}
