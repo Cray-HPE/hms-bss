@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.5] - 2021-04-15
+
+## Changed
+
+- Removed blank IP from preventing BSS from recording an EthernetInterface defined MAC in its list of MACs for a node.
+
 ## [1.7.4] - 2021-04-06
 
 ## Changed
