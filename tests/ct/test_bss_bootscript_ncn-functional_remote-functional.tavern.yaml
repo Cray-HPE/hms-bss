@@ -91,6 +91,9 @@ stages:
                         type: str
                       ID:
                         type: str
+                      Locked:
+                        type: bool
+                        required: False
                       MAC:
                         type: seq
                         matching: all
