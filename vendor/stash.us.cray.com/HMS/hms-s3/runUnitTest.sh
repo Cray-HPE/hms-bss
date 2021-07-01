@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
+
 # MIT License
 #
-# (C) Copyright [2021] Hewlett Packard Enterprise Development LP
+# (C) Copyright [2020-2021] Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -76,9 +77,9 @@ function cleanup() {
 
 # Step 3) Get the base containers running
 echo "Starting containers..."
-${docker_compose_exe} up  -d --build
+${docker_compose_exe} up -d --build
 network_name=${RANDY}_hms3
-docker build --rm --no-cache --network ${network_name} -f Dockerfile.unittesting.Dockerfile .
+DOCKER_BUILDKIT=0 docker build --rm --no-cache --network ${network_name} -f Dockerfile.unittesting.Dockerfile .
 test_result=$?
 
 # Clean up

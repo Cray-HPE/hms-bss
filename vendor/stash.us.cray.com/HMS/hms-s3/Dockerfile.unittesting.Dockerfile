@@ -22,7 +22,7 @@
 
 # Dockerfile for testing HMS s3 code.
 
-FROM dtr.dev.cray.com/baseos/golang:1.14-alpine3.12 AS build-base
+FROM arti.dev.cray.com/baseos-docker-master-local/golang:1.16-alpine3.13 AS build-base
 
 RUN set -ex \
     && apk update \
@@ -30,6 +30,8 @@ RUN set -ex \
 
 # Copy the files in for the next stages to use.
 FROM build-base
+
+RUN go env -w GO111MODULE=auto
 
 COPY *.go $GOPATH/src/stash.us.cray.com/HMS/hms-s3/
 COPY vendor $GOPATH/src/stash.us.cray.com/HMS/hms-s3/vendor
