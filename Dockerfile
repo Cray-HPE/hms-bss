@@ -63,7 +63,7 @@ RUN set -ex && go build -v -i -o /usr/local/bin/boot-script-service stash.us.cra
 
 ### Final Stage ###
 FROM arti.dev.cray.com/baseos-docker-master-local/alpine:3.13
-LABEL maintainer="Cray, Inc."
+LABEL maintainer="Hewlett Packard Enterprise"
 EXPOSE 27778
 STOPSIGNAL SIGTERM
 
