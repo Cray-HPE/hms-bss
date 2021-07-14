@@ -1,6 +1,6 @@
 module stash.us.cray.com/HMS/hms-s3
 
-go 1.12
+go 1.16
 
 require (
 	github.com/aws/aws-sdk-go v1.29.2
