@@ -11,18 +11,25 @@ pipeline {
     }
 
     environment {
-        NAME = "hms-bss"
-        DESCRIPTION = "This is the location for the HMS Level 2 boot script service "
+        NAME = "cray-bss"
+        DESCRIPTION = "HMS Level 2 Boot Script Service "
         IS_STABLE = getBuildIsStable()
         VERSION = getDockerBuildVersion(isStable: env.IS_STABLE)
-        DOCKER_ARGS = getDockerBuildArgs(name: env.NAME, description: env.DESCRIPTION)
+        DOCKER_ARGS = getDockerBuildArgs(name: "hms-bss", description: env.DESCRIPTION, version: env.VERSION)
+        CHART_NAME = "cray-hms-bss"
+        CHART_VERSION = getChartVersion(version: env.VERSION)
     }
 
     stages {
-        
-        stage("Build") {
+        stage("Image") {
             steps {
                 sh "make image"
+            }
+        }
+
+        stage("Chart") {
+            steps {
+                sh "make chart"
             }
         }
 
@@ -30,6 +37,7 @@ pipeline {
             steps {
                 script {
                     publishCsmDockerImage(image: env.NAME, tag: env.VERSION, isStable: env.IS_STABLE)
+                    publishCsmHelmCharts(component: env.CHART_NAME, chartsPath: "${WORKSPACE}/kubernetes/.packaged", isStable: env.IS_STABLE)
                 }
             }
         }
