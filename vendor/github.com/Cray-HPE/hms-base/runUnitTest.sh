@@ -1,6 +1,7 @@
+#!/usr/bin/env bash
 # MIT License
 #
-# (C) Copyright [2020-2021] Hewlett Packard Enterprise Development LP
+# (C) Copyright [2021] Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -20,26 +21,7 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-# Dockerfile for building HMS s3 code. Note that this image
-# can't be run as these are just packages in this repo.
+# Build the build base image
+docker build -t cray/hms-base-build-base -f Dockerfile.build-base .
 
-# Build base has the packages installed that we need.
-FROM arti.dev.cray.com/baseos-docker-master-local/golang:1.16-alpine3.13 AS build-base
-
-RUN set -ex \
-    && apk update \
-    && apk add build-base
-
-# Copy the files in for the next stages to use.
-FROM build-base AS base
-
-RUN go env -w GO111MODULE=auto
-
-COPY *.go $GOPATH/src/stash.us.cray.com/HMS/hms-s3/
-COPY vendor $GOPATH/src/stash.us.cray.com/HMS/hms-s3/vendor
-
-# Now we can build.
-FROM base
-
-RUN set -ex \
-    && go build -v stash.us.cray.com/HMS/hms-s3/...
+docker build -t cray/hms-base-testing -f Dockerfile.testing .

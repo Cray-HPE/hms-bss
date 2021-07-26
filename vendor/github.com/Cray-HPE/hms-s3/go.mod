@@ -1,4 +1,4 @@
-module stash.us.cray.com/HMS/hms-s3
+module github.com/Cray-HPE/hms-s3
 
 go 1.16
 

@@ -1,6 +1,6 @@
 # MIT License
 #
-# (C) Copyright [2019-2021] Hewlett Packard Enterprise Development LP
+# (C) Copyright [2020-2021] Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -20,10 +20,24 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-# Dockerfile for testing HMS hmetcd code.
+# Dockerfile for testing HMS s3 code.
 
-FROM cray/hms-hmetcd-build-base
+FROM arti.dev.cray.com/baseos-docker-master-local/golang:1.16-alpine3.13 AS build-base
 
-# Run any tests that might be present.
 RUN set -ex \
-    && go test -v stash.us.cray.com/HMS/hms-hmetcd/...
+    && apk update \
+    && apk add build-base
+
+# Copy the files in for the next stages to use.
+FROM build-base
+
+RUN go env -w GO111MODULE=auto
+
+COPY *.go $GOPATH/src/github.com/Cray-HPE/hms-s3/
+COPY vendor $GOPATH/src/github.com/Cray-HPE/hms-s3/vendor
+
+ENV LOG_LEVEL "TRACE"
+
+# if you do CMD, then it will run like a service; we want this to run the tests and quit
+RUN set -ex \
+    && go test -cover -v -o hms-s3 github.com/Cray-HPE/hms-s3/...

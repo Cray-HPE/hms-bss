@@ -23,6 +23,12 @@ github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78/go.mod h1:LmzpDX
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
 github.com/ClickHouse/clickhouse-go v1.3.12/go.mod h1:EaI/sW7Azgz9UATzd5ZdZHRUhHgv5+JMS9NSr2smCJI=
+github.com/Cray-HPE/hms-base v1.15.0 h1:VaQj6cY9OAs6rcD1miE133eqQnRTkEcX1lnwJA/SUuU=
+github.com/Cray-HPE/hms-base v1.15.0/go.mod h1:+G8KFLPtanLC5lQ602hrf3MDfLTmIXedTavVCOdz5XA=
+github.com/Cray-HPE/hms-hmetcd v1.10.2 h1:gtCi9r3IB9OasjtJ/WgjjeJzCcUsQTEv7yYphSb8tTI=
+github.com/Cray-HPE/hms-hmetcd v1.10.2/go.mod h1:cL/imOEh++ErJ1x30HEeo1a38gxBAJgviA8V4j8Wrus=
+github.com/Cray-HPE/hms-s3 v1.9.2 h1:qZ/yTTr1+r1slDldOsqkcF736bnsiZ/002JVO7LGD/0=
+github.com/Cray-HPE/hms-s3 v1.9.2/go.mod h1:p5pVsMDeOdXKssd9qyFtXo4ztrn2lhD04nrO8+NOi7g=
 github.com/DATA-DOG/go-sqlmock v1.3.3/go.mod h1:f/Ixk793poVmq4qj/V1dPUg2JEAKC73Q5eFN3EC/SaM=
 github.com/DataDog/zstd v1.3.6-0.20190409195224-796139022798/go.mod h1:1jcaCB/ufaK+sKp1NBhlGmpz41jOoPQ35bpF36t7BBo=
 github.com/Masterminds/squirrel v1.4.0/go.mod h1:yaPeOnPG5ZRwL9oKdTsO/prlkPbXWZlRVMQ/gGlzIuA=
@@ -387,7 +393,6 @@ github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2 h1:eY9dn8+vbi4tKz5
 github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2/go.mod h1:UETIi67q53MR2AWcXfiuqkDkRtnGDLqkBTpCHuJHxtU=
 github.com/zenazn/goji v0.9.0/go.mod h1:7S9M489iMyHBNxwZnk9/EHS098H4/F6TATF2mIxtB1Q=
 gitlab.com/nyarla/go-crypt v0.0.0-20160106005555-d9a5dc2b789b/go.mod h1:T3BPAOm2cqquPa0MKWeNkmOM5RQsRhkrwMWonFMN7fE=
-go.etcd.io/bbolt v1.3.2/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=
 go.etcd.io/etcd v3.3.13+incompatible h1:jCejD5EMnlGxFvcGRyEV4VGlENZc7oPQX6o0t7n3xbw=
 go.etcd.io/etcd v3.3.13+incompatible/go.mod h1:yaeTdrJi5lOmYerz05bd8+V7KubZs8YSFZfzsF9A6aI=
 go.mongodb.org/mongo-driver v1.1.0/go.mod h1:u7ryQJ+DOzQmeO7zB6MHyr8jkEQvC8vH7qLUO4lqsUM=
@@ -673,11 +678,7 @@ stash.us.cray.com/HMS/hms-certs v1.3.0 h1:ddXIeI+L3hrMv/+zVFZtxIVhvfLv/8g8d8/tUS
 stash.us.cray.com/HMS/hms-certs v1.3.0/go.mod h1:81nsECscfHezWuUm9DB6e5Hy/GKBLe2Mq0ASN0KHUgI=
 stash.us.cray.com/HMS/hms-compcredentials v1.11.0/go.mod h1:tztoWGfjwVOVV/W4i4KgEmLkso9bQ1Hhmr3iB8+B1tQ=
 stash.us.cray.com/HMS/hms-go-http-lib v1.5.0/go.mod h1:jOhxzTUxjfXhPsv4L95fvJH8JgaMtWkBpppx972rmoQ=
-stash.us.cray.com/HMS/hms-hmetcd v1.10.0 h1:6wkqLcscgh2s033PaVZ7pYGp8UGYFeRoY6eQjvFojAg=
-stash.us.cray.com/HMS/hms-hmetcd v1.10.0/go.mod h1:zXoKvgSp7VmpNu4rV7vIukqAfatF4X9sbSQk874y/ZE=
 stash.us.cray.com/HMS/hms-msgbus v1.10.0/go.mod h1:aFcLnKNIoNfYfWNMxK8MDI6QYT5BCmXRtmdpeEYJQUA=
-stash.us.cray.com/HMS/hms-s3 v1.9.0 h1:DqmBRoMiMQhWckYJnFD1rKRpYFo6L4KAKfGQ3dH3DwA=
-stash.us.cray.com/HMS/hms-s3 v1.9.0/go.mod h1:VfCKyUrMw/hGgm2jB18YwE4b8rqIXe2GjS4zo+sKutw=
 stash.us.cray.com/HMS/hms-securestorage v1.11.0/go.mod h1:/tRNXYwCBvVdbhu6a+i5R3Jftag4x8921qWwA+jo4JA=
 stash.us.cray.com/HMS/hms-securestorage v1.12.0 h1:hAtFIx2GfBn7xE7QvaY3ISOwOcCrj2CR8qJ8TYsHoME=
 stash.us.cray.com/HMS/hms-securestorage v1.12.0/go.mod h1:uZsuLZtZ7P0SKopU4xveI2pZ28xnh7U13HEMP7yRBm0=

@@ -22,7 +22,7 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-set -ex
+set -x
 # Setup environment variables
 #export GOPATH=$(pwd)/go
 RANDY=$(echo $RANDOM | md5sum | awk '{print $1}')

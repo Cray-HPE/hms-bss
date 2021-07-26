@@ -34,13 +34,13 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	base "github.com/Cray-HPE/hms-base"
 	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
 	"net/url"
 	"os"
-	base "stash.us.cray.com/HMS/hms-base"
 	"stash.us.cray.com/HMS/hms-smd/pkg/redfish"
 	"stash.us.cray.com/HMS/hms-smd/pkg/sm"
 	"strings"
@@ -175,13 +175,13 @@ func getStateFromHSM() *SMData {
 		log.Printf("Retrieving state info from %s", smBaseURL)
 		url := smBaseURL + "/State/Components?type=Node"
 		debugf("url: %s, smClient: %v\n", url, smClient)
-		req,rerr := http.NewRequest(http.MethodGet,url,nil)
+		req, rerr := http.NewRequest(http.MethodGet, url, nil)
 		if rerr != nil {
-			log.Printf("Failed to create HTTP request for '%s': %v",url,rerr)
+			log.Printf("Failed to create HTTP request for '%s': %v", url, rerr)
 			return nil
 		}
 		req.Close = true
-		base.SetHTTPUserAgent(req,serviceName)
+		base.SetHTTPUserAgent(req, serviceName)
 		r, err := smClient.Do(req)
 		if err != nil {
 			log.Printf("Sm State request %s failed: %v", url, err)
@@ -198,13 +198,13 @@ func getStateFromHSM() *SMData {
 		}
 
 		url = smBaseURL + "/Inventory/ComponentEndpoints?type=Node"
-		req,rerr = http.NewRequest(http.MethodGet,url,nil)
+		req, rerr = http.NewRequest(http.MethodGet, url, nil)
 		if err != nil {
-			log.Printf("Failed to create HTTP request for '%s': %v",url,rerr)
+			log.Printf("Failed to create HTTP request for '%s': %v", url, rerr)
 			return nil
 		}
 		req.Close = true
-		base.SetHTTPUserAgent(req,serviceName)
+		base.SetHTTPUserAgent(req, serviceName)
 		r, err = smClient.Do(req)
 		if err != nil {
 			log.Printf("Sm Inventory request %s failed: %v", url, err)
@@ -265,13 +265,13 @@ func getStateFromHSM() *SMData {
 
 		//ip address
 		url = smBaseURL + "/Inventory/EthernetInterfaces?type=Node"
-		req,rerr = http.NewRequest(http.MethodGet,url,nil)
+		req, rerr = http.NewRequest(http.MethodGet, url, nil)
 		if err != nil {
-			log.Printf("Failed to create HTTP request for '%s': %v",url,rerr)
+			log.Printf("Failed to create HTTP request for '%s': %v", url, rerr)
 			return nil
 		}
 		req.Close = true
-		base.SetHTTPUserAgent(req,serviceName)
+		base.SetHTTPUserAgent(req, serviceName)
 		r, err = smClient.Do(req)
 		if err != nil {
 			log.Printf("Sm Inventory request %s failed: %v", url, err)

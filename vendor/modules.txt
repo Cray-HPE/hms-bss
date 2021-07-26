@@ -1,3 +1,12 @@
+# github.com/Cray-HPE/hms-base v1.15.0
+## explicit
+github.com/Cray-HPE/hms-base
+# github.com/Cray-HPE/hms-hmetcd v1.10.2
+## explicit
+github.com/Cray-HPE/hms-hmetcd
+# github.com/Cray-HPE/hms-s3 v1.9.2
+## explicit
+github.com/Cray-HPE/hms-s3
 # github.com/aws/aws-sdk-go v1.29.2
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/arn
@@ -218,16 +227,9 @@ gopkg.in/square/go-jose.v2/jwt
 ## explicit
 gopkg.in/yaml.v2
 # stash.us.cray.com/HMS/hms-base v1.13.0
-## explicit
 stash.us.cray.com/HMS/hms-base
 # stash.us.cray.com/HMS/hms-certs v1.3.0
 stash.us.cray.com/HMS/hms-certs/pkg/hms_certs
-# stash.us.cray.com/HMS/hms-hmetcd v1.10.0
-## explicit
-stash.us.cray.com/HMS/hms-hmetcd
-# stash.us.cray.com/HMS/hms-s3 v1.9.0
-## explicit
-stash.us.cray.com/HMS/hms-s3
 # stash.us.cray.com/HMS/hms-securestorage v1.12.0
 stash.us.cray.com/HMS/hms-securestorage
 # stash.us.cray.com/HMS/hms-smd v1.30.4
