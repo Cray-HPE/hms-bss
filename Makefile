@@ -23,7 +23,7 @@ VERSION ?= $(shell cat .version)
 
 # Helm Chart
 CHART_PATH ?= kubernetes
-CHART_NAME ?= cray-hms-firmware-action
+CHART_NAME ?= cray-hms-bss
 CHART_VERSION ?= local
 
 all : image chart
