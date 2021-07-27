@@ -43,7 +43,7 @@ import (
 	"net/url"
 	"strings"
 
-	base "stash.us.cray.com/HMS/hms-base"
+	base "github.com/Cray-HPE/hms-base"
 )
 
 type spireRespType struct {
@@ -87,7 +87,7 @@ func getJoinToken(xname string) (string, error) {
 	url := spireTokensBaseURL + "/api/token"
 	req, _ := http.NewRequest("POST", url, bytes.NewBuffer([]byte("xname="+xname)))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	base.SetHTTPUserAgent(req,serviceName)
+	base.SetHTTPUserAgent(req, serviceName)
 	req.Close = true
 	rsp, err := spireTokenClient.Do(req)
 	if err != nil {
