@@ -30,10 +30,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/Cray-HPE/hms-bss/pkg/bssTypes"
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"stash.us.cray.com/HMS/hms-bss/pkg/bssTypes"
 	"testing"
 )
 

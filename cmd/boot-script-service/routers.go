@@ -37,8 +37,8 @@ package main
 
 import (
 	"fmt"
+	base "github.com/Cray-HPE/hms-base"
 	"net/http"
-	base "stash.us.cray.com/HMS/hms-base"
 )
 
 const (
