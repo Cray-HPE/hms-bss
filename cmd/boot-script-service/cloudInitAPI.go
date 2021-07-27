@@ -28,15 +28,15 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/Cray-HPE/hms-bss/pkg/bssTypes"
 	"log"
 	"math/rand"
 	"net/http"
-	"stash.us.cray.com/HMS/hms-bss/pkg/bssTypes"
 	"strings"
 
 	yaml "gopkg.in/yaml.v2"
 
-	base "stash.us.cray.com/HMS/hms-base"
+	base "github.com/Cray-HPE/hms-base"
 )
 
 const QUERYKEY = "key"

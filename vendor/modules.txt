@@ -1,3 +1,20 @@
+# github.com/Cray-HPE/hms-base v1.15.0
+## explicit
+github.com/Cray-HPE/hms-base
+# github.com/Cray-HPE/hms-certs v1.3.2
+github.com/Cray-HPE/hms-certs/pkg/hms_certs
+# github.com/Cray-HPE/hms-hmetcd v1.10.2
+## explicit
+github.com/Cray-HPE/hms-hmetcd
+# github.com/Cray-HPE/hms-s3 v1.9.2
+## explicit
+github.com/Cray-HPE/hms-s3
+# github.com/Cray-HPE/hms-securestorage v1.12.2
+github.com/Cray-HPE/hms-securestorage
+# github.com/Cray-HPE/hms-smd v1.29.10
+## explicit
+github.com/Cray-HPE/hms-smd/pkg/redfish
+github.com/Cray-HPE/hms-smd/pkg/sm
 # github.com/aws/aws-sdk-go v1.29.2
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/arn
@@ -70,7 +87,7 @@ github.com/hashicorp/errwrap
 github.com/hashicorp/go-cleanhttp
 # github.com/hashicorp/go-multierror v1.1.0
 github.com/hashicorp/go-multierror
-# github.com/hashicorp/go-retryablehttp v0.6.7
+# github.com/hashicorp/go-retryablehttp v0.7.0
 github.com/hashicorp/go-retryablehttp
 # github.com/hashicorp/go-rootcerts v1.0.1
 github.com/hashicorp/go-rootcerts
@@ -97,8 +114,6 @@ github.com/hashicorp/vault/sdk/helper/parseutil
 github.com/hashicorp/vault/sdk/helper/strutil
 # github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af
 github.com/jmespath/go-jmespath
-# github.com/konsorten/go-windows-terminal-sequences v1.0.3
-github.com/konsorten/go-windows-terminal-sequences
 # github.com/mitchellh/go-homedir v1.1.0
 github.com/mitchellh/go-homedir
 # github.com/mitchellh/mapstructure v1.3.0
@@ -110,7 +125,7 @@ github.com/pierrec/lz4/internal/xxh32
 github.com/pkg/errors
 # github.com/ryanuber/go-glob v1.0.0
 github.com/ryanuber/go-glob
-# github.com/sirupsen/logrus v1.6.0
+# github.com/sirupsen/logrus v1.8.1
 github.com/sirupsen/logrus
 # go.etcd.io/etcd v3.3.13+incompatible
 go.etcd.io/etcd/clientv3/concurrency
@@ -129,6 +144,7 @@ golang.org/x/net/trace
 # golang.org/x/sys v0.0.0-20200817155316-9781c653f443
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
+golang.org/x/sys/windows
 # golang.org/x/text v0.3.3
 golang.org/x/text/secure/bidirule
 golang.org/x/text/transform
@@ -217,20 +233,3 @@ gopkg.in/square/go-jose.v2/jwt
 # gopkg.in/yaml.v2 v2.2.7
 ## explicit
 gopkg.in/yaml.v2
-# stash.us.cray.com/HMS/hms-base v1.13.0
-## explicit
-stash.us.cray.com/HMS/hms-base
-# stash.us.cray.com/HMS/hms-certs v1.3.0
-stash.us.cray.com/HMS/hms-certs/pkg/hms_certs
-# stash.us.cray.com/HMS/hms-hmetcd v1.10.0
-## explicit
-stash.us.cray.com/HMS/hms-hmetcd
-# stash.us.cray.com/HMS/hms-s3 v1.9.0
-## explicit
-stash.us.cray.com/HMS/hms-s3
-# stash.us.cray.com/HMS/hms-securestorage v1.12.0
-stash.us.cray.com/HMS/hms-securestorage
-# stash.us.cray.com/HMS/hms-smd v1.29.5
-## explicit
-stash.us.cray.com/HMS/hms-smd/pkg/redfish
-stash.us.cray.com/HMS/hms-smd/pkg/sm
