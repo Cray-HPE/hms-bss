@@ -35,10 +35,10 @@ FROM build-base AS base
 RUN go env -w GO111MODULE=auto
 
 # Copy all the necessary files to the image.
-COPY cmd $GOPATH/src/stash.us.cray.com/HMS/hms-bss/cmd
-COPY pkg $GOPATH/src/stash.us.cray.com/HMS/hms-bss/pkg
-COPY vendor $GOPATH/src/stash.us.cray.com/HMS/hms-bss/vendor
-COPY .version $GOPATH/src/stash.us.cray.com/HMS/hms-bss/.version
+COPY cmd $GOPATH/src/github.com/Cray-HPE/hms-bss/cmd
+COPY pkg $GOPATH/src/github.com/Cray-HPE/hms-bss/pkg
+COPY vendor $GOPATH/src/github.com/Cray-HPE/hms-bss/vendor
+COPY .version $GOPATH/src/github.com/Cray-HPE/hms-bss/.version
 
 ### UNIT TEST Stage ###
 FROM base AS testing
@@ -46,20 +46,20 @@ FROM base AS testing
 WORKDIR /go
 
 # Run unit tests...
-CMD ["sh", "-c", "set -ex && go test -v stash.us.cray.com/HMS/hms-bss/cmd/boot-script-service"]
+CMD ["sh", "-c", "set -ex && go test -v github.com/Cray-HPE/hms-bss/cmd/boot-script-service"]
 
 
 ### COVERAGE Stage ###
 FROM base AS coverage
 
 # Run test coverage...
-CMD ["sh", "-c", "set -ex && go test -cover -v stash.us.cray.com/HMS/hms-bss/cmd/boot-script-service"]
+CMD ["sh", "-c", "set -ex && go test -cover -v github.com/Cray-HPE/hms-bss/cmd/boot-script-service"]
 
 
 ### Build Stage ###
 FROM base AS builder
 
-RUN set -ex && go build -v -i -o /usr/local/bin/boot-script-service stash.us.cray.com/HMS/hms-bss/cmd/boot-script-service
+RUN set -ex && go build -v -i -o /usr/local/bin/boot-script-service github.com/Cray-HPE/hms-bss/cmd/boot-script-service
 
 ### Final Stage ###
 FROM arti.dev.cray.com/baseos-docker-master-local/alpine:3.13

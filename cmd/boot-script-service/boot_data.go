@@ -32,14 +32,14 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	base "github.com/Cray-HPE/hms-base"
+	"github.com/Cray-HPE/hms-bss/pkg/bssTypes"
+	hmetcd "github.com/Cray-HPE/hms-hmetcd"
 	jsonpatch "github.com/evanphx/json-patch"
 	"hash/fnv"
 	"log"
 	"net/http"
 	"reflect"
-	base "stash.us.cray.com/HMS/hms-base"
-	"stash.us.cray.com/HMS/hms-bss/pkg/bssTypes"
-	hmetcd "stash.us.cray.com/HMS/hms-hmetcd"
 	"strings"
 	"sync"
 )

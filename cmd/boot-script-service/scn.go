@@ -42,7 +42,7 @@ import (
 	"strings"
 	"time"
 
-	base "stash.us.cray.com/HMS/hms-base"
+	base "github.com/Cray-HPE/hms-base"
 )
 
 const (
@@ -155,7 +155,7 @@ func (notifier *ScnNotifier) subscribe(comps []string) error {
 		req, _ := http.NewRequest(method, notifier.SubscriberURL, bytes.NewBuffer(payload))
 		customHeaders(req)
 		req.Header.Set("Content-Type", "application/json")
-		base.SetHTTPUserAgent(req,serviceName)
+		base.SetHTTPUserAgent(req, serviceName)
 		req.Close = true
 		debugf("Ready to %s to %s: %s, Request: %+v", method, notifier.SubscriberURL, payload, req)
 		rsp, err := notifier.Client.Do(req)
