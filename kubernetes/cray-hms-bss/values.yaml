@@ -25,6 +25,7 @@ cray-service:
   type: "Deployment"
   nameOverride: "cray-bss"
   fullnameOverride: "cray-bss"
+  priorityClassName: csm-high-priority-service
   replicaCount: 3
   etcdCluster:
     enabled: true
