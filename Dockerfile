@@ -26,7 +26,7 @@
 FROM arti.dev.cray.com/baseos-docker-master-local/golang:1.16-alpine3.13 AS build-base
 
 RUN set -ex \
-    && apk update \
+    && apk -U upgrade \
     && apk add build-base
 
 # Base copies in the files we need to test/build.
@@ -98,7 +98,7 @@ ENV BSS_INIT=/etc/bss.init
 
 # Include curl in the final image.
 RUN set -ex \
-    && apk update \
+    && apk -U upgrade \
     && apk add --no-cache curl
 
 # Get the boot-script-service from the builder stage.
