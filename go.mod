@@ -8,5 +8,5 @@ require (
 	github.com/Cray-HPE/hms-s3 v1.9.2
 	github.com/Cray-HPE/hms-smd v1.29.10
 	github.com/evanphx/json-patch v4.9.0+incompatible
-	gopkg.in/yaml.v2 v2.2.7
+	gopkg.in/yaml.v2 v2.4.0
 )
