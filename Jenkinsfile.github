@@ -34,7 +34,7 @@ pipeline {
             }
         }
 
-        stage('Publish ') {
+        stage("Publish") {
             steps {
                 script {
                     publishCsmDockerImage(image: env.NAME, tag: env.VERSION, isStable: env.IS_STABLE)
