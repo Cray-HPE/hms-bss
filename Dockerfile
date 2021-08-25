@@ -22,6 +22,7 @@
 
 # Dockerfile for building HMS bss.
 
+### build-base stage ###
 # Build base just has the packages installed we need.
 FROM arti.dev.cray.com/baseos-docker-master-local/golang:1.16-alpine3.13 AS build-base
 
@@ -29,6 +30,7 @@ RUN set -ex \
     && apk -U upgrade \
     && apk add build-base
 
+### base stage ###
 # Base copies in the files we need to test/build.
 FROM build-base AS base
 

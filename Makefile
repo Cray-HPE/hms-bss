@@ -26,16 +26,13 @@ CHART_PATH ?= kubernetes
 CHART_NAME ?= cray-hms-bss
 CHART_VERSION ?= $(shell cat .version)
 
-all : image chart
+all : image unittest chart
 
 image:
 	docker build ${NO_CACHE} --pull ${DOCKER_ARGS} --tag '${NAME}:${VERSION}' .
 
 unittest:
 	./runUnitTest.sh
-
-coverage:
-	./runCoverage.sh
 
 chart:
 	helm repo add cray-algol60 https://artifactory.algol60.net/artifactory/csm-helm-charts

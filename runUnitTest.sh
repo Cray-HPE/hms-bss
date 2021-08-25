@@ -23,7 +23,4 @@
 
 set -ex
 
-# Build the build base image
-docker build $NO_CACHE -t cray/hms-bss-base --target base -f Dockerfile .
-
-docker build $NO_CACHE -t cray/hms-bss-testing -f Dockerfile.testing .
+docker build $NO_CACHE -f Dockerfile.testing .
