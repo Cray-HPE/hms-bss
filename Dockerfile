@@ -40,22 +40,6 @@ COPY pkg $GOPATH/src/github.com/Cray-HPE/hms-bss/pkg
 COPY vendor $GOPATH/src/github.com/Cray-HPE/hms-bss/vendor
 COPY .version $GOPATH/src/github.com/Cray-HPE/hms-bss/.version
 
-### UNIT TEST Stage ###
-FROM base AS testing
-
-WORKDIR /go
-
-# Run unit tests...
-CMD ["sh", "-c", "set -ex && go test -v github.com/Cray-HPE/hms-bss/cmd/boot-script-service"]
-
-
-### COVERAGE Stage ###
-FROM base AS coverage
-
-# Run test coverage...
-CMD ["sh", "-c", "set -ex && go test -cover -v github.com/Cray-HPE/hms-bss/cmd/boot-script-service"]
-
-
 ### Build Stage ###
 FROM base AS builder
 
@@ -105,6 +89,9 @@ RUN set -ex \
 COPY --from=builder /usr/local/bin/boot-script-service /usr/local/bin/.
 
 COPY .version /
+
+# noboby 65534:65534
+USER 65534:65534
 
 # Set up the command to start the service, the run the init script.
 CMD (sleep 4; test -x $BSS_INIT && $BSS_INIT) & boot-script-service $BSS_OPTS --hsm=$HSM_URL ${DATASTORE_URL:+--datastore=}$DATASTORE_URL --retry-delay=$BSS_RETRY_DELAY --hsm-retrieval-delay=$BSS_HSM_RETRIEVAL_DELAY

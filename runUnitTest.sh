@@ -1,4 +1,7 @@
-# (C) Copyright 2021 Hewlett Packard Enterprise Development LP
+#!/usr/bin/env bash
+# MIT License
+#
+# (C) Copyright [2021] Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -12,33 +15,15 @@
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 # THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
 # OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-NAME ?= cray-bss
-VERSION ?= $(shell cat .version)
+set -ex
 
-# Helm Chart
-CHART_PATH ?= kubernetes
-CHART_NAME ?= cray-hms-bss
-CHART_VERSION ?= $(shell cat .version)
+# Build the build base image
+docker build $NO_CACHE -t cray/hms-bss-base --target base -f Dockerfile .
 
-all : image chart
-
-image:
-	docker build ${NO_CACHE} --pull ${DOCKER_ARGS} --tag '${NAME}:${VERSION}' .
-
-unittest:
-	./runUnitTest.sh
-
-coverage:
-	./runCoverage.sh
-
-chart:
-	helm repo add cray-algol60 https://artifactory.algol60.net/artifactory/csm-helm-charts
-	helm dep up ${CHART_PATH}/${CHART_NAME}
-	helm package ${CHART_PATH}/${CHART_NAME} -d ${CHART_PATH}/.packaged --version ${CHART_VERSION}
-
+docker build $NO_CACHE -t cray/hms-bss-testing -f Dockerfile.testing .
