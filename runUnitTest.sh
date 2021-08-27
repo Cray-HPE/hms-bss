@@ -1,4 +1,7 @@
-# (C) Copyright 2021 Hewlett Packard Enterprise Development LP
+#!/usr/bin/env bash
+# MIT License
+#
+# (C) Copyright [2021] Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -12,30 +15,21 @@
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 # THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
 # OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-NAME ?= cray-bss
-VERSION ?= $(shell cat .version)
+set -ex
 
-# Helm Chart
-CHART_PATH ?= kubernetes
-CHART_NAME ?= cray-hms-bss
-CHART_VERSION ?= $(shell cat .version)
+GITSHA=$(git rev-parse HEAD)
+TIMESTAMP=$(date +"%Y-%m-%dT%H-%M-%SZ")
+IMAGE="cray/hms-bss-coverage"
+# image names must be lower case
+UNIQUE_TAG=$(echo ${IMAGE}_${GITSHA}_${TIMESTAMP} | tr '[:upper:]' '[:lower:]')
+# export NO_CACHE=--no-cache # this will cause docker build to run with no cache; off by default for local builds, enabled in jenkinsfile
 
-all : image unittest chart
-
-image:
-	docker build ${NO_CACHE} --pull ${DOCKER_ARGS} --tag '${NAME}:${VERSION}' .
-
-unittest:
-	./runUnitTest.sh
-
-chart:
-	helm repo add cray-algol60 https://artifactory.algol60.net/artifactory/csm-helm-charts
-	helm dep up ${CHART_PATH}/${CHART_NAME}
-	helm package ${CHART_PATH}/${CHART_NAME} -d ${CHART_PATH}/.packaged --version ${CHART_VERSION}
+DOCKER_BUILDKIT=0 docker build $NO_CACHE -t $UNIQUE_TAG -f Dockerfile.testing .
+docker image rm $UNIQUE_TAG --force
 
