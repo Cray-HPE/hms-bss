@@ -35,8 +35,9 @@ Vendor: Hewlett Packard Enterprise
 # name of this repository
 %define REPO hms-bss
 
+#TODO
 # test source location
-%define SOURCE_DIR tests/ct
+#%define SOURCE_DIR tests/ct
 
 # test installation location
 %define TEST_DIR /opt/cray/tests
@@ -62,15 +63,16 @@ TEST_BUCKETS=(
     remote-resources
 )
 
-echo "Changing directories into ${SOURCE_DIR}..."
-cd ${SOURCE_DIR}
-CURRENT_DIRECTORY=$(pwd)
-echo "Current directory is: ${CURRENT_DIRECTORY}..."
+#TODO
+#echo "Changing directories into ${SOURCE_DIR}..."
+#cd ${SOURCE_DIR}
+#CURRENT_DIRECTORY=$(pwd)
+#echo "Current directory is: ${CURRENT_DIRECTORY}..."
 
 echo "Searching for CT tests..."
 for BUCKET in ${TEST_BUCKETS[@]} ; do
-    find . -name "*${BUCKET}*" -exec mkdir -p %{buildroot}%{TEST_DIR}/${BUCKET}/hms/${REPO}/ \; \
-       -exec cp -v {} %{buildroot}%{TEST_DIR}/${BUCKET}/hms/${REPO}/ \;
+    find . -name "*${BUCKET}*" -exec mkdir -p %{buildroot}%{TEST_DIR}/${BUCKET}/hms/%{REPO}/ \; \
+       -exec cp -v {} %{buildroot}%{TEST_DIR}/${BUCKET}/hms/%{REPO}/ \;
 done
 
 %files
