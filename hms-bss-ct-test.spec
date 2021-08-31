@@ -35,10 +35,6 @@ Vendor: Hewlett Packard Enterprise
 # name of this repository
 %define REPO hms-bss
 
-#TODO
-# test source location
-#%define SOURCE_DIR tests/ct
-
 # test installation location
 %define TEST_DIR /opt/cray/tests
 
@@ -63,11 +59,7 @@ TEST_BUCKETS=(
     remote-resources
 )
 
-#TODO
-#echo "Changing directories into ${SOURCE_DIR}..."
-#cd ${SOURCE_DIR}
-#CURRENT_DIRECTORY=$(pwd)
-#echo "Current directory is: ${CURRENT_DIRECTORY}..."
+echo "Current directory is: ${PWD}..."
 
 echo "Searching for CT tests..."
 for BUCKET in ${TEST_BUCKETS[@]} ; do
@@ -81,5 +73,5 @@ done
 %{TEST_DIR}/*
 
 %changelog
-* Mon Aug 30 2020 Mitch Schooler <mitchell.schooler@hpe.com>
+* Mon Aug 30 2021 Mitch Schooler <mitchell.schooler@hpe.com>
 - Moved CT test packaging from hms-test to individual service repos for their own RPM builds.

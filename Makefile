@@ -57,7 +57,7 @@ test_rpm_prepare:
 	cp $(TEST_SPEC_FILE) $(TEST_BUILD_DIR)/SPECS/
 
 test_rpm_package_source:
-	tar --transform 'flags=r;s,^,/$(TEST_SOURCE_NAME)/,' --exclude .git --exclude dist -cvjf $(TEST_SOURCE_PATH) ./${TEST_SPEC_FILE} ./tests/ct
+	tar --transform 'flags=r;s,^,/$(TEST_SOURCE_NAME)/,' --exclude .git --exclude dist -cvjf $(TEST_SOURCE_PATH) ./${TEST_SPEC_FILE} ./tests/ct ./LICENSE
 
 test_rpm_build_source:
 	BUILD_METADATA=$(BUILD_METADATA) rpmbuild -ts $(TEST_SOURCE_PATH) --define "_topdir $(TEST_BUILD_DIR)"
