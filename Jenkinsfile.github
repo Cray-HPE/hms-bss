@@ -18,6 +18,7 @@ pipeline {
         DOCKER_ARGS = getDockerBuildArgs(name: "hms-bss", description: env.DESCRIPTION, version: env.VERSION)
         CHART_NAME = "cray-hms-bss"
         CHART_VERSION = getChartVersion(version: env.VERSION)
+        TEST_NAME = "hms-bss-ct-test"
         TEST_SPEC_FILE = "hms-bss-ct-test.spec"
         BUILD_METADATA = getRpmRevision(isStable: env.IS_STABLE)
     }
@@ -49,8 +50,8 @@ pipeline {
                 script {
                     publishCsmDockerImage(image: env.NAME, tag: env.VERSION, isStable: env.IS_STABLE)
                     publishCsmHelmCharts(component: env.CHART_NAME, chartsPath: "${WORKSPACE}/kubernetes/.packaged", isStable: env.IS_STABLE)
-                    publishCsmRpms(component: env.NAME, pattern: "dist/bss-ct-test-rpmbuild/RPMS/x86_64/*.rpm", arch: "x86_64", isStable: env.IS_STABLE)
-                    publishCsmRpms(component: env.NAME, pattern: "dist/bss-ct-test-rpmbuild/SRPMS/*.rpm", arch: "src", isStable: env.IS_STABLE)
+                    publishCsmRpms(component: env.TEST_NAME, pattern: "dist/bss-ct-test-rpmbuild/RPMS/x86_64/*.rpm", arch: "x86_64", isStable: env.IS_STABLE)
+                    publishCsmRpms(component: env.TEST_NAME, pattern: "dist/bss-ct-test-rpmbuild/SRPMS/*.rpm", arch: "src", isStable: env.IS_STABLE)
                 }
             }
         }
