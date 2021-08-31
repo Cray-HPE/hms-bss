@@ -32,7 +32,6 @@ BUILD_METADATA ?= "1~development~$(shell git rev-parse --short HEAD)"
 
 # CT Test RPM
 TEST_SPEC_NAME ?= hms-bss-ct-test
-TEST_RPM_NAME ?= hms-bss-ct-test
 TEST_RPM_VERSION ?= $(shell cat .version)
 TEST_SPEC_FILE ?= ${TEST_SPEC_NAME}.spec
 TEST_SOURCE_NAME ?= ${TEST_SPEC_NAME}-${TEST_RPM_VERSION}
