@@ -38,10 +38,13 @@ TEST_SOURCE_NAME ?= ${TEST_SPEC_NAME}-${TEST_RPM_VERSION}
 TEST_BUILD_DIR ?= $(PWD)/dist/bss-ct-test-rpmbuild
 TEST_SOURCE_PATH := ${TEST_BUILD_DIR}/SOURCES/${TEST_SOURCE_NAME}.tar.bz2
 
-all : image chart test_rpm
+all : image unittest chart test_rpm
 
 image:
-	docker build --pull ${DOCKER_ARGS} --tag '${NAME}:${VERSION}' .
+	docker build ${NO_CACHE} --pull ${DOCKER_ARGS} --tag '${NAME}:${VERSION}' .
+
+unittest:
+	./runUnitTest.sh
 
 chart:
 	helm repo add cray-algol60 https://artifactory.algol60.net/artifactory/csm-helm-charts

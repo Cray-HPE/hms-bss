@@ -16,6 +16,7 @@ pipeline {
         IS_STABLE = getBuildIsStable()
         VERSION = getDockerBuildVersion(isStable: env.IS_STABLE)
         DOCKER_ARGS = getDockerBuildArgs(name: "hms-bss", description: env.DESCRIPTION, version: env.VERSION)
+        NO_CACHE = "--no-cache"
         CHART_NAME = "cray-hms-bss"
         CHART_VERSION = getChartVersion(version: env.VERSION)
         TEST_NAME = "hms-bss-ct-test"
@@ -27,6 +28,12 @@ pipeline {
         stage("Image") {
             steps {
                 sh "make image"
+            }
+        }
+
+        stage("Run Unit Tests") {
+            steps {
+                sh "make unittest"
             }
         }
 
