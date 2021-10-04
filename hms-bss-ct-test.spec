@@ -68,6 +68,7 @@ for BUCKET in ${TEST_BUCKETS[@]} ; do
 done
 
 %files
+
 # CT tests
 %dir %{TEST_DIR}
 %{TEST_DIR}/*
