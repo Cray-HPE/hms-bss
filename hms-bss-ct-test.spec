@@ -39,7 +39,7 @@ Vendor: Hewlett Packard Enterprise
 %define TEST_DIR /opt/cray/tests
 
 %description
-This is a collection of post-install CT tests for the Boot Script Service (BSS).
+This is a collection of post-install CT tests for BSS.
 
 %prep
 %setup -q
