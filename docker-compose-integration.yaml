@@ -1,0 +1,128 @@
+version: '3.7'
+
+networks:
+  bss:
+
+services:
+  bss:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      network: host
+    hostname: bss
+    environment:
+      - BSS_ADVERTISE_ADDRESS=http://0.0.0.0:8888
+      - ETCD_HOST=etcd
+      - ETCD_PORT=2379
+      - HSM_URL=http://cray-smd:27779
+      - NFD_URL=http://fake_hsm_${HSUFFIX:-bss}:${FAKE_SM_PORT:-28000}/hsm/v1
+    networks:
+      - bss
+    ports:
+      - 27778:27778
+  etcd:
+    image: arti.dev.cray.com/third-party-docker-stable-local/coreos/etcd:v3.4.7
+    hostname: etcd
+    environment:
+      - ALLOW_NONE_AUTHENTICATION=yes
+      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd:2379
+      - ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379
+    networks:
+      - bss
+    ports:
+      - 2379:2379
+      - 2380:2380
+  hmsds-postgres:
+    hostname: hmsds-postgres
+    image: arti.dev.cray.com/third-party-docker-stable-local/postgres:11-alpine
+    environment:
+      - POSTGRES_PASSWORD=hmsdsuser
+      - POSTGRES_USER=hmsdsuser
+      - POSTGRES_DB=hmsds
+    networks:
+      - bss
+  cray-smd-init:
+    image: artifactory.algol60.net/csm-docker/stable/cray-smd:1.30.9
+    environment:
+      - SMD_DBHOST=hmsds-postgres
+      - SMD_DBPORT=5432
+    depends_on:
+      - hmsds-postgres
+    networks:
+      - bss
+    volumes:
+      - ./integration-tests:/integration-tests
+    command: sh -c "
+      /integration-tests/fill-smd-db.sh &&
+      /entrypoint.sh smd-init
+      "
+  cray-smd:
+    image: artifactory.algol60.net/csm-docker/stable/cray-smd:1.30.9
+    environment:
+      - POSTGRES_HOST=hmsds-postgres
+      - POSTGRES_PORT=5432
+      - RF_MSG_HOST=kafka:9092:cray-dmtf-resource-event
+      - CRAY_VAULT_AUTH_PATH=auth/token/create
+      - CRAY_VAULT_ROLE_FILE=configs/namespace
+      - CRAY_VAULT_JWT_FILE=configs/token
+      - VAULT_ADDR=http://vault:8200
+      - VAULT_TOKEN=hms
+      - VAULT_KEYPATH=hms-creds
+      - SMD_WVAULT=true
+      - SMD_RVAULT=true
+    hostname: cray-smd
+    depends_on:
+      - cray-smd-init
+      - vault
+    ports:
+      - 27779:27779
+    networks:
+      - bss
+  vault:
+    hostname: vault
+    image: arti.dev.cray.com/third-party-docker-stable-local/vault:1.5.5
+    environment:
+      - VAULT_DEV_ROOT_TOKEN_ID=hms
+      - VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200
+      - VAULT_ADDR=http://127.0.0.1:8200
+    cap_add:
+      - IPC_LOCK
+    networks:
+      - bss
+  kafka:
+    image: arti.dev.cray.com/third-party-docker-stable-local/confluentinc/cp-kafka:6.1.1
+    hostname: kafka
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    networks:
+      - bss
+  zookeeper:
+    image: arti.dev.cray.com/third-party-docker-stable-local/confluentinc/cp-zookeeper:6.1.1
+    hostname: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - bss
+  fakesm:
+    build:
+      context: fake-hsm
+      dockerfile: Dockerfile.fake-hsm
+    image: fake-hsm:${HTAG:-bsstest}_${HSUFFIX:-bss}
+    hostname: fake_hsm_${HSUFFIX:-bss}
+    container_name: fake_hsm_${HSUFFIX:-bss}
+    ports:
+      - "${FAKE_SM_PORT:-28000}:${FAKE_SM_PORT:-28000}"
+    environment:
+      - PORT=${FAKE_SM_PORT:-28000}
+    networks:
+      - bss
+
+

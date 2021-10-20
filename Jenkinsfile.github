@@ -29,12 +29,24 @@ pipeline {
             }
         }
 
+        stage("Chart") {
+            steps {
+                updateCsmHelmChartAppVersion(chartPath: "${WORKSPACE}/kubernetes/${CHART_NAME}", appVersion:  env.VERSION)
+                sh "make chart"
+            }
+        }
+
         stage("Run Unit Tests") {
             steps {
                 sh "make unittest"
             }
         }
 
+        stage("Run Integration Tests") {
+            steps {
+                sh "make integration"
+            }
+        }
 
         stage("Test Rpm") {
             steps {
