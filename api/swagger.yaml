@@ -556,6 +556,29 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/Error'
+  /last-access:
+    get:
+      summary: Retrieve last access information for xname and resource type
+      tags:
+        - bootparameters
+      description: >-
+                   Retrieve last access information for xname and resource type. Every time a node requests special
+                   types of resources (its bootscript or cloud-init data) that is recorded in the database. This is
+                   useful for determining a number of things most notably as a way to monitor boot progress.
+      parameters:
+        - name: name
+          in: query
+          type: string
+          description: Xname of the node.
+        - name: type
+          in: query
+          type: string
+          description: The type of resource to get the last access time for.
+      responses:
+        '200':
+          description: Last access information
+          schema:
+            $ref: '#/definitions/LastAccess'
 definitions:
   BootParams:
     description: >-
@@ -672,6 +695,20 @@ definitions:
       properties:
         schema:
           $ref: '#/definitions/Component'
+  LastAccess:
+    description: >-
+                 This data structure is used to return the last access type and time for a given resource.
+    type: object
+    properties:
+      last_access_type:
+        type: string
+        enum:
+          - bootscript
+          - cloud-init
+      timestamp:
+        type: integer
+        description: Unix epoch time of last request.
+        example: 1635284155
   Error:
     description: Return an RFC7808 error response.
     type: object

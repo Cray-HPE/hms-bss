@@ -272,7 +272,53 @@ func userDataGetAPI(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/yaml")
 	w.WriteHeader(httpStatus)
 	_, _ = fmt.Fprintf(w, "#cloud-config\n%s", string(databytes))
+
+	// Record the fact this was asked for.
+	updateLastAccessed(xname, bssTypes.AccessTypeCloudInit)
+
 	return
+}
+
+func lastAccessGetAPI(w http.ResponseWriter, r *http.Request) {
+	debugf("lastAccessGetAPI(): Received request %v\n", r.URL)
+
+	r.ParseForm() // r.Form is empty until after parsing
+	name := strings.Join(r.Form["name"], "")
+	lastAccessType := strings.Join(r.Form["type"], "")
+
+	var lastAccessTypeStruct bssTypes.AccessType
+
+	if name == "" {
+		base.SendProblemDetailsGeneric(w, http.StatusBadRequest, "Need a name= parameter")
+		log.Printf("BSS request failed: last access request without name= parameter")
+		return
+	}
+	if lastAccessType == "" {
+		base.SendProblemDetailsGeneric(w, http.StatusBadRequest, "Need a type= parameter")
+		log.Printf("BSS request failed: last access request without type= parameter")
+		return
+	} else {
+		lastAccessTypeStruct = bssTypes.AccessType(lastAccessType)
+	}
+
+	ts, err := getLastAccessed(name, lastAccessTypeStruct)
+	if err != nil {
+		base.SendProblemDetailsGeneric(w, http.StatusInternalServerError,
+			fmt.Sprintf("Failed to get last access time for %s", name))
+		log.Printf("BSS request failed: failed to get last access time for %s", name)
+		return
+	}
+
+	lastAccessed := bssTypes.LastAccessed{
+		LastAccessType: lastAccessTypeStruct,
+		Timestamp:      ts,
+	}
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(lastAccessed)
+	if err != nil {
+		log.Printf("Yikes, I couldn't encode a JSON status response: %s\n", err)
+	}
 }
 
 func phoneHomePostAPI(w http.ResponseWriter, r *http.Request) {

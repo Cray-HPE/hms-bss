@@ -59,3 +59,17 @@ type BootParams struct {
 	Initrd    string    `json:"initrd,omitempty"`
 	CloudInit CloudInit `json:"cloud-init,omitempty"`
 }
+
+// The following structures and types all related to the last access information for bootscripts and cloud-init data.
+
+type AccessType string
+
+const (
+	AccessTypeBootscript AccessType = "bootscript"
+	AccessTypeCloudInit             = "cloud-init"
+)
+
+type LastAccessed struct {
+	LastAccessType AccessType `json:"last_access_type"`
+	Timestamp      int64      `json:"timestamp"`
+}

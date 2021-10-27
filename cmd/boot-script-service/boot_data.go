@@ -40,8 +40,10 @@ import (
 	"log"
 	"net/http"
 	"reflect"
+	"strconv"
 	"strings"
 	"sync"
+	"time"
 )
 
 const (
@@ -50,6 +52,7 @@ const (
 	keyMin          = " "
 	keyMax          = "~"
 	paramsPfx       = "/params/"
+	lastAccessPfx   = "/last-access"
 )
 
 type BootDataStore struct {
@@ -611,6 +614,36 @@ func updateCloudInit(d *bssTypes.CloudInit, p bssTypes.CloudInit) bool {
 		}
 	}
 	return changed
+}
+
+func updateLastAccessed(name string, accessType bssTypes.AccessType) {
+	timestamp := strconv.FormatInt(time.Now().Unix(), 10)
+	key := fmt.Sprintf("%s/%s/%s", lastAccessPfx, name, accessType)
+	if err := kvstore.Store(key, timestamp); err != nil {
+		log.Printf("Failed to store last access timestamp %s to key %s: %s",
+			timestamp, key, err)
+	}
+}
+
+func getLastAccessed(name string, accessType bssTypes.AccessType) (int64, error) {
+	key := fmt.Sprintf("%s/%s/%s", lastAccessPfx, name, accessType)
+	timestampString, exists, err := kvstore.Get(key)
+
+	if err != nil {
+		return -1, fmt.Errorf("failed to retreive last access timestamp at key %s: %w", key, err)
+	}
+
+	if !exists {
+		// Magic number, 0 meaning never accessed.
+		return 0, nil
+	}
+
+	ts, err := strconv.ParseInt(timestampString, 0, 64)
+	if err != nil {
+		return -1, fmt.Errorf("failed to convert timestamp to int: %w", err)
+	}
+
+	return ts, nil
 }
 
 func getTags() ([]hmetcd.Kvi_KV, error) {
