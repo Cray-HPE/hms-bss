@@ -29,6 +29,7 @@ cray-service:
   replicaCount: 3
   etcdCluster:
     enabled: true
+    podPriorityClassName: csm-high-priority-service
   containers:
     cray-bss:
       name: "cray-bss"
