@@ -556,29 +556,31 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/Error'
-  /last-access:
+  /endpoint-history:
     get:
-      summary: Retrieve last access information for xname and resource type
+      summary: Retrieve access information for xname and endpoint
       tags:
-        - bootparameters
+        - endpoint-history
       description: >-
-                   Retrieve last access information for xname and resource type. Every time a node requests special
-                   types of resources (its bootscript or cloud-init data) that is recorded in the database. This is
+                   Retrieve access information for xname and endpoint. Every time a node requests special
+                   types of endpoint (its bootscript or cloud-init data) that is recorded in the database. This is
                    useful for determining a number of things most notably as a way to monitor boot progress.
       parameters:
         - name: name
           in: query
           type: string
           description: Xname of the node.
-        - name: type
+        - name: endpoint
           in: query
           type: string
-          description: The type of resource to get the last access time for.
+          description: The endpoint to get the last access informaion for.
       responses:
         '200':
-          description: Last access information
+          description: Endpoint access information
           schema:
-            $ref: '#/definitions/LastAccess'
+            type: array
+            items:
+              $ref: '#/definitions/EndpointAccess'
 definitions:
   BootParams:
     description: >-
@@ -695,17 +697,21 @@ definitions:
       properties:
         schema:
           $ref: '#/definitions/Component'
-  LastAccess:
+  EndpointAccess:
     description: >-
-                 This data structure is used to return the last access type and time for a given resource.
+                 This data structure is used to return the endpoint access information for a given resource.
     type: object
     properties:
-      last_access_type:
+      name:
+        type: string
+        description: Xname of the node
+        example: x3000c0s1b0n0
+      endpoint:
         type: string
         enum:
           - bootscript
-          - cloud-init
-      timestamp:
+          - user-data
+      last_epoch:
         type: integer
         description: Unix epoch time of last request.
         example: 1635284155

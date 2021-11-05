@@ -274,48 +274,35 @@ func userDataGetAPI(w http.ResponseWriter, r *http.Request) {
 	_, _ = fmt.Fprintf(w, "#cloud-config\n%s", string(databytes))
 
 	// Record the fact this was asked for.
-	updateLastAccessed(xname, bssTypes.AccessTypeCloudInit)
+	updateEndpointAccessed(xname, bssTypes.EndpointTypeUserData)
 
 	return
 }
 
-func lastAccessGetAPI(w http.ResponseWriter, r *http.Request) {
-	debugf("lastAccessGetAPI(): Received request %v\n", r.URL)
+func endpointHistoryGetAPI(w http.ResponseWriter, r *http.Request) {
+	debugf("endpointHistoryGetAPI(): Received request %v\n", r.URL)
 
 	r.ParseForm() // r.Form is empty until after parsing
 	name := strings.Join(r.Form["name"], "")
-	lastAccessType := strings.Join(r.Form["type"], "")
+	endpoint := strings.Join(r.Form["endpoint"], "")
 
-	var lastAccessTypeStruct bssTypes.AccessType
+	var lastAccessTypeStruct bssTypes.EndpointType
 
-	if name == "" {
-		base.SendProblemDetailsGeneric(w, http.StatusBadRequest, "Need a name= parameter")
-		log.Printf("BSS request failed: last access request without name= parameter")
-		return
-	}
-	if lastAccessType == "" {
-		base.SendProblemDetailsGeneric(w, http.StatusBadRequest, "Need a type= parameter")
-		log.Printf("BSS request failed: last access request without type= parameter")
-		return
-	} else {
-		lastAccessTypeStruct = bssTypes.AccessType(lastAccessType)
+	if endpoint != "" {
+		lastAccessTypeStruct = bssTypes.EndpointType(endpoint)
 	}
 
-	ts, err := getLastAccessed(name, lastAccessTypeStruct)
+	accesses, err := SearchEndpointAccessed(name, lastAccessTypeStruct)
 	if err != nil {
-		base.SendProblemDetailsGeneric(w, http.StatusInternalServerError,
-			fmt.Sprintf("Failed to get last access time for %s", name))
-		log.Printf("BSS request failed: failed to get last access time for %s", name)
+		errMsg := fmt.Sprintf("Failed to search for name: %s, endpoint: %s", name, endpoint)
+		base.SendProblemDetailsGeneric(w, http.StatusInternalServerError, errMsg)
+		log.Printf("BSS request failed: %s", errMsg)
 		return
 	}
 
-	lastAccessed := bssTypes.LastAccessed{
-		LastAccessType: lastAccessTypeStruct,
-		Timestamp:      ts,
-	}
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(lastAccessed)
+	err = json.NewEncoder(w).Encode(accesses)
 	if err != nil {
 		log.Printf("Yikes, I couldn't encode a JSON status response: %s\n", err)
 	}

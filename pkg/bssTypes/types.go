@@ -62,14 +62,15 @@ type BootParams struct {
 
 // The following structures and types all related to the last access information for bootscripts and cloud-init data.
 
-type AccessType string
+type EndpointType string
 
 const (
-	AccessTypeBootscript AccessType = "bootscript"
-	AccessTypeCloudInit             = "cloud-init"
+	EndpointTypeBootscript EndpointType = "bootscript"
+	EndpointTypeUserData                = "user-data"
 )
 
-type LastAccessed struct {
-	LastAccessType AccessType `json:"last_access_type"`
-	Timestamp      int64      `json:"timestamp"`
+type EndpointAccess struct {
+	Name      string       `json:"name"`
+	Endpoint  EndpointType `json:"endpoint"`
+	LastEpoch int64        `json:"last_epoch"`
 }

@@ -65,8 +65,8 @@ func initHandlers() {
 	http.HandleFunc(phoneHomeRoute, phoneHomePost)
 	// notifications
 	http.HandleFunc(notifierEndpoint, scn)
-	// last-access
-	http.HandleFunc(baseEndpoint+"/last-access", lastAccessGet)
+	// endpoint-access
+	http.HandleFunc(baseEndpoint+"/endpoint-history", endpointHistoryGet)
 }
 
 func Index(w http.ResponseWriter, r *http.Request) {
@@ -169,10 +169,10 @@ func phoneHomePost(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func lastAccessGet(w http.ResponseWriter, r *http.Request) {
+func endpointHistoryGet(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		lastAccessGetAPI(w, r)
+		endpointHistoryGetAPI(w, r)
 	default:
 		sendAllowable(w, "GET")
 	}
