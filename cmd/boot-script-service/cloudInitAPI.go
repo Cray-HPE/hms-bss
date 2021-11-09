@@ -300,6 +300,11 @@ func endpointHistoryGetAPI(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(accesses) == 0 {
+		// Always make sure to give back at least an empty array instead of `null`.
+		accesses = []bssTypes.EndpointAccess{}
+	}
+
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	err = json.NewEncoder(w).Encode(accesses)
