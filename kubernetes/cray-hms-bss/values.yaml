@@ -34,7 +34,8 @@ cray-service:
     cray-bss:
       name: "cray-bss"
       image:
-        repository: "cray/cray-bss"
+        repository: artifactory.algol60.net/csm-docker/stable/cray-bss
+        tag: 1.12.0
       resources:
         limits:
           cpu: 4
@@ -44,15 +45,15 @@ cray-service:
           memory: 256Mi
       env:
         - name: HSM_URL
-          value: "http://cray-smd" # TODO: figure out correct smd communication considering baked-in TLS expectations
+          value: "http://cray-smd"  # TODO: figure out correct smd communication considering baked-in TLS expectations
         - name: NFD_URL
           value: "http://cray-hmnfd"
         # Remove/comment out the DATASTORE_URL definition to have bss use
         # ETCD.  The etcd operator will provide the bss container
         # with ETCD_HOST and ETCD_PORT to allow it to determine the
         # DATASTORE URL.
-        #- name: DATASTORE_URL
-        #  value: "mem:"
+        # - name: DATASTORE_URL
+        #   value: "mem:"
         - name: S3_ENDPOINT
           valueFrom:
             secretKeyRef:
