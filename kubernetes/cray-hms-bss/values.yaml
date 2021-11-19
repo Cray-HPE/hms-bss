@@ -9,6 +9,14 @@
 
 # TODO: implement a solution to pass that information from Ansible to Helm instead of hardcoding it
 # See https://connect.us.cray.com/jira/browse/CASMCLOUD-661
+
+global:
+  appVersion: 1.12.0
+
+image:
+  repository: artifactory.algol60.net/csm-docker/stable/cray-bss
+  pullPolicy: IfNotPresent
+
 ipxe:
   dnsServerIp: "10.2.255.253"
   bssIp: "10.2.255.253"
@@ -35,7 +43,6 @@ cray-service:
       name: "cray-bss"
       image:
         repository: artifactory.algol60.net/csm-docker/stable/cray-bss
-        tag: 1.12.0
       resources:
         limits:
           cpu: 4
