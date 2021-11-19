@@ -1,5 +1,0 @@
----
-dependencies:
-- name: cray-service
-  version: "~6.2.0"
-  repository: "@cray-algol60"
