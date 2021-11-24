@@ -38,6 +38,7 @@ type CloudDataType map[string]interface{}
 type CloudInit struct {
 	MetaData  CloudDataType `json:"meta-data"`
 	UserData  CloudDataType `json:"user-data"`
+	Params    CloudDataType `json:"params"`
 	PhoneHome PhoneHome     `json:"phone-home,omitempty"`
 }
 
