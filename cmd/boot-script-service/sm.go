@@ -59,8 +59,8 @@ type SMComponent struct {
 }
 
 type SMData struct {
-	Components []SMComponent                  `json:"Components"`
-	IPAddrs    map[string]sm.CompEthInterface `json:"IPAddresses"`
+	Components []SMComponent                    `json:"Components"`
+	IPAddrs    map[string]sm.CompEthInterfaceV2 `json:"IPAddresses"`
 }
 
 var (
@@ -123,7 +123,7 @@ func SmOpen(base, options string) error {
 		smClient.Transport = trans
 		log.Printf("WARNING: insecure https connection to state manager service\n")
 	}
-	smBaseURL = base + "/hsm/v1"
+	smBaseURL = base + "/hsm/v2"
 	log.Printf("Accessing state manager via %s\n", smBaseURL)
 	return nil
 }
@@ -279,17 +279,19 @@ func getStateFromHSM() *SMData {
 		}
 		debugf("getStateFromHSM(): GET %s -> r: %v, err: %v\n", url, r, err)
 
-		var ethIfaces []sm.CompEthInterface
+		var ethIfaces []sm.CompEthInterfaceV2
 
 		ce, err = ioutil.ReadAll(r.Body)
 		err = json.Unmarshal(ce, &ethIfaces)
 		r.Body.Close()
 
-		addresses := make(map[string]sm.CompEthInterface)
+		addresses := make(map[string]sm.CompEthInterfaceV2)
 		for _, e := range ethIfaces {
 			debugf("EthInterface: %v\n", e)
-			if e.IPAddr != "" {
-				addresses[e.IPAddr] = e
+			for _, ip := range e.IPAddrs {
+				if ip.IPAddr != "" {
+					addresses[ip.IPAddr] = e
+				}
 			}
 
 			// Also see if this EthernetInterface belongs to any Components.
