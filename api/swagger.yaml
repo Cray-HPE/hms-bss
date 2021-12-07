@@ -573,6 +573,9 @@ paths:
         - name: endpoint
           in: query
           type: string
+          enum:
+            - bootscript
+            - user-data
           description: The endpoint to get the last access informaion for.
       responses:
         '200':
