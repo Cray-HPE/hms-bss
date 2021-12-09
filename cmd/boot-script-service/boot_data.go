@@ -32,10 +32,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	base "github.com/Cray-HPE/hms-base"
-	"github.com/Cray-HPE/hms-bss/pkg/bssTypes"
-	hmetcd "github.com/Cray-HPE/hms-hmetcd"
-	jsonpatch "github.com/evanphx/json-patch"
 	"hash/fnv"
 	"log"
 	"net/http"
@@ -44,6 +40,11 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	base "github.com/Cray-HPE/hms-base"
+	"github.com/Cray-HPE/hms-bss/pkg/bssTypes"
+	hmetcd "github.com/Cray-HPE/hms-hmetcd"
+	jsonpatch "github.com/evanphx/json-patch"
 )
 
 const (
@@ -656,7 +657,7 @@ func getAccessesForPrefix(prefix string) (accesses []bssTypes.EndpointAccess, er
 		}
 
 		newAccess := bssTypes.EndpointAccess{
-			Name: name,
+			Name:      name,
 			Endpoint:  bssTypes.EndpointType(endpoint),
 			LastEpoch: lastEpoch,
 		}
@@ -747,6 +748,16 @@ func lookupHost(name string) (BootDataStore, error) {
 		err = herr
 	}
 	return bds, err
+}
+
+func LookupBootData(name string) (BootData, error) {
+	var bd BootData
+	bds, err := lookupHost(name)
+	if err != nil {
+		return bd, err
+	}
+	bd = bdConvert(bds)
+	return bd, nil
 }
 
 // Function lookup() will look up the boot parameter data from the KV store

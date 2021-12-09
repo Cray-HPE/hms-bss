@@ -30,11 +30,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/Cray-HPE/hms-bss/pkg/bssTypes"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
+
+	"github.com/Cray-HPE/hms-bss/pkg/bssTypes"
 )
 
 func TestMain(m *testing.M) {

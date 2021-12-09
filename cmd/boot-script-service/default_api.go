@@ -42,17 +42,19 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	base "github.com/Cray-HPE/hms-base"
-	"github.com/Cray-HPE/hms-bss/pkg/bssTypes"
-	hms_s3 "github.com/Cray-HPE/hms-s3"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	base "github.com/Cray-HPE/hms-base"
+	"github.com/Cray-HPE/hms-bss/pkg/bssTypes"
+	hms_s3 "github.com/Cray-HPE/hms-s3"
 )
 
 const (
@@ -239,46 +241,80 @@ func BootparametersGet(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-	names := GetNames()
-	for _, name := range names {
-		bd, smc := LookupByName(name)
-		debugf("Found %s: %v | %v\n", name, bd, smc)
-		var bp bssTypes.BootParams
-		ok := false
-		for _, v := range args.Hosts {
-			if v == smc.ID || v == smc.Fqdn || v == name {
-				ok = true
-				break
-			}
-		}
-		if !ok {
-		Outer:
-			for _, v := range args.Macs {
-				for _, m := range smc.Mac {
-					if strings.EqualFold(v, m) {
-						ok = true
-						break Outer
-					}
-				}
-			}
-		}
-		if !ok {
-			for _, v := range args.Nids {
-				if nid, err := smc.NID.Int64(); err == nil && int64(v) == nid {
-					ok = true
-					break
-				}
-			}
-		}
-		if ok {
-			bp.Hosts = append(bp.Hosts, name)
+
+	resultMap := make(map[string]bssTypes.BootParams)
+	var unfoundHosts []string
+	for _, v := range args.Hosts {
+		bd, err := LookupBootData(v)
+		if err == nil {
+			var bp bssTypes.BootParams
+			bp.Hosts = append(bp.Hosts, v)
 			bp.Params = bd.Params
 			bp.Kernel = bd.Kernel.Path
 			bp.Initrd = bd.Initrd.Path
 			bp.CloudInit = bd.CloudInit
-			results = append(results, bp)
+			resultMap[v] = bp
+		} else {
+			unfoundHosts = append(unfoundHosts, v)
 		}
 	}
+	args.Hosts = unfoundHosts
+	if len(args.Hosts) > 0 || len(args.Macs) > 0 || len(args.Nids) > 0 {
+		smData := getState()
+		for _, smc := range smData.Components {
+			ok := false
+			var bp bssTypes.BootParams
+			var bd BootData
+			for _, v := range args.Hosts {
+				if v == smc.ID || v == smc.Fqdn {
+					bd, err = LookupBootData(smc.ID)
+					ok = err == nil
+					break
+				}
+			}
+			if !ok {
+			Outer:
+				for _, v := range args.Macs {
+					for _, m := range smc.Mac {
+						if strings.EqualFold(v, m) {
+							bd, err = LookupBootData(smc.ID)
+							ok = err == nil
+							break Outer
+						}
+					}
+				}
+			}
+			if !ok {
+				for _, v := range args.Nids {
+					if nid, err := smc.NID.Int64(); err == nil && int64(v) == nid {
+						bd, err = LookupBootData(smc.ID)
+						ok = err == nil
+						break
+					}
+				}
+			}
+			if ok {
+				if _, alreadyExists := resultMap[smc.ID]; !alreadyExists {
+					bp.Hosts = append(bp.Hosts, smc.ID)
+					bp.Params = bd.Params
+					bp.Kernel = bd.Kernel.Path
+					bp.Initrd = bd.Initrd.Path
+					bp.CloudInit = bd.CloudInit
+					resultMap[smc.ID] = bp
+				}
+			}
+		}
+	}
+
+	sortedResults := make([]string, 0, len(resultMap))
+	for k := range resultMap {
+		sortedResults = append(sortedResults, k)
+	}
+	sort.Strings(sortedResults)
+	for _, k := range sortedResults {
+		results = append(results, resultMap[k])
+	}
+
 	if results == nil {
 		// Could not find any boot parameters.  Set up error message.
 		// We want the error message to reflect the request.
@@ -313,7 +349,6 @@ func BootparametersGet(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	debugf("Retreived names: %v", names)
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	err = json.NewEncoder(w).Encode(results)
