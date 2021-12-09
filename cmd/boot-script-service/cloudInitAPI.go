@@ -272,7 +272,45 @@ func userDataGetAPI(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/yaml")
 	w.WriteHeader(httpStatus)
 	_, _ = fmt.Fprintf(w, "#cloud-config\n%s", string(databytes))
+
+	// Record the fact this was asked for.
+	updateEndpointAccessed(xname, bssTypes.EndpointTypeUserData)
+
 	return
+}
+
+func endpointHistoryGetAPI(w http.ResponseWriter, r *http.Request) {
+	debugf("endpointHistoryGetAPI(): Received request %v\n", r.URL)
+
+	r.ParseForm() // r.Form is empty until after parsing
+	name := strings.Join(r.Form["name"], "")
+	endpoint := strings.Join(r.Form["endpoint"], "")
+
+	var lastAccessTypeStruct bssTypes.EndpointType
+
+	if endpoint != "" {
+		lastAccessTypeStruct = bssTypes.EndpointType(endpoint)
+	}
+
+	accesses, err := SearchEndpointAccessed(name, lastAccessTypeStruct)
+	if err != nil {
+		errMsg := fmt.Sprintf("Failed to search for name: %s, endpoint: %s", name, endpoint)
+		base.SendProblemDetailsGeneric(w, http.StatusInternalServerError, errMsg)
+		log.Printf("BSS request failed: %s", errMsg)
+		return
+	}
+
+	if len(accesses) == 0 {
+		// Always make sure to give back at least an empty array instead of `null`.
+		accesses = []bssTypes.EndpointAccess{}
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(accesses)
+	if err != nil {
+		log.Printf("Yikes, I couldn't encode a JSON status response: %s\n", err)
+	}
 }
 
 func phoneHomePostAPI(w http.ResponseWriter, r *http.Request) {

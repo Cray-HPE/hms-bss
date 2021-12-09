@@ -45,9 +45,9 @@ const (
 	baseEndpoint     = "/boot/v1"
 	notifierEndpoint = baseEndpoint + "/scn"
 	// We don't use the baseEndpoint here because cloud-init doesn't like them
-	metaDataRoute  = "/meta-data"
-	userDataRoute  = "/user-data"
-	phoneHomeRoute = "/phone-home"
+	metaDataRoute   = "/meta-data"
+	userDataRoute   = "/user-data"
+	phoneHomeRoute  = "/phone-home"
 )
 
 func initHandlers() {
@@ -65,6 +65,8 @@ func initHandlers() {
 	http.HandleFunc(phoneHomeRoute, phoneHomePost)
 	// notifications
 	http.HandleFunc(notifierEndpoint, scn)
+	// endpoint-access
+	http.HandleFunc(baseEndpoint+"/endpoint-history", endpointHistoryGet)
 }
 
 func Index(w http.ResponseWriter, r *http.Request) {
@@ -164,5 +166,14 @@ func phoneHomePost(w http.ResponseWriter, r *http.Request) {
 		phoneHomePostAPI(w, r)
 	default:
 		sendAllowable(w, "POST")
+	}
+}
+
+func endpointHistoryGet(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		endpointHistoryGetAPI(w, r)
+	default:
+		sendAllowable(w, "GET")
 	}
 }

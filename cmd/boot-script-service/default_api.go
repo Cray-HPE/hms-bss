@@ -751,6 +751,9 @@ func BootscriptGet(w http.ResponseWriter, r *http.Request) {
 				log.Printf("BSS request delayed for %s while updating state", descr)
 			} else {
 				log.Printf("BSS request succeeded for %s", descr)
+
+				// Record the fact this was asked for.
+				updateEndpointAccessed(comp.ID, bssTypes.EndpointTypeBootscript)
 			}
 		} else {
 			log.Printf("BSS request failed writing response for %s: %s", descr, err.Error())

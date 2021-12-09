@@ -556,6 +556,34 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/Error'
+  /endpoint-history:
+    get:
+      summary: Retrieve access information for xname and endpoint
+      tags:
+        - endpoint-history
+      description: >-
+                   Retrieve access information for xname and endpoint. Every time a node requests special
+                   types of endpoint (its bootscript or cloud-init data) that is recorded in the database. This is
+                   useful for determining a number of things most notably as a way to monitor boot progress.
+      parameters:
+        - name: name
+          in: query
+          type: string
+          description: Xname of the node.
+        - name: endpoint
+          in: query
+          type: string
+          enum:
+            - bootscript
+            - user-data
+          description: The endpoint to get the last access informaion for.
+      responses:
+        '200':
+          description: Endpoint access information
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/EndpointAccess'
 definitions:
   BootParams:
     description: >-
@@ -672,6 +700,24 @@ definitions:
       properties:
         schema:
           $ref: '#/definitions/Component'
+  EndpointAccess:
+    description: >-
+                 This data structure is used to return the endpoint access information for a given resource.
+    type: object
+    properties:
+      name:
+        type: string
+        description: Xname of the node
+        example: x3000c0s1b0n0
+      endpoint:
+        type: string
+        enum:
+          - bootscript
+          - user-data
+      last_epoch:
+        type: integer
+        description: Unix epoch time of last request.
+        example: 1635284155
   Error:
     description: Return an RFC7808 error response.
     type: object

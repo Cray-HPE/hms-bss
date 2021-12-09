@@ -40,16 +40,19 @@ import (
 	"log"
 	"net/http"
 	"reflect"
+	"strconv"
 	"strings"
 	"sync"
+	"time"
 )
 
 const (
-	kernelImageType = "kernel"
-	initrdImageType = "initrd"
-	keyMin          = " "
-	keyMax          = "~"
-	paramsPfx       = "/params/"
+	kernelImageType   = "kernel"
+	initrdImageType   = "initrd"
+	keyMin            = " "
+	keyMax            = "~"
+	paramsPfx         = "/params/"
+	endpointAccessPfx = "/endpoint-access"
 )
 
 type BootDataStore struct {
@@ -611,6 +614,106 @@ func updateCloudInit(d *bssTypes.CloudInit, p bssTypes.CloudInit) bool {
 		}
 	}
 	return changed
+}
+
+func updateEndpointAccessed(name string, accessType bssTypes.EndpointType) {
+	timestamp := strconv.FormatInt(time.Now().Unix(), 10)
+	key := fmt.Sprintf("%s/%s/%s", endpointAccessPfx, name, accessType)
+	if err := kvstore.Store(key, timestamp); err != nil {
+		log.Printf("Failed to store last access timestamp %s to key %s: %s",
+			timestamp, key, err)
+	}
+}
+
+func searchKeyspace(prefix string) ([]hmetcd.Kvi_KV, error) {
+	// No kidding, the way you search in etcd is to search for a range where the first part of the range is the actual
+	// prefix and the second part of the range is that same prefix with the last character 1 unicode greater.
+	// > If range_end is key plus one (e.g., "aa"+1 == "ab", "a\xff"+1 == "b"), then the range request gets all keys
+	// > prefixed with key.
+	// https://github.com/etcd-io/etcd/pull/7206/commits/7e31ddd32a4511c436b14e30ef43756ac782d080
+	rangePrefix := prefix[:len(prefix)-1]
+	rangeLastNextChar := prefix[len(prefix)-1:][0] + 1
+	rangeEnd := fmt.Sprintf("%s%c", rangePrefix, rangeLastNextChar)
+
+	return kvstore.GetRange(rangePrefix, rangeEnd)
+}
+
+func getAccessesForPrefix(prefix string) (accesses []bssTypes.EndpointAccess, err error) {
+	kvs, searchErr := searchKeyspace(prefix)
+	if searchErr != nil {
+		err = fmt.Errorf("failed to search keyspace: %w", searchErr)
+		return
+	}
+
+	for _, kv := range kvs {
+		endpointParts := strings.Split(kv.Key, "/")
+		endpoint := endpointParts[len(endpointParts)-1]
+		name := endpointParts[len(endpointParts)-2]
+
+		lastEpoch, err := strconv.ParseInt(kv.Value, 0, 64)
+		if err != nil {
+			err = fmt.Errorf("failed to convert timestamp to int: %w", err)
+		}
+
+		newAccess := bssTypes.EndpointAccess{
+			Name: name,
+			Endpoint:  bssTypes.EndpointType(endpoint),
+			LastEpoch: lastEpoch,
+		}
+
+		accesses = append(accesses, newAccess)
+	}
+
+	return
+}
+
+func SearchEndpointAccessed(name string, endpointType bssTypes.EndpointType) (accesses []bssTypes.EndpointAccess,
+	err error) {
+	if name == "" && endpointType == "" {
+		return getAccessesForPrefix(endpointAccessPfx)
+	} else if name != "" && endpointType == "" {
+		return getAccessesForPrefix(fmt.Sprintf("%s/%s", endpointAccessPfx, name))
+	} else if name != "" && endpointType != "" {
+		var epoch int64
+		epoch, err = getEndpointAccessed(name, endpointType)
+		if err != nil {
+			return
+		}
+
+		access := bssTypes.EndpointAccess{
+			Name:      name,
+			Endpoint:  endpointType,
+			LastEpoch: epoch,
+		}
+		accesses = append(accesses, access)
+
+		return
+	} else {
+		err = fmt.Errorf("invalid search combination of name (%s) and endpoint (%s)", name, endpointType)
+	}
+
+	return
+}
+
+func getEndpointAccessed(name string, endpointType bssTypes.EndpointType) (int64, error) {
+	key := fmt.Sprintf("%s/%s/%s", endpointAccessPfx, name, endpointType)
+	timestampString, exists, err := kvstore.Get(key)
+
+	if err != nil {
+		return -1, fmt.Errorf("failed to retreive last access timestamp at key %s: %w", key, err)
+	}
+
+	if !exists {
+		// Magic number, 0 meaning never accessed.
+		return 0, nil
+	}
+
+	ts, err := strconv.ParseInt(timestampString, 0, 64)
+	if err != nil {
+		return -1, fmt.Errorf("failed to convert timestamp to int: %w", err)
+	}
+
+	return ts, nil
 }
 
 func getTags() ([]hmetcd.Kvi_KV, error) {
