@@ -34,9 +34,6 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	base "github.com/Cray-HPE/hms-base"
-	"github.com/Cray-HPE/hms-smd/pkg/redfish"
-	"github.com/Cray-HPE/hms-smd/pkg/sm"
 	"io/ioutil"
 	"log"
 	"net"
@@ -46,6 +43,10 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	base "github.com/Cray-HPE/hms-base"
+	rf "github.com/Cray-HPE/hms-smd/pkg/redfish"
+	"github.com/Cray-HPE/hms-smd/pkg/sm"
 )
 
 const badMAC = "not available"
@@ -67,10 +68,19 @@ var (
 	smMutex     sync.Mutex
 	smData      *SMData
 	smClient    *http.Client
+	smDataMap   map[string]SMComponent
 	smBaseURL   string
 	smJSONFile  string
 	smTimeStamp int64
 )
+
+func makeSmMap(state *SMData) map[string]SMComponent {
+	m := make(map[string]SMComponent)
+	for _, v := range state.Components {
+		m[v.ID] = v
+	}
+	return m
+}
 
 func SmOpen(base, options string) error {
 	u, err := url.Parse(base)
@@ -91,6 +101,7 @@ func SmOpen(base, options string) error {
 			debugf("Internal data conversion failure: %v", err)
 		}
 		smData = &comps
+		smDataMap = makeSmMap(smData)
 		return nil
 	}
 	if u.Scheme == "file" {
@@ -352,7 +363,7 @@ func getStateInfo() (ret *SMData) {
 	return ret
 }
 
-func protectedGetState(ts int64) *SMData {
+func protectedGetState(ts int64) (*SMData, map[string]SMComponent) {
 	smMutex.Lock()
 	defer smMutex.Unlock()
 	if ts < 0 || ts > smTimeStamp || smData == nil {
@@ -364,17 +375,24 @@ func protectedGetState(ts int64) *SMData {
 		newSMData := getStateInfo()
 		if newSMData != nil {
 			smData = newSMData
+			smDataMap = makeSmMap(smData)
 		}
 	}
-	return smData
+	return smData, smDataMap
 }
 
 func getState() *SMData {
+	data, _ := protectedGetState(0)
+	return data
+}
+
+func getStateAndMap() (*SMData, map[string]SMComponent) {
 	return protectedGetState(0)
 }
 
 func refreshState(ts int64) *SMData {
-	return protectedGetState(ts)
+	data, _ := protectedGetState(ts)
+	return data
 }
 
 func FindSMCompByMAC(mac string) (SMComponent, bool) {
@@ -387,6 +405,14 @@ func FindSMCompByMAC(mac string) (SMComponent, bool) {
 				}
 			}
 		}
+	}
+	return SMComponent{}, false
+}
+
+func FindSMCompByNameInCache(host string) (SMComponent, bool) {
+	_, stateMap := getStateAndMap()
+	if v, ok := stateMap[host]; ok {
+		return v, true
 	}
 	return SMComponent{}, false
 }

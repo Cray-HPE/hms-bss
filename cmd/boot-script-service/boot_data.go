@@ -32,10 +32,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	base "github.com/Cray-HPE/hms-base"
-	"github.com/Cray-HPE/hms-bss/pkg/bssTypes"
-	hmetcd "github.com/Cray-HPE/hms-hmetcd"
-	jsonpatch "github.com/evanphx/json-patch"
 	"hash/fnv"
 	"log"
 	"net/http"
@@ -44,6 +40,11 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	base "github.com/Cray-HPE/hms-base"
+	"github.com/Cray-HPE/hms-bss/pkg/bssTypes"
+	hmetcd "github.com/Cray-HPE/hms-hmetcd"
+	jsonpatch "github.com/evanphx/json-patch"
 )
 
 const (
@@ -656,7 +657,7 @@ func getAccessesForPrefix(prefix string) (accesses []bssTypes.EndpointAccess, er
 		}
 
 		newAccess := bssTypes.EndpointAccess{
-			Name: name,
+			Name:      name,
 			Endpoint:  bssTypes.EndpointType(endpoint),
 			LastEpoch: lastEpoch,
 		}
@@ -720,6 +721,18 @@ func getTags() ([]hmetcd.Kvi_KV, error) {
 	return kvstore.GetRange(paramsPfx+keyMin, paramsPfx+keyMax)
 }
 
+func GetNamesAndValues() map[string]string {
+	kvl, err := getTags()
+	m := make(map[string]string)
+	if err == nil {
+		for _, x := range kvl {
+			name := extractParamName(x)
+			m[name] = x.Value
+		}
+	}
+	return m
+}
+
 func GetNames() (ret []string) {
 	kvl, err := getTags()
 	if err == nil {
@@ -728,6 +741,16 @@ func GetNames() (ret []string) {
 		}
 	}
 	return ret
+}
+
+func LookupBootData(name string) (BootData, error) {
+	var bd BootData
+	bds, err := lookupHost(name)
+	if err != nil {
+		return bd, err
+	}
+	bd = bdConvert(bds)
+	return bd, nil
 }
 
 func lookupHost(name string) (BootDataStore, error) {
@@ -787,6 +810,34 @@ func lookup(name, altName, role, defaultTag string) BootData {
 	return bd
 }
 
+func bdConvertUsingImageCache(bds BootDataStore, kernelImages map[string]ImageData, initrdImages map[string]ImageData) (ret BootData) {
+	ret.Params = bds.Params
+	ret.CloudInit = bds.CloudInit
+	if bds.Kernel != "" {
+		if value, ok := kernelImages[bds.Kernel]; ok {
+			ret.Kernel = value
+		} else {
+			imdata, err := getImage(bds.Kernel, "")
+			if err == nil {
+				ret.Kernel = imdata
+				kernelImages[bds.Kernel] = imdata
+			}
+		}
+	}
+	if bds.Initrd != "" {
+		if value, ok := initrdImages[bds.Initrd]; ok {
+			ret.Initrd = value
+		} else {
+			imdata, err := getImage(bds.Initrd, "")
+			if err == nil {
+				ret.Initrd = imdata
+				initrdImages[bds.Initrd] = imdata
+			}
+		}
+	}
+	return ret
+}
+
 func bdConvert(bds BootDataStore) (ret BootData) {
 	ret.Params = bds.Params
 	ret.CloudInit = bds.CloudInit
@@ -817,6 +868,26 @@ func LookupByRole(role string) (BootData, error) {
 
 func LookupGlobalData() (BootData, error) {
 	return LookupByRole(GlobalTag)
+}
+
+func LookupComponentByName(name string) SMComponent {
+	comp, _ := FindSMCompByNameInCache(name)
+	return comp
+}
+
+func ToBootData(value string, kernalImages map[string]ImageData, initrdImages map[string]ImageData) (BootData, error) {
+	var bds BootDataStore
+	err := json.Unmarshal([]byte(value), &bds)
+	var bd BootData
+	if err != nil {
+		msg := fmt.Sprintf("Error parsing %s: %v", value, err)
+		herr := base.NewHMSError("Storage", msg)
+		herr.AddProblem(base.NewProblemDetailsStatus(msg, http.StatusNotFound))
+		err = herr
+	} else {
+		bd = bdConvertUsingImageCache(bds, kernalImages, initrdImages)
+	}
+	return bd, err
 }
 
 func LookupByName(name string) (BootData, SMComponent) {
