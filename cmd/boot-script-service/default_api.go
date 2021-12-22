@@ -261,11 +261,11 @@ func BootparametersGet(w http.ResponseWriter, r *http.Request) {
 
 		nameValues := GetNamesAndValues()
 
-		kernalImages := make(map[string]ImageData)
+		kernelImages := make(map[string]ImageData)
 		initrdImages := make(map[string]ImageData)
 		for name, value := range nameValues {
 			smc := LookupComponentByName(name)
-			bd, parseErr := ToBootData(value, kernalImages, initrdImages)
+			bd, parseErr := ToBootData(value, kernelImages, initrdImages)
 			if parseErr != nil {
 				log.Printf("Failed to parse etcd value for %s: %v\n", name, parseErr)
 			}
@@ -540,7 +540,7 @@ func buildBootScript(bd BootData, sp scriptParams, chain, descr string) (string,
 	// Check for special boot parameters.
 	params = checkParam(params, "xname=", sp.xname)
 	params = checkParam(params, "nid=", sp.nid)
-	// Inject the cloud init address info into the kernal params. If the target
+	// Inject the cloud init address info into the kernel params. If the target
 	// image does not have cloud-init enabled this wont hurt anything.
 	// If it does, it tells it to come back to us for the cloud-init meta-data
 	params = checkParam(params, "ds=", fmt.Sprintf("nocloud-net;s=%s/", advertiseAddress))

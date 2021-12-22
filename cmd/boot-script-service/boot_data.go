@@ -875,7 +875,7 @@ func LookupComponentByName(name string) SMComponent {
 	return comp
 }
 
-func ToBootData(value string, kernalImages map[string]ImageData, initrdImages map[string]ImageData) (BootData, error) {
+func ToBootData(value string, kernelImages map[string]ImageData, initrdImages map[string]ImageData) (BootData, error) {
 	var bds BootDataStore
 	err := json.Unmarshal([]byte(value), &bds)
 	var bd BootData
@@ -885,7 +885,7 @@ func ToBootData(value string, kernalImages map[string]ImageData, initrdImages ma
 		herr.AddProblem(base.NewProblemDetailsStatus(msg, http.StatusNotFound))
 		err = herr
 	} else {
-		bd = bdConvertUsingImageCache(bds, kernalImages, initrdImages)
+		bd = bdConvertUsingImageCache(bds, kernelImages, initrdImages)
 	}
 	return bd, err
 }
