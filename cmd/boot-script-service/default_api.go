@@ -42,9 +42,6 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	base "github.com/Cray-HPE/hms-base"
-	"github.com/Cray-HPE/hms-bss/pkg/bssTypes"
-	hms_s3 "github.com/Cray-HPE/hms-s3"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -53,6 +50,10 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	base "github.com/Cray-HPE/hms-base"
+	"github.com/Cray-HPE/hms-bss/pkg/bssTypes"
+	hms_s3 "github.com/Cray-HPE/hms-s3"
 )
 
 const (
@@ -239,44 +240,72 @@ func BootparametersGet(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-	names := GetNames()
-	for _, name := range names {
-		bd, smc := LookupByName(name)
-		debugf("Found %s: %v | %v\n", name, bd, smc)
-		var bp bssTypes.BootParams
-		ok := false
-		for _, v := range args.Hosts {
-			if v == smc.ID || v == smc.Fqdn || v == name {
-				ok = true
-				break
-			}
-		}
-		if !ok {
-		Outer:
-			for _, v := range args.Macs {
-				for _, m := range smc.Mac {
-					if strings.EqualFold(v, m) {
-						ok = true
-						break Outer
-					}
-				}
-			}
-		}
-		if !ok {
-			for _, v := range args.Nids {
-				if nid, err := smc.NID.Int64(); err == nil && int64(v) == nid {
-					ok = true
-					break
-				}
-			}
-		}
-		if ok {
-			bp.Hosts = append(bp.Hosts, name)
+	var unfoundHosts []string
+	for _, v := range args.Hosts {
+		bd, err := LookupBootData(v)
+		if err == nil {
+			var bp bssTypes.BootParams
+			bp.Hosts = append(bp.Hosts, v)
 			bp.Params = bd.Params
 			bp.Kernel = bd.Kernel.Path
 			bp.Initrd = bd.Initrd.Path
 			bp.CloudInit = bd.CloudInit
 			results = append(results, bp)
+		} else {
+			unfoundHosts = append(unfoundHosts, v)
+		}
+	}
+	args.Hosts = unfoundHosts
+
+	if len(args.Hosts) > 0 || len(args.Macs) > 0 || len(args.Nids) > 0 {
+
+		nameValues := GetNamesAndValues()
+
+		kernelImages := make(map[string]ImageData)
+		initrdImages := make(map[string]ImageData)
+		for name, value := range nameValues {
+			smc := LookupComponentByName(name)
+			bd, parseErr := ToBootData(value, kernelImages, initrdImages)
+			if parseErr != nil {
+				log.Printf("Failed to parse etcd value for %s: %v\n", name, parseErr)
+			}
+
+			debugf("Found %s: %v | %v\n", name, bd, smc)
+			var bp bssTypes.BootParams
+			ok := false
+			for _, v := range args.Hosts {
+				if v == smc.ID || v == smc.Fqdn || v == name {
+					ok = true
+					break
+				}
+			}
+			if !ok {
+			Outer:
+				for _, v := range args.Macs {
+					for _, m := range smc.Mac {
+						if strings.EqualFold(v, m) {
+							ok = true
+							break Outer
+						}
+					}
+				}
+			}
+			if !ok {
+				for _, v := range args.Nids {
+					if nid, err := smc.NID.Int64(); err == nil && int64(v) == nid {
+						ok = true
+						break
+					}
+				}
+			}
+			if ok {
+				bp.Hosts = append(bp.Hosts, name)
+				bp.Params = bd.Params
+				bp.Kernel = bd.Kernel.Path
+				bp.Initrd = bd.Initrd.Path
+				bp.CloudInit = bd.CloudInit
+				results = append(results, bp)
+			}
 		}
 	}
 	if results == nil {
@@ -313,7 +342,6 @@ func BootparametersGet(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	debugf("Retreived names: %v", names)
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	err = json.NewEncoder(w).Encode(results)
@@ -512,7 +540,7 @@ func buildBootScript(bd BootData, sp scriptParams, chain, descr string) (string,
 	// Check for special boot parameters.
 	params = checkParam(params, "xname=", sp.xname)
 	params = checkParam(params, "nid=", sp.nid)
-	// Inject the cloud init address info into the kernal params. If the target
+	// Inject the cloud init address info into the kernel params. If the target
 	// image does not have cloud-init enabled this wont hurt anything.
 	// If it does, it tells it to come back to us for the cloud-init meta-data
 	params = checkParam(params, "ds=", fmt.Sprintf("nocloud-net;s=%s/", advertiseAddress))
