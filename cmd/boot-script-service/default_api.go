@@ -1,6 +1,6 @@
 // MIT License
 //
-// (C) Copyright [2021] Hewlett Packard Enterprise Development LP
+// (C) Copyright [2021-2022] Hewlett Packard Enterprise Development LP
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -75,8 +75,9 @@ var gwURI = getEnvVal("BSS_GW_URI", "/apis/bss")
 var s3Client *hms_s3.S3Client
 
 type scriptParams struct {
-	xname string
-	nid   string
+	xname         string
+	nid           string
+	referralToken string
 }
 
 // Note that we allow an empty string if the env variable is defined as such.
@@ -371,10 +372,13 @@ func BootparametersPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	debugf("Received boot parameters: %v\n", args)
-	err = StoreNew(args)
+	err, referralToken := StoreNew(args)
 	if err == nil {
 		LogBootParameters("/bootparameters POST", args)
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		if referralToken != "" {
+			w.Header().Set("BSS-Referral-Token", referralToken)
+		}
 		w.WriteHeader(http.StatusCreated)
 	} else {
 		LogBootParameters(fmt.Sprintf("/bootparameters POST FAILED: %s", err.Error()), args)
@@ -395,10 +399,13 @@ func BootparametersPut(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	debugf("Received boot parameters: %v\n", args)
-	err = Store(args)
+	err, referralToken := Store(args)
 	if err == nil {
 		LogBootParameters("/bootparameters PUT", args)
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		if referralToken != "" {
+			w.Header().Set("BSS-Referral-Token", referralToken)
+		}
 		w.WriteHeader(http.StatusOK)
 	} else {
 		LogBootParameters(fmt.Sprintf("/bootparameters PATCH FAILED: %s", err.Error()), args)
@@ -540,6 +547,10 @@ func buildBootScript(bd BootData, sp scriptParams, chain, descr string) (string,
 	// Check for special boot parameters.
 	params = checkParam(params, "xname=", sp.xname)
 	params = checkParam(params, "nid=", sp.nid)
+	if sp.referralToken != "" {
+		params = checkParam(params, "bss_referral_token=", sp.referralToken)
+	}
+
 	// Inject the cloud init address info into the kernel params. If the target
 	// image does not have cloud-init enabled this wont hurt anything.
 	// If it does, it tells it to come back to us for the cloud-init meta-data
@@ -752,7 +763,7 @@ func BootscriptGet(w http.ResponseWriter, r *http.Request) {
 			if mac == "" && comp.Mac != nil {
 				mac = comp.Mac[0]
 			}
-			sp := scriptParams{comp.ID, comp.NID.String()}
+			sp := scriptParams{comp.ID, comp.NID.String(), bd.ReferralToken}
 			chain := "chain " + chainProto + "://" + ipxeServer + gwURI + r.URL.Path
 			if mac != "" {
 				chain += "?mac=" + mac
