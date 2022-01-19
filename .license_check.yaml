@@ -1,0 +1,9 @@
+add_exclude:
+  - ".license_check.yaml"
+  - "Jenkinsfile.github"
+  - "api/swagger.yaml"
+  - "build_tag_push.sh"
+  - "dev/etcd/run.sh"
+  - "dev/run.sh"
+  - "docs/Makefile"
+  - "scripts/doVersionRelease.sh"
