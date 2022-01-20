@@ -1,6 +1,6 @@
 // MIT License
 //
-// (C) Copyright [2021] Hewlett Packard Enterprise Development LP
+// (C) Copyright [2021-2022] Hewlett Packard Enterprise Development LP
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -45,6 +45,7 @@ import (
 	"github.com/Cray-HPE/hms-bss/pkg/bssTypes"
 	hmetcd "github.com/Cray-HPE/hms-hmetcd"
 	jsonpatch "github.com/evanphx/json-patch"
+	"github.com/google/uuid"
 )
 
 const (
@@ -57,10 +58,11 @@ const (
 )
 
 type BootDataStore struct {
-	Params    string             `json:"params,omitempty"`
-	Kernel    string             `json:"kernel,omitempty"`     // Image storage key
-	Initrd    string             `json:"initrd,omitempty"`     // Image storage key
-	CloudInit bssTypes.CloudInit `json:"cloud-init,omitempty"` // Image storage key
+	Params        string             `json:"params,omitempty"`
+	Kernel        string             `json:"kernel,omitempty"`        // Image storage key
+	Initrd        string             `json:"initrd,omitempty"`        // Image storage key
+	CloudInit     bssTypes.CloudInit `json:"cloud-init,omitempty"`    // Image storage key
+	ReferralToken string             `json:"referral-token,omitempty` // UUID
 }
 
 type ImageData struct {
@@ -69,10 +71,11 @@ type ImageData struct {
 }
 
 type BootData struct {
-	Params    string
-	Kernel    ImageData
-	Initrd    ImageData
-	CloudInit bssTypes.CloudInit `json:"cloud-init,omitempty"`
+	Params        string
+	Kernel        ImageData
+	Initrd        ImageData
+	CloudInit     bssTypes.CloudInit
+	ReferralToken string
 }
 
 const DefaultTag = "Default"
@@ -336,7 +339,7 @@ func extractParamName(x hmetcd.Kvi_KV) (ret string) {
 	return ret
 }
 
-func StoreNew(bp bssTypes.BootParams) error {
+func StoreNew(bp bssTypes.BootParams) (error, string) {
 	item := ""
 	// Go through the entire struct.  We must be storing to new hosts or this
 	// request must fail.
@@ -381,28 +384,31 @@ func StoreNew(bp bssTypes.BootParams) error {
 		}
 	}
 	if item != "" {
-		return fmt.Errorf("Already exists: %s", item)
+		return fmt.Errorf("Already exists: %s", item), ""
 	} else {
 		return Store(bp)
 	}
 }
 
-func Store(bp bssTypes.BootParams) error {
+func Store(bp bssTypes.BootParams) (error, string) {
 	debugf("Store(%v)\n", bp)
+
 	var kernel_id, initrd_id string
 	if bp.Kernel != "" {
 		kernel_id = imageStore(bp.Kernel, kernelImageType)
 		if kernel_id == "" {
-			return fmt.Errorf("Cannot store image path %s", bp.Kernel)
+			return fmt.Errorf("Cannot store image path %s", bp.Kernel), ""
 		}
 	}
 	if bp.Initrd != "" {
 		initrd_id = imageStore(bp.Initrd, initrdImageType)
 		if initrd_id == "" {
-			return fmt.Errorf("Cannot store image path %s", bp.Initrd)
+			return fmt.Errorf("Cannot store image path %s", bp.Initrd), ""
 		}
 	}
-	bd := BootDataStore{bp.Params, kernel_id, initrd_id, bp.CloudInit}
+
+	referralToken := uuid.New().String()
+	bd := BootDataStore{bp.Params, kernel_id, initrd_id, bp.CloudInit, referralToken}
 	var err error
 	switch {
 	case len(bp.Hosts) > 0:
@@ -452,13 +458,17 @@ func Store(bp bssTypes.BootParams) error {
 		idata := ImageData{bp.Kernel, bp.Params}
 		debugf("Ready to store data: %s, %v\n", kernel_id, idata)
 		err = storeData(kernel_id, idata)
+		referralToken = "" // referralToken was not needed
 	case initrd_id != "":
 		err = storeData(initrd_id, ImageData{bp.Initrd, bp.Params})
+		referralToken = "" // referralToken was not needed
 	default:
 		herr := base.NewHMSError("Storage", "Nothing to Store")
 		herr.AddProblem(base.NewProblemDetailsStatus("Nothing to Store", http.StatusBadRequest))
+		referralToken = "" // referralToken was not needed
 	}
-	return err
+	debugf("Store referralToken: %s\n", referralToken)
+	return err, referralToken
 }
 
 // The update function will update entries but not NULL out existing entries.
@@ -841,6 +851,7 @@ func bdConvertUsingImageCache(bds BootDataStore, kernelImages map[string]ImageDa
 func bdConvert(bds BootDataStore) (ret BootData) {
 	ret.Params = bds.Params
 	ret.CloudInit = bds.CloudInit
+	ret.ReferralToken = bds.ReferralToken
 	if bds.Kernel != "" {
 		imdata, err := getImage(bds.Kernel, "")
 		if err == nil {

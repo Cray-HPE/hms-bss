@@ -1,0 +1,4 @@
+add_exclude:
+  - ".license_check.yaml"
+  - "Jenkinsfile.github"
+  - "api/swagger.yaml"

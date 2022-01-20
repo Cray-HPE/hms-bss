@@ -1,6 +1,6 @@
 // MIT License
 //
-// (C) Copyright [2021] Hewlett Packard Enterprise Development LP
+// (C) Copyright [2021-2022] Hewlett Packard Enterprise Development LP
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -30,11 +30,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/Cray-HPE/hms-bss/pkg/bssTypes"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
+
+	"github.com/Cray-HPE/hms-bss/pkg/bssTypes"
 )
 
 func TestMain(m *testing.M) {
@@ -121,9 +122,13 @@ func TestStoreAndLookup(t *testing.T) {
 		{Initrd: "/test/path/initrd.gz", Params: "def-initrd"},
 	}
 	for _, bp := range tables {
-		err := Store(bp)
+		err, referralToken := Store(bp)
 		if err != nil {
 			t.Errorf("Store failed for '%v': %s", bp, err.Error())
+		} else if referralToken == "" && (bp.Hosts != nil || bp.Nids != nil || bp.Macs != nil) {
+			t.Errorf("Store failed to create a referral token for '%v'", bp)
+		} else if referralToken != "" && (bp.Hosts == nil && bp.Nids == nil && bp.Macs == nil) {
+			t.Errorf("Store incorrectly created a referral token when only setting the kernel or initrd values for '%v'", bp)
 		}
 	}
 
