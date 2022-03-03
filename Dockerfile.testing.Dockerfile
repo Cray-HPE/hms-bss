@@ -1,9 +1,6 @@
-#!/usr/bin/env bash
-
-#
 # MIT License
 #
-# (C) Copyright [2020-2022] Hewlett Packard Enterprise Development LP
+# (C) Copyright [2021] Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -22,40 +19,33 @@
 # OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
-#
-set -x
 
+# Dockerfile for running bss unit tests.
 
-# Configure docker compose
-export COMPOSE_PROJECT_NAME=$RANDOM
-export COMPOSE_FILE=docker-compose.test.unit.yaml
+### build-base stage ###
+# Build base just has the packages installed we need.
+FROM artifactory.algol60.net/docker.io/library/golang:1.16-alpine AS build-base
 
-echo "COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}"
-echo "COMPOSE_FILE: $COMPOSE_FILE"
+RUN set -ex \
+    && apk -U upgrade \
+    && apk add build-base
 
+### base stage ###
+# Base copies in the files we need to test/build.
+FROM build-base AS base
 
-function cleanup() {
-  docker-compose down
-  if ! [[ $? -eq 0 ]]; then
-    echo "Failed to decompose environment!"
-    exit 1
-  fi
-  exit $1
-}
+RUN go env -w GO111MODULE=auto
 
+# Copy all the necessary files to the image.
+COPY cmd $GOPATH/src/github.com/Cray-HPE/hms-bss/cmd
+COPY pkg $GOPATH/src/github.com/Cray-HPE/hms-bss/pkg
+COPY vendor $GOPATH/src/github.com/Cray-HPE/hms-bss/vendor
+COPY .version $GOPATH/src/github.com/Cray-HPE/hms-bss/.version
 
-echo "Starting containers..."
-docker-compose build
-docker-compose up --exit-code-from unit-tests unit-tests
+### testing stage ###
+FROM base AS testing
 
-test_result=$?
+WORKDIR /go
 
-# Clean up
-echo "Cleaning up containers..."
-if [[ $test_result -ne 0 ]]; then
-  echo "Unit tests FAILED!"
-  cleanup 1
-fi
-
-echo "Unit tests PASSED!"
-cleanup 0
+# Run unit tests.
+CMD ["sh", "-c", "go test -cover -v github.com/Cray-HPE/hms-bss/cmd/boot-script-service"]

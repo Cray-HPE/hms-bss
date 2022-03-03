@@ -24,7 +24,7 @@
 
 ### build-base stage ###
 # Build base just has the packages installed we need.
-FROM arti.dev.cray.com/baseos-docker-master-local/golang:1.16-alpine3.13 AS build-base
+FROM artifactory.algol60.net/docker.io/library/golang:1.16-alpine AS build-base
 
 RUN set -ex \
     && apk -U upgrade \
@@ -48,7 +48,7 @@ FROM base AS builder
 RUN set -ex && go build -v -i -o /usr/local/bin/boot-script-service github.com/Cray-HPE/hms-bss/cmd/boot-script-service
 
 ### Final Stage ###
-FROM arti.dev.cray.com/baseos-docker-master-local/alpine:3.13
+FROM artifactory.algol60.net/docker.io/alpine:3.15
 LABEL maintainer="Hewlett Packard Enterprise"
 EXPOSE 27778
 STOPSIGNAL SIGTERM
@@ -75,8 +75,10 @@ ENV BSS_OPTS="--insecure"
 
 ENV BSS_RETRY_DELAY=30
 ENV BSS_HSM_RETRIEVAL_DELAY=10
-ENV BSS_INIT=/etc/bss.init
-#
+
+ENV ETCD_HOST "etcd"
+ENV ETCD_PORT "2379"
+
 # Other potentially useful env variables:
 # BSS_IPXE_SERVER defaults to "api-gw-service-nmn.local"
 # BSS_CHAIN_PROTO defaults to "https"
@@ -96,4 +98,4 @@ COPY .version /
 USER 65534:65534
 
 # Set up the command to start the service, the run the init script.
-CMD (sleep 4; test -x $BSS_INIT && $BSS_INIT) & boot-script-service $BSS_OPTS --hsm=$HSM_URL ${DATASTORE_URL:+--datastore=}$DATASTORE_URL --retry-delay=$BSS_RETRY_DELAY --hsm-retrieval-delay=$BSS_HSM_RETRIEVAL_DELAY
+CMD boot-script-service $BSS_OPTS --hsm=$HSM_URL ${DATASTORE_URL:+--datastore=}$DATASTORE_URL --retry-delay=$BSS_RETRY_DELAY --hsm-retrieval-delay=$BSS_HSM_RETRIEVAL_DELAY

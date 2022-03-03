@@ -1,6 +1,6 @@
 # MIT License
 
-# (C) Copyright [2020-2021] Hewlett Packard Enterprise Development LP
+# (C) Copyright [2020-2022] Hewlett Packard Enterprise Development LP
 
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -52,10 +52,8 @@ stages:
   # 2. GET /dumpstate API response body
   - name: Ensure the boot script service can dump its state
     request:
-      url: "{base_url}/bss/boot/v1/dumpstate"
+      url: "{bss_base_url}/boot/v1/dumpstate"
       method: GET
-      headers:
-        Authorization: "Bearer {access_token}"
       verify: !bool "{verify}"
     response:
       status_code: 200
@@ -166,10 +164,8 @@ test_name: Verify the bootscript resource
 stages:
   - name: Save the node name, nid, and mac address for use in later stages
     request:
-      url: "{base_url}/bss/boot/v1/dumpstate"
+      url: "{bss_base_url}/boot/v1/dumpstate"
       method: GET
-      headers:
-        Authorization: "Bearer {access_token}"
       verify: !bool "{verify}"
     response:
       status_code: 200
@@ -182,10 +178,8 @@ stages:
   # 3. GET /bootscript?nid={nid} API response code
   - name: Ensure the boot script service can provide the bootscript for a given node
     request:
-      url: "{base_url}/bss/boot/v1/bootscript?nid={nid}"
+      url: "{bss_base_url}/boot/v1/bootscript?nid={nid}"
       method: GET
-      headers:
-        Authorization: "Bearer {access_token}"
       verify: !bool "{verify}"
     response:
       status_code: 200
@@ -193,7 +187,7 @@ stages:
   ## 4. Disabled (Bad MAC address data in dumpstate issue CASMHMS-3216) - GET /bootscript?mac={mac_address} API response code
   #- name: Ensure the boot script service can provide the bootscript for a given mac address
   #  request:
-  #    url: "{base_url}/bss/boot/v1/bootscript?mac={mac_address}"
+  #    url: "{bss_base_url}/boot/v1/bootscript?mac={mac_address}"
   #    method: GET
   #    headers:
   #      Authorization: "Bearer {access_token}"
@@ -204,10 +198,8 @@ stages:
   # 5. GET /bootscript?name={node_name} API response code
   - name: Ensure the boot script service can provide the bootscript for a given node name
     request:
-      url: "{base_url}/bss/boot/v1/bootscript?name={node_name}"
+      url: "{bss_base_url}/boot/v1/bootscript?name={node_name}"
       method: GET
-      headers:
-        Authorization: "Bearer {access_token}"
       verify: !bool "{verify}"
     response:
       status_code: 200
@@ -216,10 +208,8 @@ stages:
   # 7. GET /bootscript?nid={nid}&retry={retry} API response body
   - name: Ensure the boot script service can retrieve a bootscript for a particular nid with the number of retries set to 7
     request:
-      url: "{base_url}/bss/boot/v1/bootscript?nid=1&retry=7"
+      url: "{bss_base_url}/boot/v1/bootscript?nid=1&retry=7"
       method: GET
-      headers:
-        Authorization: "Bearer {access_token}"
       verify: !bool "{verify}"
     response:
       status_code: 200
@@ -255,10 +245,8 @@ marks:
 stages:
   - name: Validate a graceful failure when providing an invalid nid
     request:
-      url: "{base_url}/bss/boot/v1/bootscript?nid={invalid_nid}"
+      url: "{bss_base_url}/boot/v1/bootscript?nid={invalid_nid}"
       method: GET
-      headers:
-        Authorization: "Bearer {access_token}"
       verify: !bool "{verify}"
     response:
       status_code: 400
@@ -276,10 +264,8 @@ stages:
   # 19. GET /bootscript?{invalid_parameter} API response body
   - name: Validate a graceful failure when providing an invalid query parameter
     request:
-      url: "{base_url}/bss/boot/v1/bootscript?foo"
+      url: "{bss_base_url}/boot/v1/bootscript?foo"
       method: GET
-      headers:
-        Authorization: "Bearer {access_token}"
       verify: !bool "{verify}"
     response:
       status_code: 400
