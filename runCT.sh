@@ -3,7 +3,7 @@
 #
 # MIT License
 #
-# (C) Copyright [2020-2022] Hewlett Packard Enterprise Development LP
+# (C) Copyright [2022] Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -28,7 +28,7 @@ set -x
 
 # Configure docker compose
 export COMPOSE_PROJECT_NAME=$RANDOM
-export COMPOSE_FILE=docker-compose.test.unit.yaml
+export COMPOSE_FILE=docker-compose.test.ct.yaml
 
 echo "COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}"
 echo "COMPOSE_FILE: $COMPOSE_FILE"
@@ -44,18 +44,30 @@ function cleanup() {
 }
 
 
+# Get the base containers running
 echo "Starting containers..."
-docker-compose build
-docker-compose up --exit-code-from unit-tests unit-tests
-
+docker-compose build --no-cache
+docker-compose up  -d cray-bss #this will stand up everything except for the integration test container
+docker-compose up -d ct-tests-functional-wait-for-smd
+docker wait ${COMPOSE_PROJECT_NAME}_ct-tests-functional-wait-for-smd_1
+docker logs ${COMPOSE_PROJECT_NAME}_ct-tests-functional-wait-for-smd_1
+docker-compose up --exit-code-from ct-tests-smoke ct-tests-smoke
 test_result=$?
-
-# Clean up
 echo "Cleaning up containers..."
 if [[ $test_result -ne 0 ]]; then
-  echo "Unit tests FAILED!"
+  echo "CT smoke tests FAILED!"
   cleanup 1
 fi
 
-echo "Unit tests PASSED!"
+docker-compose up --exit-code-from ct-tests-functional ct-tests-functional
+test_result=$?
+# Clean up
+echo "Cleaning up containers..."
+if [[ $test_result -ne 0 ]]; then
+  echo "CT functional tests FAILED!"
+  cleanup 1
+fi
+
+# Cleanup
+echo "CT tests PASSED!"
 cleanup 0

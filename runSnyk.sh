@@ -1,9 +1,7 @@
-#!/usr/bin/env bash
-
-#
+#! /bin/bash
 # MIT License
 #
-# (C) Copyright [2020-2022] Hewlett Packard Enterprise Development LP
+# (C) Copyright [2021] Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -22,40 +20,28 @@
 # OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
-#
-set -x
+set -ex
+SNYK_OPTS="--dev --show-vulnerable-paths=all --fail-on=all --severity-threshold=${SEVERITY:-high} --skip-unresolved=true --json"
 
+OUT=$(set -x; snyk test --all-projects --detection-depth=999 $SNYK_OPTS)
 
-# Configure docker compose
-export COMPOSE_PROJECT_NAME=$RANDOM
-export COMPOSE_FILE=docker-compose.test.unit.yaml
+PROJ_CHECK=OK
+jq .[].ok <<<"$OUT" | grep -q false && PROJ_CHECK=FAIL
 
-echo "COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}"
-echo "COMPOSE_FILE: $COMPOSE_FILE"
+echo Snyk project check: $PROJ_CHECK
 
-
-function cleanup() {
-  docker-compose down
-  if ! [[ $? -eq 0 ]]; then
-    echo "Failed to decompose environment!"
-    exit 1
-  fi
-  exit $1
-}
-
-
-echo "Starting containers..."
-docker-compose build
-docker-compose up --exit-code-from unit-tests unit-tests
-
-test_result=$?
-
-# Clean up
-echo "Cleaning up containers..."
-if [[ $test_result -ne 0 ]]; then
-  echo "Unit tests FAILED!"
-  cleanup 1
+DOCKER_CHECK=
+if [ -f Dockerfile ]; then
+    DOCKER_IMAGE=${PWD/*\//}:$(cat .version)
+    docker build --tag $DOCKER_IMAGE .
+    OUT=$(set -x; snyk test --docker $DOCKER_IMAGE --file=${PWD}/Dockerfile $SNYK_OPTS)
+    DOCKER_CHECK=OK
+    jq .ok <<<"$OUT" | grep -q false && DOCKER_CHECK=FAIL
 fi
 
-echo "Unit tests PASSED!"
-cleanup 0
+echo
+echo Snyk project check: $PROJ_CHECK
+echo Snyk docker check: $DOCKER_CHECK
+
+test "$PROJ_CHECK" == OK -a "$DOCKER_CHECK" == OK
+exit $?
