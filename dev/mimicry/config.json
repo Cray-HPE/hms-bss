@@ -1,6 +1,6 @@
 {
     "routes": {
-        "/hsm/v1/Inventory/ComponentEndpoints?type=Node": {
+        "/hsm/v2/Inventory/ComponentEndpoints?type=Node": {
             "response": {
                 "ComponentEndpoints": [
                     {
@@ -790,7 +790,7 @@
                 ]
             }
         },
-        "/hsm/v1/State/Components?type=Node": {
+        "/hsm/v2/State/Components?type=Node": {
             "response": {
                 "Components": [
                     {
@@ -974,7 +974,7 @@
                 ]
             }
         },
-        "/hsm/v1/Inventory/EthernetInterfaces?type=Node": {
+        "/hsm/v2/Inventory/EthernetInterfaces?type=Node": {
             "response": [
                 {
                     "ID": "98039bbba880",
