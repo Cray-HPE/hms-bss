@@ -1,5 +1,5 @@
 {
-  "smoke_test_name": "BSS-smoke-tests",
+  "smoke_test_name": "bss-smoke-tests",
   "default_base_url": "http://cray-bss/",
   "test_paths": [
     {
