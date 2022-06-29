@@ -5,11 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.17.0] - 2022-05-23
+## [1.18.0] - 2022-06-29
 
 ### Changed
 
 - Scrubbed references to HSM v1 in favor of HSM v2.
+
+## [1.17.0] - 2022-06-22
+
+### Changed
+
+- updated CT tests to hms-test:3.1.0 image as part of Helm test coordination
 
 ## [1.16.0] - 2022-03-03
 
