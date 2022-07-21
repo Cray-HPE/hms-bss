@@ -151,7 +151,7 @@ paths:
       summary: Post cloud-init
       tags:
         - cli_ignore
-      operationId: user_data_get
+      operationId: phone_home_post
       produces:
         - text/yaml
       responses:
@@ -353,9 +353,8 @@ paths:
           description: successfully created boot parameters
           headers:
             BSS-Referral-Token:
-              schema:
-                type: string
-                description: The UUID that will be included in the boot script. A new UUID is generated on each POST and PUT request.
+              type: string
+              description: The UUID that will be included in the boot script. A new UUID is generated on each POST and PUT request.
         '400':
           description: Bad Request - Invalid BootParams value
           schema:
@@ -412,9 +411,8 @@ paths:
           description: successfully update boot parameters
           headers:
             BSS-Referral-Token:
-              schema:
-                type: string
-                description: The UUID that will be included in the boot script. A new UUID is generated on each POST and PUT request.
+              type: string
+              description: The UUID that will be included in the boot script. A new UUID is generated on each POST and PUT request.
         '400':
           description: Bad Request - Invalid BootParams value
           schema:
