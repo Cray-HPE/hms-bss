@@ -47,6 +47,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -74,6 +75,15 @@ var gwURI = getEnvVal("BSS_GW_URI", "/apis/bss")
 // Store ptr to S3 client
 var s3Client *hms_s3.S3Client
 
+// regex for matching s3 URIs in the params field
+var s3ParamsRegex = "[ ](([^ =]+=)(s3://[^ ]*))"
+
+type (
+	// function interface for checkURL()
+	// this enables writing unit tests for replaceS3Params()
+	signedS3UrlGetter func(string) (string, error)
+)
+
 type scriptParams struct {
 	xname         string
 	nid           string
@@ -86,6 +96,39 @@ func getEnvVal(envVar, defVal string) string {
 		return e
 	}
 	return defVal
+}
+
+func replaceS3Params(params string, getSignedS3Url signedS3UrlGetter) (newParams string, err error) {
+	newParams = params // always return the params even when there is an error
+
+	// regex groups created when this matches:
+	// 0: full match         example: ' metal.server=s3://bucket/path'
+	// 1: key and value      example: 'metal.server=s3://bucket/path'
+	// 2: key                example: 'metal.server='
+	// 3: value, aka s3 uri  example: 's3://bucket/path'
+	r, err := regexp.Compile(s3ParamsRegex)
+	if err != nil {
+		err = fmt.Errorf("Failed to replace s3 URIs in the params because the regex failed to compile: %s, error: %v", s3ParamsRegex, err)
+		return params, err
+	}
+
+	matches := r.FindAllStringSubmatch(params, -1)
+	for _, m := range matches {
+		if len(m) >= 4 {
+			httpS3SignedUrl, err := getSignedS3Url(m[3])
+			if err != nil {
+				return newParams, err
+			}
+
+			oldParam := m[1]
+			newParam := m[2] + httpS3SignedUrl
+			newParams = strings.Replace(newParams, oldParam, newParam, 1)
+		} else {
+			err = fmt.Errorf("Matched pattern contained fewer groups than expected. has: %d, expected: %d, matches: %v", len(m), 4, m)
+			return newParams, err
+		}
+	}
+	return newParams, nil
 }
 
 func checkURL(u string) (string, error) {
@@ -562,6 +605,12 @@ func buildBootScript(bd BootData, sp scriptParams, chain, descr string) (string,
 
 	if err != nil {
 		return "", err
+	}
+
+	params, err = replaceS3Params(params, checkURL)
+	if err != nil {
+		log.Printf("Error replacing s3 URIs. error: %v, params:\n%s", err, params)
+		err = nil
 	}
 
 	script := "#!ipxe\n"
