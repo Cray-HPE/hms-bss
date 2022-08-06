@@ -44,8 +44,8 @@ func TestReplaceS3Params_regexCompile(t *testing.T) {
 }
 
 func TestReplaceS3Params_replace(t *testing.T) {
-	params := "bond=bond0 metal.server=s3://bucket/path root=craycps-s3:s3://boot-images m=s3://b/p"
-	expected_params := "bond=bond0 metal.server=s3://bucket/path_signed root=craycps-s3:s3://boot-images m=s3://b/p_signed"
+	params := "metal.server=s3://ncn-images/k8s/0.2.78/filesystem.squashfs bond=bond0 metal.server=s3://bucket/path root=craycps-s3:s3://boot-images m=s3://b/p"
+	expected_params := "metal.server=s3://ncn-images/k8s/0.2.78/filesystem.squashfs_signed bond=bond0 metal.server=s3://bucket/path_signed root=craycps-s3:s3://boot-images m=s3://b/p"
 
 	newParams, err := replaceS3Params(params, mockGetSignedS3Url)
 	if err != nil {
@@ -58,10 +58,11 @@ func TestReplaceS3Params_replace(t *testing.T) {
 
 func TestReplaceS3Params_no_replace(t *testing.T) {
 	// This test expects the string to remain unchanged
-	// It is a limitation of replaceS3Params that it does not replace anything for the first
-	// key value pair in the params string.
-	// If replaceS3Params is improved to handle this remove the initial s3 path in this params
-	params := "metal.server=s3://bucket/path root=craycps-s3:s3://boot-images"
+	params := fmt.Sprintf(
+		"%s %s %s",
+		"made_up_key=s3://ncn-images/path",
+		"nmd_data=url=s3://boot-images/bb-86/rootfs,etag=c8-204 bos_update_frequency=4h",
+		"root=craycps-s3:s3://boot-images/bb-78/rootfs:c8-204:dvs:api-gw-service-nmn.local:300:hsn0,nmn0:0")
 	expected_params := params
 
 	newParams, err := replaceS3Params(params, mockGetSignedS3Url)
@@ -78,7 +79,7 @@ func TestReplaceS3Params_error(t *testing.T) {
 	expected_params := params
 	newParams, err := replaceS3Params(params, mockGetSignedS3UrlError)
 	if err == nil {
-		t.Errorf("replaceS3Params error for params when using mock that returns an error. params: %s\n", params)
+		t.Errorf("replaceS3Params failed to return an error when using mock that injects an error. params: %s\n", params)
 	}
 	if newParams != expected_params {
 		t.Errorf("replaceS3Params failed.\n  expected: %s\n  actual: %s\n", expected_params, newParams)

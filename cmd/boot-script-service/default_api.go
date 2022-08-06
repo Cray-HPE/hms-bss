@@ -76,7 +76,7 @@ var gwURI = getEnvVal("BSS_GW_URI", "/apis/bss")
 var s3Client *hms_s3.S3Client
 
 // regex for matching s3 URIs in the params field
-var s3ParamsRegex = "[ ](([^ =]+=)(s3://[^ ]*))"
+var s3ParamsRegex = "(^|[ ])((metal.server=)(s3://[^ ]*))"
 
 type (
 	// function interface for checkURL()
@@ -103,9 +103,10 @@ func replaceS3Params(params string, getSignedS3Url signedS3UrlGetter) (newParams
 
 	// regex groups created when this matches:
 	// 0: full match         example: ' metal.server=s3://bucket/path'
-	// 1: key and value      example: 'metal.server=s3://bucket/path'
-	// 2: key                example: 'metal.server='
-	// 3: value, aka s3 uri  example: 's3://bucket/path'
+	// 1: empty or string    example: '' or ' '
+	// 2: key and value      example: 'metal.server=s3://bucket/path'
+	// 3: key                example: 'metal.server='
+	// 4: value, aka s3 uri  example: 's3://bucket/path'
 	r, err := regexp.Compile(s3ParamsRegex)
 	if err != nil {
 		err = fmt.Errorf("Failed to replace s3 URIs in the params because the regex failed to compile: %s, error: %v", s3ParamsRegex, err)
@@ -114,14 +115,14 @@ func replaceS3Params(params string, getSignedS3Url signedS3UrlGetter) (newParams
 
 	matches := r.FindAllStringSubmatch(params, -1)
 	for _, m := range matches {
-		if len(m) >= 4 {
-			httpS3SignedUrl, err := getSignedS3Url(m[3])
+		if len(m) >= 5 {
+			httpS3SignedUrl, err := getSignedS3Url(m[4])
 			if err != nil {
 				return newParams, err
 			}
 
-			oldParam := m[1]
-			newParam := m[2] + httpS3SignedUrl
+			oldParam := m[2]
+			newParam := m[3] + httpS3SignedUrl
 			newParams = strings.Replace(newParams, oldParam, newParam, 1)
 		} else {
 			err = fmt.Errorf("Matched pattern contained fewer groups than expected. has: %d, expected: %d, matches: %v", len(m), 4, m)
