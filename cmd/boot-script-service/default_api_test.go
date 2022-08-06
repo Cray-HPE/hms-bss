@@ -59,8 +59,9 @@ func TestReplaceS3Params_replace(t *testing.T) {
 func TestReplaceS3Params_no_replace(t *testing.T) {
 	// This test expects the string to remain unchanged
 	params := fmt.Sprintf(
-		"%s %s %s",
+		"%s %s %s %s",
 		"made_up_key=s3://ncn-images/path",
+		"xmetal.server=s3://ncn-images/k8s/0.2.78/filesystem.squashfs",
 		"nmd_data=url=s3://boot-images/bb-86/rootfs,etag=c8-204 bos_update_frequency=4h",
 		"root=craycps-s3:s3://boot-images/bb-78/rootfs:c8-204:dvs:api-gw-service-nmn.local:300:hsn0,nmn0:0")
 	expected_params := params
