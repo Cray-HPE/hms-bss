@@ -102,11 +102,11 @@ func replaceS3Params(params string, getSignedS3Url signedS3UrlGetter) (newParams
 	newParams = params // always return the params even when there is an error
 
 	// regex groups created when this matches:
-	// 0: full match         example: ' metal.server=s3://bucket/path'
-	// 1: empty or string    example: '' or ' '
-	// 2: key and value      example: 'metal.server=s3://bucket/path'
-	// 3: key                example: 'metal.server='
-	// 4: value, aka s3 uri  example: 's3://bucket/path'
+	// 0: full match                   example: ' metal.server=s3://bucket/path'
+	// 1: params beginning or a space  example: '' or ' '
+	// 2: key and value                example: 'metal.server=s3://bucket/path'
+	// 3: key                          example: 'metal.server='
+	// 4: value (s3 uri)               example: 's3://bucket/path'
 	r, err := regexp.Compile(s3ParamsRegex)
 	if err != nil {
 		err = fmt.Errorf("Failed to replace s3 URIs in the params because the regex failed to compile: %s, error: %v", s3ParamsRegex, err)
@@ -125,8 +125,8 @@ func replaceS3Params(params string, getSignedS3Url signedS3UrlGetter) (newParams
 			newParam := m[1] + m[3] + httpS3SignedUrl
 			newParams = strings.Replace(newParams, oldParam, newParam, 1)
 		} else {
-			err = fmt.Errorf("Matched pattern contained fewer groups than expected. has: %d, expected: %d, matches: %v", len(m), 4, m)
-			return newParams, err
+			err = fmt.Errorf("The matched pattern contained fewer groups than expected. has: %d, expected: %d, matches: %v", len(m), 4, m)
+			return params, err
 		}
 	}
 	return newParams, nil

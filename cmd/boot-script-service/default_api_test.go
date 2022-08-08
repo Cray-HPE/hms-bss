@@ -36,22 +36,62 @@ func mockGetSignedS3UrlError(s3Url string) (string, error) {
 	return s3Url, fmt.Errorf("error")
 }
 
-func TestReplaceS3Params_regexCompile(t *testing.T) {
-	_, err := regexp.Compile(s3ParamsRegex)
+func TestReplaceS3Params_regex(t *testing.T) {
+	r, err := regexp.Compile(s3ParamsRegex)
 	if err != nil {
 		t.Errorf("Failed to compile the regex: %s, error: %v\n", s3ParamsRegex, err)
+		return
+	}
+	params := fmt.Sprintf("%s%s",
+		"metal.server=s3://b1/p1/p2",
+		" metal.server=s3://b2/p1/p2")
+
+	expected := [][]string{
+		[]string{
+			"metal.server=s3://b1/p1/p2",
+			"",
+			"metal.server=s3://b1/p1/p2",
+			"metal.server=",
+			"s3://b1/p1/p2",
+		},
+		[]string{
+			" metal.server=s3://b2/p1/p2",
+			" ",
+			"metal.server=s3://b2/p1/p2",
+			"metal.server=",
+			"s3://b2/p1/p2",
+		},
+	}
+
+	matches := r.FindAllStringSubmatch(params, -1)
+	if len(matches) != 2 {
+		t.Errorf("Failed expected two matches for: %s, using: %s\n", params, s3ParamsRegex)
+		return
+	}
+
+	for i, match := range matches {
+		if len(match) != 5 {
+			t.Errorf("Failed. Expected %d match to have 5. groups: %v, params: %s\n", i, match, params)
+			return
+		}
+		for j, group := range match {
+			if group != expected[i][j] {
+				t.Errorf("Failed wrong string for match %d group %d. expected: '%s', actual: '%s'\n",
+					i, j, expected[i][j], group)
+			}
+		}
 	}
 }
 
 func TestReplaceS3Params_replace(t *testing.T) {
-	params := fmt.Sprintf("%s %s %s %s %s",
+	params := fmt.Sprintf("%s %s  %s %s %s",
 		"metal.server=s3://ncn-images/k8s/0.2.78/filesystem.squashfs",
 		"bond=bond0",
 		"metal.server=s3://bucket/path",
 		"root=craycps-s3:s3://boot-images",
 		"m=s3://b/p")
 
-	expected_params := fmt.Sprintf("%s %s %s %s %s",
+	expected_params := fmt.Sprintf("%s %s  %s %s %s",
 		"metal.server=s3://ncn-images/k8s/0.2.78/filesystem.squashfs_signed",
 		"bond=bond0",
 		"metal.server=s3://bucket/path_signed",
