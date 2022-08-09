@@ -125,7 +125,7 @@ func replaceS3Params(params string, getSignedS3Url signedS3UrlGetter) (newParams
 			newParam := m[1] + m[3] + httpS3SignedUrl
 			newParams = strings.Replace(newParams, oldParam, newParam, 1)
 		} else {
-			err = fmt.Errorf("The matched pattern contained fewer groups than expected. has: %d, expected: %d, matches: %v", len(m), 4, m)
+			err = fmt.Errorf("The matched pattern contained fewer groups than expected. has: %d, expected: %d, matches: %v", len(m), 5, m)
 			return params, err
 		}
 	}
