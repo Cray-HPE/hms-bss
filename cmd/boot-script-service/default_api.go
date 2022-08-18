@@ -574,8 +574,8 @@ func paramSubstitute(params, pvar string, getVal paramValRetreiver) (string, err
 // BootData and additional parameters provided.  The resultant script is
 // returned as a string.  If an error occurs, a null string is returned along
 // with the error.
-func buildBootScript(bd BootData, sp scriptParams, chain, descr string) (string, error) {
-	debugf("buildBootScript(%v, %v, %v, %v)\n", bd, sp, chain, descr)
+func buildBootScript(bd BootData, sp scriptParams, chain, role string, subRole string, descr string) (string, error) {
+	debugf("buildBootScript(%v, %v, %v, %v, %v, %v)\n", bd, sp, chain, role, subRole, descr)
 	if bd.Kernel.Path == "" {
 		return "", fmt.Errorf("%s: this host not configured for booting.", descr)
 	}
@@ -602,7 +602,7 @@ func buildBootScript(bd BootData, sp scriptParams, chain, descr string) (string,
 
 	var err error
 	params, err = paramSubstitute(params, joinTokenVarName,
-		func() (string, error) { return getJoinToken(sp.xname) })
+		func() (string, error) { return getJoinToken(sp.xname, role, subRole) })
 
 	if err != nil {
 		return "", err
@@ -650,7 +650,7 @@ func buildBootScript(bd BootData, sp scriptParams, chain, descr string) (string,
 // or unknown MAC address.  This is done based on the system architecture.  If
 // the architecture is unknown, the returned script is simply a chained request
 // which will allow the requesting node to return the architecture.
-func unknownBootScript(arch, mac, name string, nid int, ts int64, descr string) (string, bool, error) {
+func unknownBootScript(arch, mac, name string, nid int, ts int64, role string, subRole string, descr string) (string, bool, error) {
 	debugf("unknownBootScript(%s)", arch)
 	var script string
 	var err error
@@ -688,7 +688,7 @@ func unknownBootScript(arch, mac, name string, nid int, ts int64, descr string) 
 		script += chain + "\n"
 	} else {
 		bd := lookup(unknownPrefix+arch, "", "", "")
-		script, err = buildBootScript(bd, scriptParams{}, chain, descr)
+		script, err = buildBootScript(bd, scriptParams{}, chain, role, subRole, descr)
 	}
 	return script, retrievingState, err
 }
@@ -798,7 +798,7 @@ func BootscriptGet(w http.ResponseWriter, r *http.Request) {
 		if arch != "" {
 			descr += " architecture " + arch
 		}
-		script, retreivingState, err = unknownBootScript(arch, mac, name, nid, ts, descr)
+		script, retreivingState, err = unknownBootScript(arch, mac, name, nid, ts, comp.Role, comp.SubRole, descr)
 		if err != nil {
 			debugf("unknownBootScript returned error: %s", err.Error())
 		}
@@ -827,7 +827,7 @@ func BootscriptGet(w http.ResponseWriter, r *http.Request) {
 				// node will retry in a bit after we have updated our state info
 				script = "#!ipxe\nsleep 10\n" + chain + "\n"
 			} else {
-				script, err = buildBootScript(bd, sp, chain, descr)
+				script, err = buildBootScript(bd, sp, chain, comp.Role, comp.SubRole, descr)
 			}
 		}
 	}
