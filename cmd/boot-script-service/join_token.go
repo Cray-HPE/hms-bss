@@ -83,7 +83,7 @@ func spireTokenServiceInit(urlBase, opts string) error {
 	return nil
 }
 
-func getJoinToken(xname string, role string, subRole string) (string, error) {
+func getJoinToken(xname, role, subRole string) (string, error) {
 	spireType := ""
 	if strings.EqualFold(role, "Compute") {
 		spireType = "type=compute&"

@@ -574,7 +574,7 @@ func paramSubstitute(params, pvar string, getVal paramValRetreiver) (string, err
 // BootData and additional parameters provided.  The resultant script is
 // returned as a string.  If an error occurs, a null string is returned along
 // with the error.
-func buildBootScript(bd BootData, sp scriptParams, chain, role string, subRole string, descr string) (string, error) {
+func buildBootScript(bd BootData, sp scriptParams, chain, role, subRole, descr string) (string, error) {
 	debugf("buildBootScript(%v, %v, %v, %v, %v, %v)\n", bd, sp, chain, role, subRole, descr)
 	if bd.Kernel.Path == "" {
 		return "", fmt.Errorf("%s: this host not configured for booting.", descr)
