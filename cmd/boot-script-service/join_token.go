@@ -1,6 +1,6 @@
 // MIT License
 //
-// (C) Copyright [2021] Hewlett Packard Enterprise Development LP
+// (C) Copyright [2021-2022] Hewlett Packard Enterprise Development LP
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -83,9 +83,17 @@ func spireTokenServiceInit(urlBase, opts string) error {
 	return nil
 }
 
-func getJoinToken(xname string) (string, error) {
+func getJoinToken(xname, role, subRole string) (string, error) {
+	spireType := ""
+	if strings.EqualFold(role, "Compute") {
+		spireType = "type=compute&"
+	} else if strings.EqualFold(role, "Application") && strings.EqualFold(subRole, "UAN") {
+		spireType = "type=uan&"
+	}
+	debugf("Get Join Token: xname: %s, role: %s, subRole: %s, spireType: '%s'", xname, role, subRole, spireType)
+
 	url := spireTokensBaseURL + "/api/token"
-	req, _ := http.NewRequest("POST", url, bytes.NewBuffer([]byte("xname="+xname)))
+	req, _ := http.NewRequest("POST", url, bytes.NewBuffer([]byte(spireType+"xname="+xname)))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	base.SetHTTPUserAgent(req, serviceName)
 	req.Close = true
@@ -98,7 +106,6 @@ func getJoinToken(xname string) (string, error) {
 		log.Printf("ERROR: %s: spire token service response for %s: %s", url, xname, rsp.Status)
 	}
 	rspBody, err := ioutil.ReadAll(rsp.Body)
-	debugf("Join Token Service response body: '%s'", rspBody)
 	if err != nil {
 		log.Printf("ERROR: %s: reading response from spire token service: %s", url, err)
 		return "", err
@@ -107,7 +114,6 @@ func getJoinToken(xname string) (string, error) {
 
 	var spireResp spireRespType
 	err = json.Unmarshal(rspBody, &spireResp)
-	debugf("json.Unmarshal('%s', &spireResp): %v", rspBody, spireResp)
 	if err != nil {
 		log.Printf("ERROR: %s: unmarshalling spire token service response: %s", url, err)
 		return "", err
@@ -119,5 +125,7 @@ func getJoinToken(xname string) (string, error) {
 		}
 		log.Printf("%s", err)
 	}
+	debugf("Spire response: Title: %s, Status: %d, TokenLength: %d, Detail: %s",
+		spireResp.Title, spireResp.Status, len(spireResp.JoinToken), spireResp.Detail)
 	return spireResp.JoinToken, err
 }
