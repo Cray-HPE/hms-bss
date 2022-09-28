@@ -1,0 +1,203 @@
+# MIT License
+#
+# (C) Copyright [2021-2022] Hewlett Packard Enterprise Development LP
+#
+# Permission is hereby granted, free of charge, to any person obtaining a
+# copy of this software and associated documentation files (the "Software"),
+# to deal in the Software without restriction, including without limitation
+# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+# and/or sell copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+# OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+# ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+# OTHER DEALINGS IN THE SOFTWARE.
+
+# Tavern test cases for the BSS health APIs
+# Author: Ryan Sjostrand
+
+# Service: Boot Script Service
+---
+test_name: bssAPIServiceAPIS
+
+# service enpoints to check
+# STATUS
+# ALL - this takes presentence over all options
+# HSM
+# ETCD
+
+# Probes
+# https://localhost:8443/apis/bss/boot/v1/service/status - liveness
+# https://localhost:8443/apis/bss/boot/v1/service/status/all - readiness
+
+
+# Check each part of service
+# https://localhost:8443/apis/bss/boot/v1/service/status
+# https://localhost:8443/apis/bss/boot/v1/service/etcd
+# https://localhost:8443/apis/bss/boot/v1/service/hsm
+# https://localhost:8443/apis/bss/boot/v1/service/version
+
+# Checkout the compounded service API
+
+# https://localhost:8443/apis/bss/boot/v1/service/status/etcd/hsm/version|
+
+stages:
+  - name: bssAPIServiceStatusGET - Ensure the BSS service status endpoint can be retrieved 
+    request:
+      url: "{bss_base_url}/boot/v1/service/status"
+      method: GET
+      verify: !bool "{verify}"
+    response:
+      status_code: 200
+      verify_response_with:
+        function: tavern.testutils.helpers:validate_pykwalify
+        extra_kwargs:
+          schema:
+            type: map
+            required: True
+            mapping:
+              bss-status:
+                type: str
+                required: True
+                enum:
+                - running
+
+  - name: bssAPIServiceStatusPOST - Ensure the BSS service status endpoint cannot be posted to 
+    request:
+      url: "{bss_base_url}/boot/v1/service/status"
+      method: POST
+      verify: !bool "{verify}"
+    response:
+      status_code: 405
+
+  - name: bssAPIServiceEctdGET - Ensure the BSS service ETCD status endpoint can be retrieved 
+    request:
+      url: "{bss_base_url}/boot/v1/service/etcd"
+      method: GET
+      verify: !bool "{verify}"
+    response:
+      status_code: 200
+      verify_response_with:
+        function: tavern.testutils.helpers:validate_pykwalify
+        extra_kwargs:
+          schema:
+            type: map
+            required: True
+            mapping:
+              bss-status-etcd:
+                type: str
+                required: True
+                enum:
+                - connected
+
+  - name: bssAPIServiceEctdPOST - Ensure the BSS service ETCD status endpoint cannot be posted to 
+    request:
+      url: "{bss_base_url}/boot/v1/service/etcd"
+      method: POST
+      verify: !bool "{verify}"
+    response:
+      status_code: 405
+
+  - name: bssAPIServiceHsmGET - Ensure the BSS service HSM status endpoint can be retrieved 
+    request:
+      url: "{bss_base_url}/boot/v1/service/hsm"
+      method: GET
+      verify: !bool "{verify}"
+    response:
+      status_code: 200
+      verify_response_with:
+        function: tavern.testutils.helpers:validate_pykwalify
+        extra_kwargs:
+          schema:
+            type: map
+            required: True
+            mapping:
+              bss-status-hsm:
+                type: str
+                required: True
+                enum:
+                - connected
+
+  - name: bssAPIServiceHsmPOST - Ensure the BSS service HSM status endpoint cannot be posted to 
+    request:
+      url: "{bss_base_url}/boot/v1/service/hsm"
+      method: POST
+      verify: !bool "{verify}"
+    response:
+      status_code: 405
+
+  - name: bssAPIServiceVersionGET - Ensure the BSS version endpoint can be retrieved
+    request:
+      url: "{bss_base_url}/boot/v1/service/version"
+      method: GET
+      verify: !bool "{verify}"
+    response:
+      status_code: 200
+      verify_response_with:
+        function: tavern.testutils.helpers:validate_pykwalify
+        extra_kwargs:
+          schema:
+            type: map
+            required: True
+            mapping:
+              bss-version:
+                type: str
+                required: True
+
+
+  - name: bssAPIServiceVersionPOST - Ensure the BSS version endpoint cannot be posted to 
+    request:
+      url: "{bss_base_url}/boot/v1/service/version"
+      method: POST
+      verify: !bool "{verify}"
+    response:
+      status_code: 405
+
+
+  - name: bssAPIServiceStatusAllGET - Ensure the BSS service all statuses endpoint can be retrieved 
+    request:
+      url: "{bss_base_url}/boot/v1/service/status/all"
+      method: GET
+      verify: !bool "{verify}"
+    response:
+      status_code: 200
+      verify_response_with:
+        function: tavern.testutils.helpers:validate_pykwalify
+        extra_kwargs:
+          schema:
+            type: map
+            required: True
+            mapping:
+              bss-status:
+                type: str
+                required: True
+                enum:
+                - running
+              bss-status-etcd:
+                type: str
+                required: True
+                enum:
+                - connected
+              bss-status-hsm:
+                type: str
+                required: True
+                enum:
+                - connected
+              bss-version:
+                type: str
+                required: True
+
+  - name: bssAPIServiceStatusAllPOST - Ensure the BSS service all statuses endpoint cannot be posted to 
+    request:
+      url: "{bss_base_url}/boot/v1/service/status/all"
+      method: POST
+      verify: !bool "{verify}"
+    response:
+      status_code: 405
