@@ -592,6 +592,180 @@ paths:
             type: array
             items:
               $ref: '#/definitions/EndpointAccess'
+  /service/status:
+    get:
+      summary: "Retrieve the current status of BSS"
+      tags:
+      - service-status
+      - cli_ignore
+      description: |
+        Retrieve the current status of the BSS service itself.
+        
+        This endpoint can be used as a liveness probe for the BSS to determine if it is alive or dead.
+      responses:
+        '200':
+          description: 'The BSS REST API is alive and accessable.'
+          schema:
+            type: object
+            properties:
+              # MOVE to defintion
+              bss-status:
+                type: string
+                enum: ["running"]
+                description: Current status of BSS.
+        # '500':
+        #   description: Internal Server Error
+        #   schema:
+        #     $ref: '#/definitions/Error'
+  /service/etcd::
+    get:
+      summary: "Retrieve the current connection status to ETCD"
+      tags:
+      - service-status
+      - cli_ignore
+      description: |
+        Retrieve the current connection status to the BSS ETCD database.
+        
+        The connection to ETCD will be tested by writing a value to ETCD, and then reading it
+        back from the database. If the value is successfuly writen to ETCD and read back as the 
+        same value, then the connection to ETCD is considered to be 'connected. Otherwise, there
+        is a connection error.
+        
+      responses:
+        '200':
+          description: 'The ETCD database connection is healthy.'
+          schema:
+            type: object
+            # Move to defition
+            properties:
+              bss-status-etcd:
+                type: string
+                enum: ["connected"]
+                description: Current connection status to ETCD.
+        '500':
+          description: 'The ETCD database connection is unhealthy.'
+          schema:
+            type: object
+            properties:
+              bss-status-etcd:
+                type: string
+                enum: ["error"]
+                description: Current connection status to ETCD.
+            
+  /service/hsm:
+    get:
+      summary: "Retrieve the current connection status to HSM"
+      tags:
+      - service-status
+      - cli_ignore
+      description: | 
+        Retrieve the current connection status to the Hardware State Manager (HSM).
+        
+        The connection to HSM will be tested by querying a HSM endpoint to verify HSM
+        is alive.
+
+      responses:
+        '200':
+          description: 'The HSM connection is healthy.'
+          schema:
+            type: object
+            # Move to defition
+            properties:
+              bss-status-hsm:
+                type: string
+                enum: ["connected"]
+                description: Current connection status to HSM.
+        '500':
+          description: 'The HSM connection is unhealthy.'
+          schema:
+            type: object
+            properties:
+              bss-status-hsm:
+                type: string
+                enum: ["error"]
+                description: Current connection status to HSM.
+
+  /service/version:
+    get:
+      summary: "Retrieve the service version"
+      tags:
+      - service-status
+      - cli_ignore
+      description: |
+        Retrieve the current service version.
+      
+      responses:
+        '200':
+          description: 'The current running service version.'
+          schema:
+            type: object
+            # Move to defition
+            properties:
+              bss-version:
+                type: string
+                example: 1.21.0
+        '500':
+          description: 'Internal Server Error. Unable to determine current running service version.'
+          schema:
+            type: object
+            properties:
+              bss-version:
+                type: string
+                enum: ["error"]
+
+  /service/status/all:
+    get: 
+      summary: "Retreive the overall service health"
+      tags:
+      - service-status
+      - cli_ignore
+      description: |
+        Retreive the overall health of the service, and determine if the service is healthy to serve
+        requests as a readiness probe.
+        
+        This will retrieve the current BSS version and status, along with the conneciton status to HSM and ETCD.
+        
+      responses:
+        '200':
+          description: 'TODO.'
+          schema:
+            type: object
+            properties:
+              bss-status:
+                type: string
+                enum: ["running"]
+              bss-status-etcd:
+                type: string
+                enum: ["connected"]
+                description: Current connection status to ETCD.
+              bss-status-hsm:
+                type: string
+                enum: ["connected"]
+                description: Current connection status to HSM.
+              bss-version:
+                type: string
+                example: 1.21.0
+        '500':
+          description: 'TODO.'
+          schema:
+            type: object
+            properties:
+              bss-status:
+                type: string
+                enum: ["running"]
+              bss-status-etcd:
+                type: string
+                enum: ["connected", "error"]
+                description: Current connection status to ETCD.
+                example: "error"
+              bss-status-hsm:
+                type: string
+                enum: ["connected", "error"]
+                description: Current connection status to HSM.
+                example: "error"
+              bss-version:
+                type: string
+                example: 1.21.0
 definitions:
   BootParams:
     description: >-
@@ -740,3 +914,4 @@ definitions:
         type: string
       instance:
         type: string
+
