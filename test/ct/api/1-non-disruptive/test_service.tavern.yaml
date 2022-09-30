@@ -25,7 +25,7 @@
 
 # Service: Boot Script Service
 ---
-test_name: bssAPIServiceAPIS
+test_name: bssAPIServiceAPIs
 
 # service enpoints to check
 # STATUS
