@@ -824,9 +824,47 @@ definitions:
         description: URL or file system path specifying initrd image.
         example: "http://10.252.100.50/apis/ars/downloads/7e0bcf9f-10fc-46a9-b2f8-ba8814c1999c"
       cloud-init:
-        type: object
-        description: Cloud-Init metadata for the hosts
-        example: {"user-data": {"foo": "bar"}}
+        $ref: '#/definitions/CloudInit'
+  CloudInit:
+    description: Cloud-Init metadata for the hosts
+    type: object
+    properties:
+      meta-data:
+        $ref: '#/definitions/CloudInitMetadata'
+      user-data:
+        $ref: '#/definitions/CloudInitUserData'
+      phone-home:
+        $ref: '#/definitions/CloudInitPhoneHome'
+    example: {"user-data": {"foo": "bar"}, "metdata": {"foo":"bar"}}
+  CloudInitMetadata:
+    description: TODO
+    type: object
+    additionalProperties: true
+
+  CloudInitUserData:
+    description: TODO
+    type: object
+    additionalProperties: true
+
+  CloudInitPhoneHome:
+    description: TODO
+    type: object
+    properties:
+      pub_key_dsa:
+        type: string
+      pub_key_rsa:
+        type: string
+      pub_key_ecdsa:
+        type: string
+      pub_key_ed25519:
+        type: string
+      instance_id:
+        type: string
+      hostname:
+        type: string
+      fqdn:
+        type: string
+
   Component:
     description: This data structure is used to return host info for debug purposes
     type: object
