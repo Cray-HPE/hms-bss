@@ -1,0 +1,130 @@
+---
+test_name: bssAPIhostsNegative
+
+stages:
+- name: Perform DELETE against /hosts
+  request:
+    url: "{bss_base_url}/boot/v1/hosts"
+    method: DELETE
+    verify: !bool "{verify}"
+  response:
+    status_code: 405
+
+- name: Perform PATCH against /hosts
+  request:
+    url: "{bss_base_url}/boot/v1/hosts"
+    method: PATCH
+    verify: !bool "{verify}"
+  response:
+    status_code: 405
+
+- name: Perform PUT against /hosts
+  request:
+    url: "{bss_base_url}/boot/v1/hosts"
+    method: PUT
+    verify: !bool "{verify}"
+  response:
+    status_code: 405
+
+
+---
+test_name: bssAPIHostsSearchNegative
+
+stages:
+- name: Search BSS hosts with name
+  request:
+    url: "{bss_base_url}/boot/v1/hosts"
+    method: GET
+    verify: !bool "{verify}"
+    params:
+      name: x9999c0s2b0n0
+  response:
+    status_code: 404
+    verify_response_with:
+      function: tavern.testutils.helpers:validate_pykwalify
+      extra_kwargs:
+        schema:
+          type: map
+          required: True
+          mapping:
+            type:
+              type: str
+              required: True
+            title:
+              type: str
+              required: True
+            detail:
+              type: str
+              required: False
+            instance:
+              type: str
+              required: False
+            status:
+              type: int
+              required: False
+
+
+- name: Search BSS hosts with NID
+  request:
+    url: "{bss_base_url}/boot/v1/hosts"
+    method: GET
+    verify: !bool "{verify}"
+    params:
+      nid: 2147483647
+  response:
+    status_code: 404
+    verify_response_with:
+      function: tavern.testutils.helpers:validate_pykwalify
+      extra_kwargs:
+        schema:
+          type: map
+          required: True
+          mapping:
+            type:
+              type: str
+              required: True
+            title:
+              type: str
+              required: True
+            detail:
+              type: str
+              required: False
+            instance:
+              type: str
+              required: False
+            status:
+              type: int
+              required: False
+
+
+- name: Search BSS hosts with MAC address
+  request:
+    url: "{bss_base_url}/boot/v1/hosts"
+    method: GET
+    verify: !bool "{verify}"
+    params:
+      mac: 0e:ff:ff:ff:ff:ff
+  response:
+    status_code: 404
+    verify_response_with:
+      function: tavern.testutils.helpers:validate_pykwalify
+      extra_kwargs:
+        schema:
+          type: map
+          required: True
+          mapping:
+            type:
+              type: str
+              required: True
+            title:
+              type: str
+              required: True
+            detail:
+              type: str
+              required: False
+            instance:
+              type: str
+              required: False
+            status:
+              type: int
+              required: False
