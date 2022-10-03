@@ -28,6 +28,15 @@
 test_name: bssAPIBootparameters
 
 stages:
+  - name: Delete exiting test bootparamters if it exists
+    request:
+      url: "{bss_base_url}/boot/v1/bootparameters"
+      method: DELETE
+      verify: !bool "{verify}"
+      json:
+        hosts:
+        - x9999c0s1b0n0
+
   - name: Create Bootparameteter
     request:
       url: "{bss_base_url}/boot/v1/bootparameters"

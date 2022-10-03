@@ -1,0 +1,133 @@
+---
+test_name: bssAPIbootscript
+
+stages:
+- name: Query HSM State Components for a compute node
+  request:
+    url: "{hsm_base_url}/hsm/v2/State/Components?Type=Node&Role=Compute"
+    method: GET
+    verify: !bool "{verify}"
+  response:
+    status_code: 200
+    save:
+        json:
+          node_xname: Components[0].ID
+          node_nid: Components[0].NID
+
+- name: Query HSM EthernetInterfaces for the compute nodes MAC address
+  request:
+    url: "{hsm_base_url}/hsm/v2/Inventory/EthernetInterfaces?ComponentID={node_xname}"
+    method: GET
+    verify: !bool "{verify}"
+  response:
+    status_code: 200
+    save:
+        json:
+          node_mac_address: '[0].MACAddress'
+
+- name: Create Bootparameteter
+  request:
+    url: "{bss_base_url}/boot/v1/bootparameters"
+    method: POST
+    verify: !bool "{verify}"
+    json:
+      hosts:
+      - "{node_xname}"
+      params: console=tty0
+      kernel: s3://boot-images/00000000-0000-0000-0000-000000000000/kernel
+      initrd: s3://boot-images/00000000-0000-0000-0000-000000000000/initrd
+  response:
+    status_code: 201
+
+- name: Query bootscript by xname
+  request:
+    url: "{bss_base_url}/boot/v1/bootscript"
+    method: GET
+    verify: !bool "{verify}"
+    params:
+      name: "{node_xname}"
+  response:
+    status_code: 200
+    headers:
+      content-type: text/plain; charset=UTF-8
+    verify_response_with:
+      # Verify that this is a ipxe bootscript
+      - function: tavern.testutils.helpers:validate_regex
+        extra_kwargs:
+          expression: "#!ipxe"
+      
+      # Verify that BSS generated/expanded S3 urls
+      - function: tavern.testutils.helpers:validate_regex
+        extra_kwargs:
+          expression: 'kernel http[s]?:\/\/.+/boot-images/00000000-0000-0000-0000-000000000000\/kernel'
+      - function: tavern.testutils.helpers:validate_regex
+        extra_kwargs:
+          expression: 'initrd http[s]?:\/\/.+/boot-images/00000000-0000-0000-0000-000000000000\/initrd'
+
+      # Verify that provided kernel parameter exists on the kernel command line
+      - function: tavern.testutils.helpers:validate_regex
+        extra_kwargs:
+          expression: 'kernel --name .+console.tty0'
+
+      # Verify the node xname has been passed onto the kernel command line
+      - function: tavern.testutils.helpers:validate_regex
+        extra_kwargs:
+          expression: 'kernel --name .+xname={node_xname}'
+
+      # Verify the node nid has been passed onto the kernel command line
+      - function: tavern.testutils.helpers:validate_regex
+        extra_kwargs:
+          expression: 'kernel --name .+nid={node_nid}'
+
+      # Verify BSS referral token is present
+      - function: tavern.testutils.helpers:validate_regex
+        extra_kwargs:
+          expression: 'kernel --name .+bss_referral_token='
+
+- name: Query bootscript by MAC address
+  request:
+    url: "{bss_base_url}/boot/v1/bootscript"
+    method: GET
+    verify: !bool "{verify}"
+    params:
+      mac: "{node_mac_address}"
+  response:
+    status_code: 200
+    headers:
+      content-type: text/plain; charset=UTF-8
+
+- name: Query bootscript by NID
+  request:
+    url: "{bss_base_url}/boot/v1/bootscript"
+    method: GET
+    verify: !bool "{verify}"
+    params:
+      nid: "{node_nid}"
+  response:
+    status_code: 200
+    headers:
+      content-type: text/plain; charset=UTF-8
+
+
+# 6. GET /bootscript?nid={nid}&retry={retry} API response code
+# 7. GET /bootscript?nid={nid}&retry={retry} API response body
+- name: Ensure the boot script service can retrieve a bootscript for a particular nid with the number of retries set to 7
+  request:
+    url: "{bss_base_url}/boot/v1/bootscript"
+    method: GET
+    verify: !bool "{verify}"
+    params:
+      nid: "{node_nid}"
+      retry: 7
+  response:
+    status_code: 200
+    verify_response_with:
+      # Verify that this is a ipxe bootscript
+      - function: tavern.testutils.helpers:validate_regex
+        extra_kwargs:
+          expression: "#!ipxe"
+
+      # Verify the retry counter incremented by 1 
+      - function: tavern.testutils.helpers:validate_regex
+        extra_kwargs:
+          expression: "retry=8"

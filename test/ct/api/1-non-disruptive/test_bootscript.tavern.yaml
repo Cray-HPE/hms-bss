@@ -184,16 +184,14 @@ stages:
     response:
       status_code: 200
 
-  ## 4. Disabled (Bad MAC address data in dumpstate issue CASMHMS-3216) - GET /bootscript?mac={mac_address} API response code
-  #- name: Ensure the boot script service can provide the bootscript for a given mac address
-  #  request:
-  #    url: "{bss_base_url}/boot/v1/bootscript?mac={mac_address}"
-  #    method: GET
-  #    headers:
-  #      Authorization: "Bearer {access_token}"
-  #    verify: !bool "{verify}"
-  #  response:
-  #    status_code: 200
+  # 4. GET /bootscript?mac={mac_address} API response code
+  - name: Ensure the boot script service can provide the bootscript for a given mac address
+    request:
+      url: "{bss_base_url}/boot/v1/bootscript?mac={mac_address}"
+      method: GET
+      verify: !bool "{verify}"
+    response:
+      status_code: 200
 
   # 5. GET /bootscript?name={node_name} API response code
   - name: Ensure the boot script service can provide the bootscript for a given node name
@@ -214,9 +212,13 @@ stages:
     response:
       status_code: 200
       verify_response_with:
-        function: tavern.testutils.helpers:validate_regex
-        extra_kwargs:
-            expression: "retry=8"
+        ## The retry paramater will be only present if a node has a valid bootscript, which is something that cannot be 
+        ## always be assumed.
+        # - function: tavern.testutils.helpers:validate_regex
+        #   extra_kwargs:
+        #     expression: "retry=8"
+        - function: tavern.testutils.helpers:validate_regex
+          extra_kwargs:
             expression: "ipxe"
 
 ---
