@@ -28,6 +28,20 @@
 test_name: bssAPIBootparameters
 
 stages:
+  - name: Create Bootparameteter
+    request:
+      url: "{bss_base_url}/boot/v1/bootparameters"
+      method: POST
+      verify: !bool "{verify}"
+      json:
+        hosts:
+        - x9999c0s1b0n0
+        params: console=tty0
+        kernel: s3://boot-images/00000000-0000-0000-0000-000000000000/kernel
+        initrd: s3://boot-images/00000000-0000-0000-0000-000000000000/initrd
+    response:
+      status_code: 201
+
   - name: Ensure that the BSS bootparameters can be retrieved
     request:
       url: "{bss_base_url}/boot/v1/bootparameters"
@@ -95,9 +109,19 @@ stages:
                   #         type: str
                   #       fqdn:
                   #         type: str
-
+  
+  - name: Delete testing bootparamters
+    request:
+      url: "{bss_base_url}/boot/v1/bootparameters"
+      method: DELETE
+      verify: !bool "{verify}"
+      json:
+        hosts:
+        - x9999c0s1b0n0
+    response:
+      status_code: 200  
 ---
-test_name: bssAPIBootparameterXnameAsName
+test_name: bssAPIBootparameterXnameAsIdentifier
 # With xname as host
 
 stages:
@@ -111,7 +135,7 @@ stages:
         - x9999c0s1b0n0
 
 #   POST /bootparamters with Xname as host
-  - name: Create Bootparameteters with xname specified as name
+  - name: Create Bootparameteters with xname specified as identifier
     request:
       url: "{bss_base_url}/boot/v1/bootparameters"
       method: POST
@@ -128,7 +152,7 @@ stages:
         BSS-Referral-Token: !anystr
 
 #   POST /bootparameters with a duplicate xname - Negative
-  - name: Create Bootparameteters with xname specified as name
+  - name: Create duplicate Bootparameteters with xname specified as identifier
     request:
       url: "{bss_base_url}/boot/v1/bootparameters"
       method: POST
@@ -165,7 +189,7 @@ stages:
                 required: False
 
 #    GET /bootparameters?name=TODO_XNAME
-  - name: Retrieve created Bootparameteters with xname specified as name
+  - name: Retrieve created Bootparameteters with xname specified as identifier
     request:
       url: "{bss_base_url}/boot/v1/bootparameters?name=x9999c0s1b0n0"
       method: GET
@@ -253,9 +277,9 @@ stages:
                           enum:
                           - ""
 #    PUT /bootparameters with host xname
-  - name: Replace Bootparameteters with xname specified as name
+  - name: Replace Bootparameteters with xname specified as identifier
     request:
-      url: "{bss_base_url}/boot/v1/bootparameters?name=x9999c0s1b0n0"
+      url: "{bss_base_url}/boot/v1/bootparameters"
       method: PUT
       verify: !bool "{verify}"
       json:
@@ -269,7 +293,7 @@ stages:
       headers:
         BSS-Referral-Token: !anystr
 #    GET /bootparameters?name=TODO_XNAME # Verify PUT
-  - name: Retrieve replaced Bootparameteters with xname specified as name
+  - name: Retrieve replaced Bootparameteters with xname specified as identifier
     request:
       url: "{bss_base_url}/boot/v1/bootparameters?name=x9999c0s1b0n0"
       method: GET
@@ -358,9 +382,9 @@ stages:
                           - ""
 
 #  PATCH /bootparameters with host xname
-  - name: Update Bootparameteters with xname specified as name
+  - name: Update Bootparameteters with xname specified as identifier
     request:
-      url: "{bss_base_url}/boot/v1/bootparameters?name=x9999c0s1b0n0"
+      url: "{bss_base_url}/boot/v1/bootparameters"
       method: PATCH
       verify: !bool "{verify}"
       json:
@@ -372,7 +396,7 @@ stages:
       status_code: 200
 
 #    GET /bootparameters?name=TODO_XNAME # Verify PATCH
-  - name: Retrieve replaced Bootparameteters with xname specified as name
+  - name: Retrieve replaced Bootparameteters with xname specified as identifier
     request:
       url: "{bss_base_url}/boot/v1/bootparameters?name=x9999c0s1b0n0"
       method: GET
@@ -471,7 +495,7 @@ stages:
     response:
       status_code: 200
 #    GET /bootparameters?name=TODO_XNAME - does not exist, check status code
-  - name: Retrieve deleted Bootparameteters with xname specified as name
+  - name: Retrieve deleted Bootparameteters with xname specified as identifier
     request:
       url: "{bss_base_url}/boot/v1/bootparameters?name=x9999c0s1b0n0"
       method: GET
@@ -536,12 +560,7 @@ stages:
                 required: False
 
 
-# ---
-# With with Role as host
-
-
-# ---
-# With with MAC Address 
+#---
 
 # ---
 # With with NID 
