@@ -96,7 +96,6 @@ stages:
               type: int
               required: False
 
-
 - name: Search BSS hosts with MAC address
   request:
     url: "{bss_base_url}/boot/v1/hosts"
@@ -106,6 +105,38 @@ stages:
       mac: 0e:ff:ff:ff:ff:ff
   response:
     status_code: 404
+    verify_response_with:
+      function: tavern.testutils.helpers:validate_pykwalify
+      extra_kwargs:
+        schema:
+          type: map
+          required: True
+          mapping:
+            type:
+              type: str
+              required: True
+            title:
+              type: str
+              required: True
+            detail:
+              type: str
+              required: False
+            instance:
+              type: str
+              required: False
+            status:
+              type: int
+              required: False
+
+- name: Search BSS hosts with invalid NID
+  request:
+    url: "{bss_base_url}/boot/v1/hosts"
+    method: GET
+    verify: !bool "{verify}"
+    params:
+      nid: 1notANid
+  response:
+    status_code: 400
     verify_response_with:
       function: tavern.testutils.helpers:validate_pykwalify
       extra_kwargs:

@@ -37,7 +37,7 @@
 
 # TODO verify DELETE status codes match swagger
 
-test_name: bssAPIBootparametersInvalidJSON
+test_name: bssAPIBootparametersBadData
 
 stages:
 - name: bssAPIBootparametersPOSTBadData
@@ -138,6 +138,38 @@ stages:
     method: DELETE
     verify: !bool "{verify}"
     data: "This is not json"
+  response:
+    status_code: 400
+    verify_response_with:
+      function: tavern.testutils.helpers:validate_pykwalify
+      extra_kwargs:
+        schema:
+          type: map
+          required: True
+          mapping:
+            type:
+              type: str
+              required: True
+            title:
+              type: str
+              required: True
+            detail:
+              type: str
+              required: False
+            instance:
+              type: str
+              required: False
+            status:
+              type: int
+              required: False
+
+- name: Search BSS bootparamters with invalid NID
+  request:
+    url: "{bss_base_url}/boot/v1/bootparameters"
+    method: GET
+    verify: !bool "{verify}"
+    params:
+      nid: 1notANid
   response:
     status_code: 400
     verify_response_with:
