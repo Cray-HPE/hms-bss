@@ -110,7 +110,7 @@ stages:
                   #       fqdn:
                   #         type: str
   
-  - name: Delete testing bootparamters
+  - name: Delete testing bootparamters by xname
     request:
       url: "{bss_base_url}/boot/v1/bootparameters"
       method: DELETE
@@ -118,6 +118,24 @@ stages:
       json:
         hosts:
         - x9999c0s1b0n0
+    response:
+      status_code: 200  
+  - name: Delete testing bootparamters by kernel
+    request:
+      url: "{bss_base_url}/boot/v1/bootparameters"
+      method: DELETE
+      verify: !bool "{verify}"
+      json:
+        kernel: s3://boot-images/00000000-0000-0000-0000-000000000000/kernel
+    response:
+      status_code: 200  
+  - name: Delete testing bootparamters by initrd
+    request:
+      url: "{bss_base_url}/boot/v1/bootparameters"
+      method: DELETE
+      verify: !bool "{verify}"
+      json:
+        initrd: s3://boot-images/00000000-0000-0000-0000-000000000000/initrd
     response:
       status_code: 200  
 ---
@@ -559,7 +577,61 @@ stages:
                 type: int
                 required: False
 
+  - name: Delete testing bootparamters by kernel 0
+    request:
+      url: "{bss_base_url}/boot/v1/bootparameters"
+      method: DELETE
+      verify: !bool "{verify}"
+      json:
+        kernel: s3://boot-images/00000000-0000-0000-0000-000000000000/kernel
+    response:
+      status_code: 200  
+  - name: Delete testing bootparamters by kernel 1
+    request:
+      url: "{bss_base_url}/boot/v1/bootparameters"
+      method: DELETE
+      verify: !bool "{verify}"
+      json:
+        kernel: s3://boot-images/00000000-0000-0000-0000-000000000001/kernel
+    response:
+      status_code: 200  
+  - name: Delete testing bootparamters by kernel 2
+    request:
+      url: "{bss_base_url}/boot/v1/bootparameters"
+      method: DELETE
+      verify: !bool "{verify}"
+      json:
+        kernel: s3://boot-images/00000000-0000-0000-0000-000000000002/kernel
+    response:
+      status_code: 200  
 
+  - name: Delete testing bootparamters by initrd 0
+    request:
+      url: "{bss_base_url}/boot/v1/bootparameters"
+      method: DELETE
+      verify: !bool "{verify}"
+      json:
+        initrd: s3://boot-images/00000000-0000-0000-0000-000000000000/initrd
+    response:
+      status_code: 200  
+  - name: Delete testing bootparamters by initrd 1
+    request:
+      url: "{bss_base_url}/boot/v1/bootparameters"
+      method: DELETE
+      verify: !bool "{verify}"
+      json:
+        initrd: s3://boot-images/00000000-0000-0000-0000-000000000000/initrd
+    response:
+      status_code: 200  
+  - name: Delete testing bootparamters by initrd 2
+    request:
+      url: "{bss_base_url}/boot/v1/bootparameters"
+      method: DELETE
+      verify: !bool "{verify}"
+      json:
+        initrd: s3://boot-images/00000000-0000-0000-0000-000000000000/initrd
+    response:
+      status_code: 200  
 #---
 
 # ---
