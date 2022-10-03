@@ -13,6 +13,7 @@ jobs:
       - name: Checkout hms-simulation-environment
         uses: actions/checkout@v2
         with:
+          # TODO check out a "stable" or "v1" tag, or somehow have it match the pointed branch that this workflow was referenced from
           fetch-depth: 0
           path: hms-simulation-environment
           repository: Cray-HPE/hms-simulation-environment
@@ -20,6 +21,10 @@ jobs:
       - name: Standup simulation environment
         shell: bash
         run: |
+          set -ex
+          cd hms-simulation-environment
+
+          # Setup python virtual environment
           ./setup_venv.sh
           . ./venv/bin/activate
           ./run.py configs/sls/small_mountain.json
@@ -30,6 +35,5 @@ jobs:
       - name: Load simulation for tavern tests
         run: ./runTavernTestsLoadSimulator.sh
       
-
       - name: Run tavern tests
         run: ./runTavernTestsWithSimulator.sh
