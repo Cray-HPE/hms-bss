@@ -2,6 +2,34 @@ name: Run CT Tests
 on: [push, pull_request, workflow_dispatch]
 jobs:
   run_ct_test:
-    uses: Cray-HPE/hms-build-image-workflows/.github/workflows/run_ct_test.yaml@v1
-    with:
-      runs-on: ubuntu-latest
+    name: Run CT Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      
+      - name: Checkout hms-simulation-environment
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          path: hms-simulation-environment
+          repository: Cray-HPE/hms-simulation-environment
+
+      - name: Standup simulation environment
+        shell: bash
+        run: |
+          ./setup_venv.sh
+          . ./venv/bin/activate
+          ./run.py configs/sls/small_mountain.json
+
+      - name: Run smoke tests
+        run: ./runSmokeTestsWithSimulator.sh
+
+      - name: Load simulation for tavern tests
+        run: ./runTavernTestsLoadSimulator.sh
+      
+
+      - name: Run tavern tests
+        run: ./runTavernTestsWithSimulator.sh

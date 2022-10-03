@@ -1,5 +1,4 @@
-#!/usr/bin/env bash
-
+#!/bin/bash
 #
 # MIT License
 #
@@ -23,45 +22,9 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 #
-set -x
+set -ex
 
-
-# Configure docker compose
-export COMPOSE_PROJECT_NAME=$RANDOM
-export COMPOSE_FILE=docker-compose.test.ct.yaml
-
-echo "COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}"
-echo "COMPOSE_FILE: $COMPOSE_FILE"
-
-
-function cleanup() {
-  echo "Cleaning up containers..."
-  if ! docker compose down --remove-orphans; then
-    echo "Failed to decompose environment!"
-    exit 1
-  fi
-  exit $1
-}
-
-# Get the base containers running
-echo "Starting containers..."
-docker compose build --no-cache
-docker compose up -d cray-bss #this will stand up everything except for the integration test container
-
-# wait for containers to stabilize and simulated HSM hardware discoveries to complete
-docker compose up --exit-code-from wait-for-smd wait-for-smd
-
-if ! docker compose up --exit-code-from smoke smoke; then
-  echo "CT smoke tests FAILED!"
-  cleanup 1
-fi
-
-# execute the CT functional tests
-if ! docker compose up --exit-code-from tavern tavern; then
-  echo "CT tavern tests FAILED!"
-  cleanup 1
-fi
-
-# Cleanup
-echo "CT tests PASSED!"
-cleanup 0
+make ct_image
+VERSION=$(cat .version)
+docker run --rm -it --network hms-simulation-environment_simulation hms-bss-hmth-test:${VERSION} \
+    smoke -f smoke.json -u http://cray-bss:27778
