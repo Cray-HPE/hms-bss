@@ -1,7 +1,7 @@
 ---
 
 # DELETE /bootparameters Remove all
-# GET /bootparamters check response on empty bootparameters
+# GET /bootparameters check response on empty bootparameters
 
 # ---
 # With with MAC Address 
@@ -46,7 +46,7 @@ stages:
           json:
             node_mac_address: '[0].MACAddress'
 
-  - name: Delete exiting test bootparamters if it exists
+  - name: Delete existing test bootparameters if it exists
     request:
       url: "{bss_base_url}/boot/v1/bootparameters"
       method: DELETE
@@ -55,7 +55,7 @@ stages:
         macs:
         - "{node_mac_address}"
 
-#   POST /bootparamters with Xname as host
+#   POST /bootparameters with Xname as host
   - name: Create Bootparameteters with mac specified as identifier
     request:
       url: "{bss_base_url}/boot/v1/bootparameters"
@@ -404,7 +404,7 @@ stages:
                           type: str
                           enum:
                           - ""
-# DELETE /bootparamters with Xname as host 
+# DELETE /bootparameters with Xname as host 
   - name: Delete Bootparameters with mac as identifer
     request:
       url: "{bss_base_url}/boot/v1/bootparameters"
@@ -446,7 +446,7 @@ stages:
                 type: int
                 required: False
 
-# DELETE /bootparamters on non-existant bootparamters
+# DELETE /bootparameters on non-existant bootparameters
   - name: Delete Bootparameters with mac as identifer
     request:
       url: "{bss_base_url}/boot/v1/bootparameters"
@@ -480,7 +480,7 @@ stages:
                 type: int
                 required: False
 
-  - name: Delete testing bootparamters by kernel 0
+  - name: Delete testing bootparameters by kernel 0
     request:
       url: "{bss_base_url}/boot/v1/bootparameters"
       method: DELETE
@@ -489,7 +489,7 @@ stages:
         kernel: s3://boot-images/00000000-0000-0000-0000-000000000000/kernel
     response:
       status_code: 200  
-  - name: Delete testing bootparamters by kernel 1
+  - name: Delete testing bootparameters by kernel 1
     request:
       url: "{bss_base_url}/boot/v1/bootparameters"
       method: DELETE
@@ -498,7 +498,7 @@ stages:
         kernel: s3://boot-images/00000000-0000-0000-0000-000000000001/kernel
     response:
       status_code: 200  
-  - name: Delete testing bootparamters by kernel 2
+  - name: Delete testing bootparameters by kernel 2
     request:
       url: "{bss_base_url}/boot/v1/bootparameters"
       method: DELETE
@@ -508,7 +508,7 @@ stages:
     response:
       status_code: 200  
 
-  - name: Delete testing bootparamters by initrd 0
+  - name: Delete testing bootparameters by initrd 0
     request:
       url: "{bss_base_url}/boot/v1/bootparameters"
       method: DELETE
@@ -517,7 +517,7 @@ stages:
         initrd: s3://boot-images/00000000-0000-0000-0000-000000000000/initrd
     response:
       status_code: 200  
-  - name: Delete testing bootparamters by initrd 1
+  - name: Delete testing bootparameters by initrd 1
     request:
       url: "{bss_base_url}/boot/v1/bootparameters"
       method: DELETE
@@ -526,7 +526,7 @@ stages:
         initrd: s3://boot-images/00000000-0000-0000-0000-000000000000/initrd
     response:
       status_code: 200  
-  - name: Delete testing bootparamters by initrd 2
+  - name: Delete testing bootparameters by initrd 2
     request:
       url: "{bss_base_url}/boot/v1/bootparameters"
       method: DELETE
@@ -538,7 +538,7 @@ stages:
 ---
 
 # DELETE /bootparameters Remove all
-# GET /bootparamters check response on empty bootparameters
+# GET /bootparameters check response on empty bootparameters
 
 # ---
 # With with MAC Address 
@@ -573,7 +573,7 @@ stages:
             node_xname: Components[0].ID
             node_nid: Components[0].NID
 
-  - name: Delete exiting test bootparamters if it exists
+  - name: Delete existing test bootparameters if it exists
     request:
       url: "{bss_base_url}/boot/v1/bootparameters"
       method: DELETE
@@ -582,7 +582,7 @@ stages:
         nids:
         - !int "{node_nid}"
 
-#   POST /bootparamters with Xname as host
+#   POST /bootparameters with Xname as host
   - name: Create Bootparameteters with NID specified as identifier
     request:
       url: "{bss_base_url}/boot/v1/bootparameters"
@@ -931,7 +931,7 @@ stages:
                           type: str
                           enum:
                           - ""
-# DELETE /bootparamters with Xname as host 
+# DELETE /bootparameters with Xname as host 
   - name: Delete Bootparameters with NID as identifier
     request:
       url: "{bss_base_url}/boot/v1/bootparameters"
@@ -973,7 +973,7 @@ stages:
                 type: int
                 required: False
 
-# DELETE /bootparamters on non-existant bootparamters
+# DELETE /bootparameters on non-existant bootparameters
   - name: Delete Bootparameters with NID as identifier
     request:
       url: "{bss_base_url}/boot/v1/bootparameters"
@@ -1006,7 +1006,7 @@ stages:
               status:
                 type: int
                 required: False
-  - name: Delete testing bootparamters by kernel 0
+  - name: Delete testing bootparameters by kernel 0
     request:
       url: "{bss_base_url}/boot/v1/bootparameters"
       method: DELETE
@@ -1015,7 +1015,7 @@ stages:
         kernel: s3://boot-images/00000000-0000-0000-0000-000000000000/kernel
     response:
       status_code: 200  
-  - name: Delete testing bootparamters by kernel 1
+  - name: Delete testing bootparameters by kernel 1
     request:
       url: "{bss_base_url}/boot/v1/bootparameters"
       method: DELETE
@@ -1024,7 +1024,7 @@ stages:
         kernel: s3://boot-images/00000000-0000-0000-0000-000000000001/kernel
     response:
       status_code: 200  
-  - name: Delete testing bootparamters by kernel 2
+  - name: Delete testing bootparameters by kernel 2
     request:
       url: "{bss_base_url}/boot/v1/bootparameters"
       method: DELETE
@@ -1034,7 +1034,7 @@ stages:
     response:
       status_code: 200  
 
-  - name: Delete testing bootparamters by initrd 0
+  - name: Delete testing bootparameters by initrd 0
     request:
       url: "{bss_base_url}/boot/v1/bootparameters"
       method: DELETE
@@ -1043,7 +1043,7 @@ stages:
         initrd: s3://boot-images/00000000-0000-0000-0000-000000000000/initrd
     response:
       status_code: 200  
-  - name: Delete testing bootparamters by initrd 1
+  - name: Delete testing bootparameters by initrd 1
     request:
       url: "{bss_base_url}/boot/v1/bootparameters"
       method: DELETE
@@ -1052,7 +1052,7 @@ stages:
         initrd: s3://boot-images/00000000-0000-0000-0000-000000000001/initrd
     response:
       status_code: 200  
-  - name: Delete testing bootparamters by initrd 2
+  - name: Delete testing bootparameters by initrd 2
     request:
       url: "{bss_base_url}/boot/v1/bootparameters"
       method: DELETE

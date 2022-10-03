@@ -163,7 +163,7 @@ Make a GET request to the /dumpstate endpoint.
 This service endpoint is primarily for debugging purposes.  It dumps out the known hosts and associated information, along with the known boot parameters.
 
 [source, bash]
-.Use curl to display known hosts, associated information, and known boot paramters
+.Use curl to display known hosts, associated information, and known boot parameters
 
 ----
     curl -k https://sms-1/apis/bss/boot/v1/dumpstate | python -m json.tool

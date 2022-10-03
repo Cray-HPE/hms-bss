@@ -25,6 +25,15 @@ stages:
         json:
           node_mac_address: '[0].MACAddress'
 
+- name: Delete existing test bootparameters if it exists
+  request:
+    url: "{bss_base_url}/boot/v1/bootparameters"
+    method: DELETE
+    verify: !bool "{verify}"
+    json:
+      hosts:
+      - "{node_xname}"
+
 - name: Create Bootparameteter
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
@@ -121,6 +130,8 @@ stages:
       retry: 7
   response:
     status_code: 200
+    headers:
+      content-type: text/plain; charset=UTF-8
     verify_response_with:
       # Verify that this is a ipxe bootscript
       - function: tavern.testutils.helpers:validate_regex
@@ -131,3 +142,64 @@ stages:
       - function: tavern.testutils.helpers:validate_regex
         extra_kwargs:
           expression: "retry=8"
+
+---
+test_name: bssAPIbootscriptUnknown
+
+stages:
+- name: Delete existing unknown bootparameters if it exists
+  request:
+    url: "{bss_base_url}/boot/v1/bootparameters"
+    method: DELETE
+    verify: !bool "{verify}"
+    json:
+      hosts:
+      - Unknown-x86_64
+
+- name: Create Bootparameteter
+  request:
+    url: "{bss_base_url}/boot/v1/bootparameters"
+    method: POST
+    verify: !bool "{verify}"
+    json:
+      hosts:
+      - Unknown-x86_64
+      params: console=tty0 unknown_hardware
+      kernel: s3://boot-images/00000000-0000-0000-0000-000000000000/kernel
+      initrd: s3://boot-images/00000000-0000-0000-0000-000000000000/initrd
+  response:
+    status_code: 201
+
+- name: Query for bootscript for unknown hardware
+  request:
+    url: "{bss_base_url}/boot/v1/bootscript"
+    method: GET
+    verify: !bool "{verify}"
+    params:
+      mac: 0e:ff:ff:ff:ff:ff
+      arch: x86_64
+  response:
+    status_code: 200
+    headers:
+      content-type: text/plain; charset=UTF-8
+    verify_response_with:
+      # Verify that this is a ipxe bootscript
+      - function: tavern.testutils.helpers:validate_regex
+        extra_kwargs:
+          expression: "#!ipxe"
+
+      # Verify the retry counter incremented by 1 
+      - function: tavern.testutils.helpers:validate_regex
+        extra_kwargs:
+          expression: "unknown_hardware"
+
+- name: Delete existing unknown boot parameters if it exists
+  request:
+    url: "{bss_base_url}/boot/v1/bootparameters"
+    method: DELETE
+    verify: !bool "{verify}"
+    json:
+      hosts:
+      - Unknown-x86_64
+  response:
+    status_code: 200

@@ -1,8 +1,8 @@
 ---
 
-# POST /bootparamters not json
+# POST /bootparameters not json
 
-# POST /bootparamters missing required data
+# POST /bootparameters missing required data
 
 # POST in a invalid MAC address, if not allowed update swagger, otherwise open a ticket
 # - Allowed by BSS
@@ -163,7 +163,7 @@ stages:
               type: int
               required: False
 
-- name: Search BSS bootparamters with invalid NID
+- name: Search BSS bootparameters with invalid NID
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
     method: GET

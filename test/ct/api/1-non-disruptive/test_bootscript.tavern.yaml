@@ -259,7 +259,7 @@ stages:
         detail: !anystr
 
 ---
-test_name: Verify the bootscript service gracefully handles invalid query paramters for the bootscript resource
+test_name: Verify the bootscript service gracefully handles invalid query parameters for the bootscript resource
 
 stages:
   # 18. GET /bootscript?{invalid_parameter} API response code
