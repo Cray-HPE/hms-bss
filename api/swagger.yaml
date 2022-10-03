@@ -617,7 +617,7 @@ paths:
         #   description: Internal Server Error
         #   schema:
         #     $ref: '#/definitions/Error'
-  /service/etcd:
+  /service/etcd::
     get:
       summary: "Retrieve the current connection status to ETCD"
       tags:
@@ -869,28 +869,53 @@ definitions:
     description: This data structure is used to return host info for debug purposes
     type: object
     properties:
-      id:
+      ID:
         type: string
         example: "x0c0s21b0n0"
-      state:
+      Type:
+        type: string
+        example: "Node"
+      State:
         type: string
         example: "Ready"
-      class:
+      Flag:
         type: string
-      fqdn:
+        example: "OK"
+      Enabled:
+        type: boolean
+        example: true
+      Role:
         type: string
-      nid:
+        example: Compute
+      NID:
         type: integer
         example: 2
-      mac:
+      NetType:
+        type: string
+        example: Sling
+      Arch:
+        type: string
+        example: X86
+      Class:
+        type: string
+      ReservationDisabled:
+        type: boolean
+        example: false
+      Locked:
+        type: boolean
+        example: false
+      FQDN:
+        type: string
+      MAC:
         type: array
         items:
           type: string
         example: ["00:40:a6:82:f6:c5","a4:bf:01:3e:c0:a2","00:40:a6:82:f7:0c"]
-      nicaddr:
-        type: array
-        items:
-          type: integer
+      EndpointEnabled:
+        type: boolean
+        example: true
+      
+      
   StateInfo:
     description: >-
       This data structure is used to return the full component and boot
@@ -916,10 +941,7 @@ definitions:
       This data structure is used to return the component info for a /hosts get request
     type: array
     items:
-      type: object
-      properties:
-        schema:
-          $ref: '#/definitions/Component'
+      $ref: '#/definitions/Component'
   EndpointAccess:
     description: >-
                  This data structure is used to return the endpoint access information for a given resource.
