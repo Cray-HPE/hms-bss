@@ -1,0 +1,145 @@
+---
+test_name: bssAPIendpointHistory
+
+stages:
+- name: Perform GET against /endpoint-history
+  request:
+    url: "{bss_base_url}/boot/v1/endpoint-history"
+    method: GET
+    verify: !bool "{verify}"
+  response:
+    status_code: 200
+    verify_response_with:
+      function: tavern.testutils.helpers:validate_pykwalify
+      extra_kwargs:
+        schema:
+          type: seq
+          matching: all
+          sequence:
+          - type: map
+            mapping:
+              name:
+                type: str
+              endpoint:
+                type: str
+                enum:
+                - bootscript
+                - user-data
+              last_epoch:
+                type: int
+
+- name: Perform GET against /endpoint-history with name
+  request:
+    url: "{bss_base_url}/boot/v1/endpoint-history"
+    method: GET
+    verify: !bool "{verify}"
+    params:
+      name: x9999c0s1b0n0
+  response:
+    status_code: 200
+    verify_response_with:
+      function: tavern.testutils.helpers:validate_pykwalify
+      extra_kwargs:
+        schema:
+          type: seq
+          matching: all
+          sequence:
+          - type: map
+            mapping:
+              name:
+                type: str
+              endpoint:
+                type: str
+                enum:
+                - bootscript
+                - user-data
+              last_epoch:
+                type: int
+
+# TODO need to open a ticket that a 400 bad request statuc code should be returned if only endpoint is provided instead of a 500 status code,
+# or change the endpoint-history to allow us query for all endpoints that have reached a particular endpoint.
+#
+# - name: Perform GET against /endpoint-history with endpoint bootscript
+#   request:
+#     url: "{bss_base_url}/boot/v1/endpoint-history"
+#     method: GET
+#     verify: !bool "{verify}"
+#     params:
+#       endpoint: bootscript
+#   response:
+#     status_code: 400
+#     verify_response_with:
+#       function: tavern.testutils.helpers:validate_pykwalify
+#       extra_kwargs:
+#         schema:
+#           type: seq
+#           matching: all
+#           sequence:
+#           - type: map
+#             mapping:
+#               name:
+#                 type: str
+#               endpoint:
+#                 type: str
+#                 enum:
+#                 - bootscript
+#                 - user-data
+#               last_epoch:
+#                 type: int
+
+# - name: Perform GET against /endpoint-history with endpoint user-data
+#   request:
+#     url: "{bss_base_url}/boot/v1/endpoint-history"
+#     method: GET
+#     verify: !bool "{verify}"
+#     params:
+#       endpoint: user-data
+#   response:
+#     status_code: 400
+#     verify_response_with:
+#       function: tavern.testutils.helpers:validate_pykwalify
+#       extra_kwargs:
+#         schema:
+#           type: seq
+#           matching: all
+#           sequence:
+#           - type: map
+#             mapping:
+#               name:
+#                 type: str
+#               endpoint:
+#                 type: str
+#                 enum:
+#                 - bootscript
+#                 - user-data
+#               last_epoch:
+#                 type: int
+
+- name: Perform GET against /endpoint-history with both name and endpoint 
+  request:
+    url: "{bss_base_url}/boot/v1/endpoint-history"
+    method: GET
+    verify: !bool "{verify}"
+    params:
+      name: x9999c0s1b0n0
+      endpoint: user-data
+  response:
+    status_code: 200
+    verify_response_with:
+      function: tavern.testutils.helpers:validate_pykwalify
+      extra_kwargs:
+        schema:
+          type: seq
+          matching: all
+          sequence:
+          - type: map
+            mapping:
+              name:
+                type: str
+              endpoint:
+                type: str
+                enum:
+                - bootscript
+                - user-data
+              last_epoch:
+                type: int

@@ -1,0 +1,38 @@
+---
+test_name: bssAPIendpointHistoryNegative
+
+stages:
+- name: Perform DELETE against /endpoint-history
+  request:
+    url: "{bss_base_url}/boot/v1/endpoint-history"
+    method: DELETE
+    verify: !bool "{verify}"
+  response:
+    status_code: 405
+
+- name: Perform PATCH against /endpoint-history
+  request:
+    url: "{bss_base_url}/boot/v1/endpoint-history"
+    method: PATCH
+    verify: !bool "{verify}"
+  response:
+    status_code: 405
+
+- name: Perform PUT against /endpoint-history
+  request:
+    url: "{bss_base_url}/boot/v1/endpoint-history"
+    method: PUT
+    verify: !bool "{verify}"
+  response:
+    status_code: 405
+  
+- name: Perform POST against /endpoint-history
+  request:
+    url: "{bss_base_url}/boot/v1/endpoint-history"
+    method: POST
+    verify: !bool "{verify}"
+  response:
+    status_code: 405
+
+# ---
+# TEST with invalid xnames and endpoints
