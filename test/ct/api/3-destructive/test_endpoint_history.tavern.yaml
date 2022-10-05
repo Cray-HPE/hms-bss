@@ -3,6 +3,12 @@
 test_name: bssAPIendpointHistory
 
 stages:
+- name: Remove any test HSM EthernetInterfaces for the CT Test container if they exist
+  request:
+    url: "{hsm_base_url}/hsm/v2/Inventory/EthernetInterfaces/0efffffffffe"
+    method: DELETE
+    verify: !bool "{verify}"
+
 - name: Query HSM State Components for a compute node
   request:
     url: "{hsm_base_url}/hsm/v2/State/Components?Type=Node&Role=Compute"
@@ -28,6 +34,39 @@ stages:
   response:
     status_code: 200
 
+# Please note that this stage is a hack to retrieve and save the IP address of this container into 
+# a variable. Perhaps a plugin might be better here.
+- name: Retrieve test container IP address
+  request:
+    # The endpoint that we hit doesn't really matter, just 
+    url: "{bss_base_url}/boot/v1/service/status"
+    method: GET
+    verify: !bool "{verify}"
+  response:
+    save:
+      $ext:
+        function: bss_test_utils:save_ip_address_of_test_container
+
+- name: Create test HSM EthernetInterfaces for the CT Test container
+  request:
+    url: "{hsm_base_url}/hsm/v2/Inventory/EthernetInterfaces"
+    method: POST
+    verify: !bool "{verify}"
+    json:
+      MACAddress: "0e:ff:ff:ff:ff:fe"
+      ComponentID: "{node_xname}"
+      Description: "Created by BSS CT Tavern Tests"
+      IPAddresses:
+        - IPAddress: "{test_container_ip_address}"
+
+- name: Perform POST against /hosts to force a sync with HSM
+  request:
+    url: "{bss_base_url}/boot/v1/hosts"
+    method: POST
+    verify: !bool "{verify}"
+  response:
+    status_code: 204
+
 - name: Query bootscript by xname
   request:
     url: "{bss_base_url}/boot/v1/bootscript"
@@ -38,6 +77,8 @@ stages:
   response:
     status_code: 200
 
+    # Note the content of the response is not being tested, as that is done in other tests
+
 - name: Query endpoint-history with node xname, and verify state
   request:
     url: "{bss_base_url}/boot/v1/endpoint-history"
@@ -45,6 +86,7 @@ stages:
     verify: !bool "{verify}"
     params:
       name: "{node_xname}"
+      endpoint: bootscript
   response:
     status_code: 200
     verify_response_with:
@@ -73,38 +115,54 @@ stages:
                   min: 0 # If the epoch time is 0, then that means the endpoint wasn't really queried.
 
 # TODO Query user-data for the node
+- name: Query for cloud-init user-data for the node
+  request:
+    url: "{bss_base_url}/user-data"
+    method: GET
+    verify: !bool "{verify}"
+  response:
+    status_code: 200
+    # Note the content of the response is not being tested, as that is done in other tests
 
-# TODO enable this stage when user-data is queried
-# - name: Query endpoint-history with node xname, and verify state
-#   request:
-#     url: "{bss_base_url}/boot/v1/endpoint-history"
-#     method: GET
-#     verify: !bool "{verify}"
-#     params:
-#       name: "{node_xname}"
-#   response:
-#     status_code: 200
-#     verify_response_with:
-#       function: tavern.testutils.helpers:validate_pykwalify
-#       extra_kwargs:
-#         schema:
-#           type: seq
-#           matching: all
-#           range:
-#             min: 1
-#             max: 1
-#           sequence:
-#           - type: map
-#             mapping:
-#               name:
-#                 type: str
-#                 enum:
-#                 - "{node_xname}"
-#               endpoint:
-#                 type: str
-#                 enum:
-#                 - user-data
-#               last_epoch:
-#                 type: int
-#                 range: 
-#                   min: 1 # If the epoch time is 0, then that means the endpoint wasn't really queried.
+- name: Query endpoint-history with node xname, and verify state
+  request:
+    url: "{bss_base_url}/boot/v1/endpoint-history"
+    method: GET
+    verify: !bool "{verify}"
+    params:
+      name: "{node_xname}"
+      endpoint: user-data
+  response:
+    status_code: 200
+    verify_response_with:
+      function: tavern.testutils.helpers:validate_pykwalify
+      extra_kwargs:
+        schema:
+          type: seq
+          matching: all
+          range:
+            min: 1
+            max: 1
+          sequence:
+          - type: map
+            mapping:
+              name:
+                type: str
+                enum:
+                - "{node_xname}"
+              endpoint:
+                type: str
+                enum:
+                - user-data
+              last_epoch:
+                type: int
+                range: 
+                  min: 1 # If the epoch time is 0, then that means the endpoint wasn't really queried.
+
+- name: Remove test HSM EthernetInterfaces for the CT Test container
+  request:
+    url: "{hsm_base_url}/hsm/v2/Inventory/EthernetInterfaces/0efffffffffe"
+    method: DELETE
+    verify: !bool "{verify}"
+  response:
+    status_code: 200

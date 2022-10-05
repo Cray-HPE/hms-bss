@@ -42,6 +42,9 @@ stages:
               Role:
                 type: str
                 required: false
+              SubRole:
+                type: str
+                required: false
               NID:
                 type: int
                 required: false

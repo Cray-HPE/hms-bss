@@ -14,18 +14,31 @@ stages:
     method: DELETE
     verify: !bool "{verify}"
 
+# Please note that this stage is a hack to retrieve and save the IP address of this container into 
+# a variable. Perhaps a plugin might be better here.
+- name: Retrieve test container IP address
+  request:
+    # The endpoint that we hit doesn't really matter, just 
+    url: "{bss_base_url}/boot/v1/service/status"
+    method: GET
+    verify: !bool "{verify}"
+  response:
+    save:
+      $ext:
+        function: bss_test_utils:save_ip_address_of_test_container
+
 - name: Create test HSM EthernetInterfaces for the CT Test container
   request:
     url: "{hsm_base_url}/hsm/v2/Inventory/EthernetInterfaces"
     method: POST
     verify: !bool "{verify}"
     json:
-      $ext:
-         # Creates a EthernetInterface with:
-         # MACAddress:  0e:ff:ff:ff:ff:fe
-         # ComponentID: x9999c0s1b0n0
-         # IPAddress:   <ip address of container running the type>
-        function: bss_test_utils:build_hsm_ethernet_interface_for_test_container
+      MACAddress: "0e:ff:ff:ff:ff:fe"
+      ComponentID: "x9999c0s1b0n0"
+      Description: "Created by BSS CT Tavern Tests"
+      IPAddresses:
+        - IPAddress: "{test_container_ip_address}"
+
   response:
     status_code: 201
 
@@ -140,8 +153,6 @@ stages:
               type: str
               enum:
               - Worker
-
-            
 
 - name: Remove test HSM EthernetInterfaces for the CT Test container
   request:
