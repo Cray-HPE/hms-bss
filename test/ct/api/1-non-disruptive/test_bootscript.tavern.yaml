@@ -28,7 +28,7 @@
 # 1. GET /dumpstate API response code
 # 2. GET /dumpstate API response body
 # 3. GET /bootscript?nid={nid} API response code
-# 4. Disabled (Bad MAC address data in dumpstate issue CASMHMS-3216) - GET /bootscript?mac={mac_address} API response code
+# 4. GET /bootscript?mac={mac_address} API response code
 # 5. GET /bootscript?name={node_name} API response code
 # 6. GET /bootscript?nid={nid}&retry={retry} API response code
 # 7. GET /bootscript?nid={nid}&retry={retry} API response body
