@@ -1,0 +1,161 @@
+---
+test_name: bssAPIcloudinit
+
+stages:
+- name: Remove any test HSM EthernetInterfaces for the CT Test container if they exist
+  request:
+    url: "{hsm_base_url}/hsm/v2/Inventory/EthernetInterfaces/0efffffffffe"
+    method: DELETE
+    verify: !bool "{verify}"
+
+- name: Remove any test HSM State Components if they exist
+  request:
+    url: "{hsm_base_url}/hsm/v2/State/Components/x9999c0s1b0n0"
+    method: DELETE
+    verify: !bool "{verify}"
+
+- name: Create test HSM EthernetInterfaces for the CT Test container
+  request:
+    url: "{hsm_base_url}/hsm/v2/Inventory/EthernetInterfaces"
+    method: POST
+    verify: !bool "{verify}"
+    json:
+      $ext:
+         # Creates a EthernetInterface with:
+         # MACAddress:  0e:ff:ff:ff:ff:fe
+         # ComponentID: x9999c0s1b0n0
+         # IPAddress:   <ip address of container running the type>
+        function: bss_test_utils:build_hsm_ethernet_interface_for_test_container
+  response:
+    status_code: 201
+
+- name: Create test Component in HSM State Components
+  request:
+    url: "{hsm_base_url}/hsm/v2/State/Components"
+    method: POST
+    verify: !bool "{verify}"
+    json:
+      Components:
+      - ID: x9999c0s1b0n0
+        Class: River
+        State: "Off"
+        Role: "Management"
+        SubRole: "Worker"
+  response:
+    status_code: 204
+
+- name: Create or update Bootparameteter for node with cloud-init data
+  request:
+    url: "{bss_base_url}/boot/v1/bootparameters"
+    method: PUT
+    verify: !bool "{verify}"
+    json:
+      hosts:
+      - x9999c0s1b0n0
+      params: console=tty0
+      kernel: s3://boot-images/00000000-0000-0000-0000-000000000000/kernel
+      initrd: s3://boot-images/00000000-0000-0000-0000-000000000000/initrd
+      cloud-init:
+        meta-data:
+          meta-data-key: "foo"
+        user-data:
+          user-data-key: "bar"
+  response:
+    status_code: 200
+
+- name: Perform POST against /hosts to force a sync with HSM
+  request:
+    url: "{bss_base_url}/boot/v1/hosts"
+    method: POST
+    verify: !bool "{verify}"
+  response:
+    status_code: 204
+
+
+# /src/app $ curl http://cray-bss:27778/user-data
+# #cloud-config
+# foo: bar
+
+- name: Query for cloud-init user-data for the node
+  request:
+    url: "{bss_base_url}/user-data"
+    method: GET
+    verify: !bool "{verify}"
+  response:
+    status_code: 200
+    headers:
+      content-type: text/yaml
+
+    # The Response is yaml and not json. Tavern currently support yaml response, so as a hack we can 
+    # regular expressions to validate the output.
+    #
+    # A response similar to following is expected:
+    #
+    # #cloud-config
+    # local-hostname: x9999c0s1b0n0
+    # user-data-key: bar
+    verify_response_with:
+      - function: tavern.testutils.helpers:validate_regex
+        extra_kwargs:
+          expression: "#cloud-config"
+      - function: tavern.testutils.helpers:validate_regex
+        extra_kwargs:
+          expression: "local-hostname: x9999c0s1b0n0"
+      - function: tavern.testutils.helpers:validate_regex
+        extra_kwargs:
+          expression: "user-data-key: bar"
+
+- name: Query for cloud-init meta-data for node
+  request:
+    url: "{bss_base_url}/meta-data"
+    method: GET
+    verify: !bool "{verify}"
+  response:
+    status_code: 200
+    verify_response_with:
+      function: tavern.testutils.helpers:validate_pykwalify
+      extra_kwargs:
+        schema:
+          type: map
+          mapping:
+            Global:
+              type: map
+              allowempty: true
+            instance-id:
+              type: str
+              pattern: "^x9999c0s1b0n0"
+            local-hostname:
+              type: str
+              enum:
+              - x9999c0s1b0n0
+            meta-data-key:
+              type: str
+              enum:
+              - foo
+            shasta-type:
+              type: str
+              enum:
+              - Management
+            shasta-role:
+              type: str
+              enum:
+              - Worker
+
+            
+
+- name: Remove test HSM EthernetInterfaces for the CT Test container
+  request:
+    url: "{hsm_base_url}/hsm/v2/Inventory/EthernetInterfaces/0efffffffffe"
+    method: DELETE
+    verify: !bool "{verify}"
+  response:
+    status_code: 200
+
+- name: Remove test component from HSM State Components
+  request:
+    url: "{hsm_base_url}/hsm/v2/State/Components/x9999c0s1b0n0"
+    method: DELETE
+    verify: !bool "{verify}"
+  response:
+    status_code: 200
+
