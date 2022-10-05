@@ -154,11 +154,16 @@ paths:
       operationId: phone_home_post
       # produces:
       #   - text/yaml
+      parameters:
+        - name: phoneHomeData
+          in: body
+          schema:
+            $ref: '#/definitions/CloudInitPhoneHome'
       responses:
         '200':
           description: Meta data for node
           schema:
-            $ref: '#/definitions/CloudInitPhoneHome'
+           $ref: '#/definitions/BootParams'
         '400':
           description: Bad Request
           schema:
