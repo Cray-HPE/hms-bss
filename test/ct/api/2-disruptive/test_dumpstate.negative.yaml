@@ -1,0 +1,37 @@
+---
+test_name: bssAPIdumpstateNegative
+
+# TODO see if dumpstate can actually return a 400 bad request. If not update swagger.
+
+stages:
+- name: Perform DELETE against /dumpstate
+  request:
+    url: "{bss_base_url}/boot/v1/dumpstate"
+    method: DELETE
+    verify: !bool "{verify}"
+  response:
+    status_code: 405
+
+- name: Perform PATCH against /dumpstate
+  request:
+    url: "{bss_base_url}/boot/v1/dumpstate"
+    method: PATCH
+    verify: !bool "{verify}"
+  response:
+    status_code: 405
+
+- name: Perform POST against /dumpstate
+  request:
+    url: "{bss_base_url}/boot/v1/dumpstate"
+    method: POST
+    verify: !bool "{verify}"
+  response:
+    status_code: 405
+
+- name: Perform PUT against /dumpstate
+  request:
+    url: "{bss_base_url}/boot/v1/dumpstate"
+    method: PUT
+    verify: !bool "{verify}"
+  response:
+    status_code: 405
