@@ -16,20 +16,20 @@ info:
 
     ## Resources
 
-    ### /bootscript
+    ### /boot/v1/bootscript
 
     Retrieve the iPXE bootscript for a host. One of the three parameters is required - name,
     MAC, or NID.
 
-    ### /bootparameters
+    ### /boot/v1/bootparameters
 
     Set, update, delete, and retrieve boot script parameters for specific hosts.
 
-    ### /hosts
+    ### /boot/v1/hosts
 
     Retrieve the latest host information like state, nid, and id from HSM.
 
-    ### /dumpstate
+    ### /boot/v1/dumpstate
 
     Dump internal state of boot script service for debugging purposes.
 
@@ -37,7 +37,7 @@ info:
 
     ### Define Boot Parameters for all Nodes
 
-    #### POST /bootparameters
+    #### POST /boot/v1/bootparameters
 
     Define boot parameters. Specify the host as Default. While BSS allows for fine grained
     control of individual nodes, the Default tag is typically more convenient,
@@ -50,33 +50,33 @@ info:
     The kernel and initrd fields contain a URL to the respective images.
     The params field is a string that will be passed to the kernel during the boot process.
 
-    #### GET /bootscript
+    #### GET /boot/v1/bootscript
 
     Verify the bootscript to ensure it's what you want
 
     ### Update Boot Parameters
 
-    #### GET /hosts
+    #### GET /boot/v1/hosts
 
     Retrieve list of hosts known to HSM and select the host for which
     the boot parameters need to be changed.
 
-    #### GET /bootparameters
+    #### GET /boot/v1/bootparameters
 
     Retrieve the boot parameters for the specific host.
 
-    #### PUT /bootparameters
+    #### PUT /boot/v1/bootparameters
 
     Update boot parameters for the host.
 
-    #### GET /bootparameters
+    #### GET /boot/v1/bootparameters
 
     Verify the boot parameters for the specific host.
 
   version: 1.0.0
   title: Boot Script Service
 host: 'bootscriptserver:27778'
-basePath: /apis/bss/boot/v1
+basePath: /apis/bss
 schemes:
   - http
 produces:
@@ -152,13 +152,13 @@ paths:
       tags:
         - cli_ignore
       operationId: phone_home_post
-      produces:
-        - text/yaml
+      # produces:
+      #   - text/yaml
       responses:
         '200':
           description: Meta data for node
           schema:
-            type: object
+            $ref: '#/definitions/CloudInitPhoneHome'
         '400':
           description: Bad Request
           schema:
@@ -174,7 +174,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /bootscript:
+  /boot/v1/bootscript:
     get:
       summary: Retrieve iPXE boot script
       tags:
@@ -254,7 +254,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /bootparameters:
+  /boot/v1/bootparameters:
     get:
       summary: Retrieve boot parameters
       tags:
@@ -496,7 +496,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/Error'
-  /hosts:
+  /boot/v1/hosts:
     get:
       summary: Retrieve hosts
       tags:
@@ -549,7 +549,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/Error'
-  /dumpstate:
+  /boot/v1/dumpstate:
     get:
       summary: Retrieve dumpstate
       tags:
@@ -571,7 +571,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/Error'
-  /endpoint-history:
+  /boot/v1/endpoint-history:
     get:
       summary: Retrieve access information for xname and endpoint
       tags:
@@ -599,7 +599,7 @@ paths:
             type: array
             items:
               $ref: '#/definitions/EndpointAccess'
-  /service/status:
+  /boot/v1/service/status:
     get:
       summary: "Retrieve the current status of BSS"
       tags:
@@ -624,7 +624,7 @@ paths:
         #   description: Internal Server Error
         #   schema:
         #     $ref: '#/definitions/Error'
-  /service/etcd::
+  /boot/v1/service/etcd::
     get:
       summary: "Retrieve the current connection status to ETCD"
       tags:
@@ -659,7 +659,7 @@ paths:
                 enum: ["error"]
                 description: Current connection status to ETCD.
             
-  /service/hsm:
+  /boot/v1/service/hsm:
     get:
       summary: "Retrieve the current connection status to HSM"
       tags:
@@ -692,7 +692,7 @@ paths:
                 enum: ["error"]
                 description: Current connection status to HSM.
 
-  /service/version:
+  /boot/v1/service/version:
     get:
       summary: "Retrieve the service version"
       tags:
@@ -720,7 +720,7 @@ paths:
                 type: string
                 enum: ["error"]
 
-  /service/status/all:
+  /boot/v1/service/status/all:
     get: 
       summary: "Retreive the overall service health"
       tags:
@@ -894,6 +894,9 @@ definitions:
       Role:
         type: string
         example: Compute
+      RubeRole:
+        type: string
+        example: Worker
       NID:
         type: integer
         example: 2
@@ -965,7 +968,7 @@ definitions:
           - user-data
       last_epoch:
         type: integer
-        description: Unix epoch time of last request.
+        description: Unix epoch time of last request. An epoch of 0 indicates a request has not taken place.
         example: 1635284155
   Error:
     description: Return an RFC7808 error response.
