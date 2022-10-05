@@ -1,0 +1,133 @@
+---
+# TODO for all tests try to trigger a 404/400 from BSS
+
+test_name: bssAPIcloudinitMetaDataNegative
+
+stages:
+- name: Perform DELETE against /meta-data
+  request:
+    url: "{bss_base_url}/meta-data"
+    method: DELETE
+    verify: !bool "{verify}"
+  response:
+    status_code: 405
+
+- name: Perform PATCH against /meta-data
+  request:
+    url: "{bss_base_url}/meta-data"
+    method: PATCH
+    verify: !bool "{verify}"
+  response:
+    status_code: 405
+
+- name: Perform POST against /meta-data
+  request:
+    url: "{bss_base_url}/meta-data"
+    method: POST
+    verify: !bool "{verify}"
+  response:
+    status_code: 405
+
+- name: Perform PUT against /meta-data
+  request:
+    url: "{bss_base_url}/meta-data"
+    method: PUT
+    verify: !bool "{verify}"
+  response:
+    status_code: 405
+
+---
+test_name: bssAPIcloudinitUserDataNegative
+
+stages:
+- name: Perform DELETE against /user-data
+  request:
+    url: "{bss_base_url}/user-data"
+    method: DELETE
+    verify: !bool "{verify}"
+  response:
+    status_code: 405
+
+- name: Perform PATCH against /user-data
+  request:
+    url: "{bss_base_url}/user-data"
+    method: PATCH
+    verify: !bool "{verify}"
+  response:
+    status_code: 405
+
+- name: Perform POST against /user-data
+  request:
+    url: "{bss_base_url}/user-data"
+    method: POST
+    verify: !bool "{verify}"
+  response:
+    status_code: 405
+
+- name: Perform PUT against /user-data
+  request:
+    url: "{bss_base_url}/user-data"
+    method: PUT
+    verify: !bool "{verify}"
+  response:
+    status_code: 405
+
+---
+test_name: bssAPIcloudinitPhoneHomeNegative
+
+stages:
+- name: Perform DELETE against /phone-home
+  request:
+    url: "{bss_base_url}/phone-home"
+    method: DELETE
+    verify: !bool "{verify}"
+  response:
+    status_code: 405
+
+- name: Perform GET against /phone-home
+  request:
+    url: "{bss_base_url}/phone-home"
+    method: GET
+    verify: !bool "{verify}"
+  response:
+    status_code: 405
+
+- name: Perform PATCH against /phone-home
+  request:
+    url: "{bss_base_url}/phone-home"
+    method: PATCH
+    verify: !bool "{verify}"
+  response:
+    status_code: 405
+
+- name: Perform PUT against /phone-home
+  request:
+    url: "{bss_base_url}/phone-home"
+    method: PUT
+    verify: !bool "{verify}"
+  response:
+    status_code: 405
+
+- name: Perform POST against /phone-home without json payload
+  request:
+    url: "{bss_base_url}/phone-home"
+    method: POST
+    verify: !bool "{verify}"
+  response:
+    status_code: 400
+
+# TODO this test could have false failures if BSS thinks the container's IP address is valid, which does
+# occurs in the destrucive tests.
+# - name: Perform POST against /phone-home without populating 
+#   request:
+#     url: "{bss_base_url}/phone-home"
+#     method: POST
+#     verify: !bool "{verify}"
+#   response:
+#     status_code: 404
+#     #     {
+#     #   "type": "about:blank",
+#     #   "title": "Not Found",
+#     #   "detail": "XName not found for IP",
+#     #   "status": 404
+#     # }
