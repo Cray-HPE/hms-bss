@@ -1,0 +1,110 @@
+---
+# Verify endpoint-history is working (check endpoint changing states)
+test_name: bssAPIendpointHistory
+
+stages:
+- name: Query HSM State Components for a compute node
+  request:
+    url: "{hsm_base_url}/hsm/v2/State/Components?Type=Node&Role=Compute"
+    method: GET
+    verify: !bool "{verify}"
+  response:
+    status_code: 200
+    save:
+        json:
+          node_xname: Components[0].ID
+
+- name: Create/Update Bootparameteter for compute node
+  request:
+    url: "{bss_base_url}/boot/v1/bootparameters"
+    method: PUT
+    verify: !bool "{verify}"
+    json:
+      hosts:
+      - "{node_xname}"
+      params: console=tty0
+      kernel: s3://boot-images/00000000-0000-0000-0000-000000000000/kernel
+      initrd: s3://boot-images/00000000-0000-0000-0000-000000000000/initrd
+  response:
+    status_code: 200
+
+- name: Query bootscript by xname
+  request:
+    url: "{bss_base_url}/boot/v1/bootscript"
+    method: GET
+    verify: !bool "{verify}"
+    params:
+      name: "{node_xname}"
+  response:
+    status_code: 200
+
+- name: Query endpoint-history with node xname, and verify state
+  request:
+    url: "{bss_base_url}/boot/v1/endpoint-history"
+    method: GET
+    verify: !bool "{verify}"
+    params:
+      name: "{node_xname}"
+  response:
+    status_code: 200
+    verify_response_with:
+      function: tavern.testutils.helpers:validate_pykwalify
+      extra_kwargs:
+        schema:
+          type: seq
+          matching: all
+          range:
+            min: 1
+            max: 1
+          sequence:
+          - type: map
+            mapping:
+              name:
+                type: str
+                enum:
+                - "{node_xname}"
+              endpoint:
+                type: str
+                enum:
+                - bootscript
+              last_epoch:
+                type: int
+                range: 
+                  min: 0 # If the epoch time is 0, then that means the endpoint wasn't really queried.
+
+# TODO Query user-data for the node
+
+# TODO enable this stage when user-data is queried
+# - name: Query endpoint-history with node xname, and verify state
+#   request:
+#     url: "{bss_base_url}/boot/v1/endpoint-history"
+#     method: GET
+#     verify: !bool "{verify}"
+#     params:
+#       name: "{node_xname}"
+#   response:
+#     status_code: 200
+#     verify_response_with:
+#       function: tavern.testutils.helpers:validate_pykwalify
+#       extra_kwargs:
+#         schema:
+#           type: seq
+#           matching: all
+#           range:
+#             min: 1
+#             max: 1
+#           sequence:
+#           - type: map
+#             mapping:
+#               name:
+#                 type: str
+#                 enum:
+#                 - "{node_xname}"
+#               endpoint:
+#                 type: str
+#                 enum:
+#                 - user-data
+#               last_epoch:
+#                 type: int
+#                 range: 
+#                   min: 1 # If the epoch time is 0, then that means the endpoint wasn't really queried.
