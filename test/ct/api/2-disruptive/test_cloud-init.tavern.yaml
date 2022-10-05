@@ -154,6 +154,24 @@ stages:
               enum:
               - Worker
 
+# TODO Add this to the swagger, as it it missing
+- name: Query cloud-init meta-data for a particular key
+  request:
+    url: "{bss_base_url}/meta-data"
+    method: GET
+    verify: !bool "{verify}"
+    params:
+      key: meta-data-key
+  response:
+    status_code: 200
+    verify_response_with:
+      function: tavern.testutils.helpers:validate_pykwalify
+      extra_kwargs:
+        schema:
+          type: str
+          enum:
+          - foo
+
 - name: "Phone home back to cloud-init with POST to /phone-home"
   request:
     url: "{bss_base_url}/phone-home"
