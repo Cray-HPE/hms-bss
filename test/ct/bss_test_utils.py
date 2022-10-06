@@ -41,14 +41,14 @@ def better_validate_regex(response, expression):
 
     match = re.search(expression, response.text)
     if match is None:
-        raise exceptions.RegexAccessError(f"No match for regex: {expression}")
+        raise exceptions.RegexAccessError(f"No match for regex '{expression}' in response:\n{response.text}")
 
     return {"regex": Box(match.groupdict())}
 
 
 def validate_yaml_simple(response, expected):
-    data = yaml.safe_load(response)
+    response_data = yaml.safe_load(response.text)
 
-    assert check_keys_match_recursive(expected, expected, [])
+    check_keys_match_recursive(response_data, expected, [])
 
     return {}

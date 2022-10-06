@@ -116,12 +116,11 @@ stages:
       - function: bss_test_utils:better_validate_regex
         extra_kwargs:
           expression: "#cloud-config"
-      - function: bss_test_utils:better_validate_regex
+      - function: bss_test_utils:validate_yaml_simple
         extra_kwargs:
-          expression: "local-hostname: x9999c0s1b0n0"
-      - function: bss_test_utils:better_validate_regex
-        extra_kwargs:
-          expression: "user-data-key: bar"
+          expected:
+            local-hostname: x9999c0s1b0n0
+            user-data-key: bar
 
 - name: Query for cloud-init meta-data for node
   request:
