@@ -84,12 +84,17 @@ stages:
   response:
     status_code: 204
 
+    # TODO maybe add a delay here
+
 
 # /src/app $ curl http://cray-bss:27778/user-data
 # #cloud-config
 # foo: bar
 
+# THIS failed once
 - name: Query for cloud-init user-data for the node
+  max_retries: 5
+  delay_after: 1
   request:
     url: "{bss_base_url}/user-data"
     method: GET
@@ -108,13 +113,13 @@ stages:
     # local-hostname: x9999c0s1b0n0
     # user-data-key: bar
     verify_response_with:
-      - function: tavern.testutils.helpers:validate_regex
+      - function: bss_test_utils:better_validate_regex
         extra_kwargs:
           expression: "#cloud-config"
-      - function: tavern.testutils.helpers:validate_regex
+      - function: bss_test_utils:better_validate_regex
         extra_kwargs:
           expression: "local-hostname: x9999c0s1b0n0"
-      - function: tavern.testutils.helpers:validate_regex
+      - function: bss_test_utils:better_validate_regex
         extra_kwargs:
           expression: "user-data-key: bar"
 
