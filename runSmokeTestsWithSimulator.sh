@@ -28,5 +28,3 @@ make ct_image
 VERSION=$(cat .version)
 docker run --rm --network hms-simulation-environment_simulation hms-bss-hmth-test:${VERSION} \
     smoke -f smoke.json -u http://cray-bss:27778
-
-exit 1
