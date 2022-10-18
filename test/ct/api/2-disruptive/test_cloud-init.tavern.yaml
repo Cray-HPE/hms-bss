@@ -97,6 +97,8 @@ stages:
       cloud-init:
         meta-data:
           meta-data-key: "foo"
+          nested-data:
+            foo: bar
         user-data:
           user-data-key: "bar"
   response:
@@ -179,6 +181,13 @@ stages:
               type: str
               enum:
               - Worker
+            nested-data:
+              type: map
+              mapping:
+                foo:
+                  type: str
+                  enum:
+                  - bar
 
 - name: Query cloud-init meta-data for a particular key
   request:
@@ -196,6 +205,24 @@ stages:
           type: str
           enum:
           - foo
+
+# Disabled TODO opened ticket
+# - name: Query cloud-init meta-data for a nested value
+#   request:
+#     url: "{bss_base_url}/meta-data"
+#     method: GET
+#     verify: !bool "{verify}"
+#     params:
+#       key: nested-data.foo
+#   response:
+#     status_code: 200
+#     verify_response_with:
+#       function: tavern.testutils.helpers:validate_pykwalify
+#       extra_kwargs:
+#         schema:
+#           type: str
+#           enum:
+#           - bar
 
 - name: Phone home back to cloud-init with POST to /phone-home
   request:
@@ -260,6 +287,13 @@ stages:
                       type: str
                       enum:
                       - foo
+                    nested-data:
+                      type: map
+                      mapping:
+                        foo:
+                          type: str
+                          enum:
+                          - bar
                 user-data:
                   type: map
                   mapping:

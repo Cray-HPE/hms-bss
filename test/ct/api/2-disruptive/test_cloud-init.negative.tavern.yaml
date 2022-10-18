@@ -24,24 +24,27 @@
 # Author: Ryan Sjostrand
 # Service: Boot Script Service
 
-# HMS test metrics test cases: 15
+# HMS test metrics test cases: 18
 # 1. DELETE /meta-data API response code
 # 2. PATCH /meta-data API response code
 # 3. POST /meta-data API response code
 # 4. PUT /meta-data API response code
 # 5. GET /meta-data?key={key} Retrieve a non-existent key. API response code
+# 6. GET /meta-data?key={key} Retrieve a non-existent key. API response body
+# 7. GET /meta-data?key=this.key.does.not.exist Retrieve a non-existent nested key. API response code
+# 8. GET /meta-data?key=this.key.does.not.exist Retrieve a non-existent nested key. API response body
+
+# 9. DELETE /user-data API response code
+# 10. PATCH /user-data API response code
+# 11. POST /user-data API response code
+# 12. PUT /user-data API response code
 #
-# 6. DELETE /user-data API response code
-# 7. PATCH /user-data API response code
-# 8. POST /user-data API response code
-# 9. PUT /user-data API response code
-#
-# 10. DELETE /phone-home API response code
-# 11. PATCH /phone-home API response code
-# 12. PUT /phone-home API response code
-# 13. GET /phone-home API response code
-# 14. POST /phone-home with json payload API response code
-# 15. POST /phone-home with malformed json payload API response code
+# 13. DELETE /phone-home API response code
+# 14. PATCH /phone-home API response code
+# 15. PUT /phone-home API response code
+# 16. GET /phone-home API response code
+# 17. POST /phone-home with json payload API response code
+# 18. POST /phone-home with malformed json payload API response code
 
 ---
 
@@ -85,6 +88,7 @@ stages:
     status_code: 405
 
 # 5. GET /meta-data?key={key} Retrieve a non-existent key. API response code
+# 6. GET /meta-data?key={key} Retrieve a non-existent key. API response body
 - name: Query /meta-data for non-existent key
   request:
     url: "{bss_base_url}/meta-data"
@@ -100,11 +104,28 @@ stages:
       status: 404
       detail: Not Found
 
+# 7. GET /meta-data?key=this.key.does.not.exist Retrieve a non-existent nested key. API response code
+# 8. GET /meta-data?key=this.key.does.not.exist Retrieve a non-existent nested key. API response body
+- name: Query cloud-init meta-data for a non-existent nested value
+  request:
+    url: "{bss_base_url}/meta-data"
+    method: GET
+    verify: !bool "{verify}"
+    params:
+      key: this.value.does.not.exist
+  response:
+    status_code: 404
+    json:
+      type: about:blank
+      title: Not Found
+      status: 404
+      detail: Not Found
+
 ---
 test_name: bssAPIcloudinitUserDataNegative
 
 stages:
-# 6. DELETE /user-data API response code
+# 9. DELETE /user-data API response code
 - name: Perform DELETE against /user-data
   request:
     url: "{bss_base_url}/user-data"
@@ -113,7 +134,7 @@ stages:
   response:
     status_code: 405
 
-# 7. PATCH /user-data API response code
+# 10. PATCH /user-data API response code
 - name: Perform PATCH against /user-data
   request:
     url: "{bss_base_url}/user-data"
@@ -122,7 +143,7 @@ stages:
   response:
     status_code: 405
 
-# 8. POST /user-data API response code
+# 11. POST /user-data API response code
 - name: Perform POST against /user-data
   request:
     url: "{bss_base_url}/user-data"
@@ -131,7 +152,7 @@ stages:
   response:
     status_code: 405
 
-# 9. PUT /user-data API response code
+# 12. PUT /user-data API response code
 - name: Perform PUT against /user-data
   request:
     url: "{bss_base_url}/user-data"
@@ -144,7 +165,7 @@ stages:
 test_name: bssAPIcloudinitPhoneHomeNegative
 
 stages:
-# 10. DELETE /phone-home API response code
+# 13. DELETE /phone-home API response code
 - name: Perform DELETE against /phone-home
   request:
     url: "{bss_base_url}/phone-home"
@@ -153,7 +174,7 @@ stages:
   response:
     status_code: 405
 
-# 11. PATCH /phone-home API response code
+# 14. PATCH /phone-home API response code
 - name: Perform GET against /phone-home
   request:
     url: "{bss_base_url}/phone-home"
@@ -162,7 +183,7 @@ stages:
   response:
     status_code: 405
 
-# 12. PUT /phone-home API response code
+# 15. PUT /phone-home API response code
 - name: Perform PATCH against /phone-home
   request:
     url: "{bss_base_url}/phone-home"
@@ -171,7 +192,7 @@ stages:
   response:
     status_code: 405
 
-# 13. GET /phone-home API response code
+# 16. GET /phone-home API response code
 - name: Perform PUT against /phone-home
   request:
     url: "{bss_base_url}/phone-home"
@@ -180,7 +201,7 @@ stages:
   response:
     status_code: 405
 
-# 14. POST /phone-home with json payload API response code
+# 17. POST /phone-home with json payload API response code
 - name: Perform POST against /phone-home without json payload
   request:
     url: "{bss_base_url}/phone-home"
@@ -189,7 +210,7 @@ stages:
   response:
     status_code: 400
 
-# 15. POST /phone-home with malformed json payload API response code
+# 18. POST /phone-home with malformed json payload API response code
 - name: Perform POST against /phone-home with malformed json payload
   request:
     url: "{bss_base_url}/phone-home"

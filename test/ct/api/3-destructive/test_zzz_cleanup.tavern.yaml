@@ -108,7 +108,7 @@ stages:
     method: DELETE
     verify: !bool "{verify}"
     json:
-      initrd: s3://boot-images/00000000-0000-0000-0000-000000000000/initrd
+      initrd: s3://boot-images/00000000-0000-0000-0000-000000000001/initrd
   response:
     status_code:
     - 200
@@ -121,7 +121,7 @@ stages:
     method: DELETE
     verify: !bool "{verify}"
     json:
-      initrd: s3://boot-images/00000000-0000-0000-0000-000000000000/initrd
+      initrd: s3://boot-images/00000000-0000-0000-0000-000000000002/initrd
   response:
     status_code:
     - 200

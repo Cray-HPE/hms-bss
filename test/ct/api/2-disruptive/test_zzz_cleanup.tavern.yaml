@@ -56,6 +56,20 @@ stages:
     method: DELETE
     verify: !bool "{verify}"
     json:
+      hosts:
+      - x9999c0s1b0n0
+  response:
+    status_code:
+    - 200
+    - 400
+    - 404
+
+- name: Delete testing bootparameters by kernel 0
+  request:
+    url: "{bss_base_url}/boot/v1/bootparameters"
+    method: DELETE
+    verify: !bool "{verify}"
+    json:
       kernel: s3://boot-images/00000000-0000-0000-0000-000000000000/kernel
   response:
     status_code:
@@ -108,7 +122,7 @@ stages:
     method: DELETE
     verify: !bool "{verify}"
     json:
-      initrd: s3://boot-images/00000000-0000-0000-0000-000000000000/initrd
+      initrd: s3://boot-images/00000000-0000-0000-0000-000000000001/initrd
   response:
     status_code:
     - 200
@@ -121,7 +135,7 @@ stages:
     method: DELETE
     verify: !bool "{verify}"
     json:
-      initrd: s3://boot-images/00000000-0000-0000-0000-000000000000/initrd
+      initrd: s3://boot-images/00000000-0000-0000-0000-000000000002/initrd
   response:
     status_code:
     - 200

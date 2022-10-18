@@ -189,3 +189,14 @@ stages:
     verify: !bool "{verify}"
   response:
     status_code: 200
+
+- name: Remove test Bootparameteter for compute node
+  request:
+    url: "{bss_base_url}/boot/v1/bootparameters"
+    method: DELETE
+    verify: !bool "{verify}"
+    json:
+      hosts:
+      - "{node_xname}"
+  response:
+    status_code: 200
