@@ -18,6 +18,16 @@ jobs:
           path: hms-simulation-environment
           repository: Cray-HPE/hms-simulation-environment
 
+      - name: Build images under test
+        shell: bash
+        run: |
+          # create service image
+          make image
+
+          # Update the docker-compose
+          export IMAGE="cray-bss:$(cat .version)"
+          yq -i e  '.services.cray-bss.image = env(IMAGE)' ./hms-simulation-environment/docker-compose.yaml
+
       - name: Standup simulation environment
         shell: bash
         run: |
