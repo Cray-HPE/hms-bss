@@ -1,5 +1,30 @@
+# MIT License
+#
+# (C) Copyright [2022] Hewlett Packard Enterprise Development LP
+#
+# Permission is hereby granted, free of charge, to any person obtaining a
+# copy of this software and associated documentation files (the "Software"),
+# to deal in the Software without restriction, including without limitation
+# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+# and/or sell copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+# OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+# ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+# OTHER DEALINGS IN THE SOFTWARE.
+
+# Destructive Tavern test cases for BSS endpoint history API
+# Author: Ryan Sjostrand
+# Service: Boot Script Service
+
 ---
-# Verify endpoint-history is working (check endpoint changing states)
 test_name: bssAPIendpointHistory
 
 stages:
@@ -20,7 +45,7 @@ stages:
         json:
           node_xname: Components[0].ID
 
-- name: Create/Update Bootparameteter for compute node
+- name: Create or Update Bootparameteter for compute node
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
     method: PUT
@@ -76,7 +101,6 @@ stages:
       name: "{node_xname}"
   response:
     status_code: 200
-
     # Note the content of the response is not being tested, as that is done in other tests
 
 - name: Query endpoint-history with node xname, and verify state
@@ -114,7 +138,6 @@ stages:
                 range: 
                   min: 0 # If the epoch time is 0, then that means the endpoint wasn't really queried.
 
-# TODO Query user-data for the node
 - name: Query for cloud-init user-data for the node
   request:
     url: "{bss_base_url}/user-data"

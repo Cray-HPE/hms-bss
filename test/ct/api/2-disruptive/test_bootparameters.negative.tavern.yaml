@@ -1,46 +1,71 @@
+# MIT License
+#
+# (C) Copyright [2022] Hewlett Packard Enterprise Development LP
+#
+# Permission is hereby granted, free of charge, to any person obtaining a
+# copy of this software and associated documentation files (the "Software"),
+# to deal in the Software without restriction, including without limitation
+# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+# and/or sell copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+# OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+# ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+# OTHER DEALINGS IN THE SOFTWARE.
+
+# Tavern negative test cases for the BSS bootparameters API
+# Author: Ryan Sjostrand
+# Service: Boot Script Service
+
+# HMS test metrics test cases: 30 (8 disabled)
+# 1. POST /bootparamters with invalid json. API response code
+# 2. POST /bootparamters with invalid json. API response body
+# 3. PATCH /bootparamters with invalid json. API response code
+# 4. PATCH /bootparamters with invalid json. API response body
+# 5. PUT /bootparamters with invalid json. API response code
+# 6. PUT /bootparamters with invalid json. API response body
+# 7. DELETE /bootparamters with invalid json. API response code
+# 8. DELETE /bootparamters with invalid json. API response body
+#
+# 9. GET /bootparamters?nid=1notANid with invalid nid. API Response code
+# 10. GET /bootparamters?nid=1notANid with invalid nid. API Response body
+# 11. GET /bootparamters?mac=1notAMac with invalid mac address. API Response code
+# 12. GET /bootparamters?mac=1notAMac with invalid mav address. API Response body
+#
+# 13. GET /bootparamters with non-existent host. API response code
+# 14. GET /bootparamters with non-existent host. API response body
+# 15. DISABLED PATCH /bootparamters with non-existent host. API response code
+# 16. DISABLED PATCH /bootparamters with non-existent host. API response body
+# 17. DELETE /bootparamters with non-existent host. API response code
+# 18. DELETE /bootparamters with non-existent host. API response body
+#
+# 19. GET /bootparamters with non-existent nid. API response code
+# 20. GET /bootparamters with non-existent nid. API response body
+# 21. DISABLED PATCH /bootparamters with non-existent nid. API response code
+# 22. DISABLED PATCH /bootparamters with non-existent nid. API response body
+# 23. DELETE /bootparamters with non-existent nid. API response code
+# 24. DELETE /bootparamters with non-existent nid. API response body
+#
+# 25. GET /bootparamters with non-existent mac address. API response code
+# 26. GET /bootparamters with non-existent mac address. API response body
+# 27. DISABLED PATCH /bootparamters with non-existent mac address. API response code
+# 28. DISABLED PATCH /bootparamters with non-existent mac address. API response body
+# 29. DISABLED DELETE /bootparamters with non-existent mac address. API response code
+# 30. DISABLED DELETE /bootparamters with non-existent mac address. API response body
 ---
-
-# POST /bootparameters not json
-
-# POST /bootparameters missing required data
-
-# POST in a invalid MAC address, if not allowed update swagger, otherwise open a ticket
-# - Allowed by BSS
-# POST in a invalid NID (negative), if not allowed update swagger, otherwise open a ticket
-# - Negative NID is allowed, but BSS only creates the kernel/initrd entries.
-
-# Empty JSON {} - they all response with 200, but don't do anything
-#  POST
-#  PATCH
-#  PUT
-#  DELETE
-
-# Perform a delete to trigger a 404, if unable update swagger file
-# - Cannot be done, as the code can never trigger 1 404. If a delete is issued on something that does not exist, it just returns a 404
-
-# Try to create a empty boot parameter
-
-# Invalid json
-#  POST
-#  PATCH
-#  PUT
-#  DELETE
-
-# PATCH with {"kernel": "foo21"} does a creation
-# PATCH with {"nids": [12], "kernel": "foo212"} does a creation of the kernel, but no error about the non-existent NID
-
-# PUT will create if not exists
-
-# Seems like delete can do a partial delete, like if the kernel exists it will delete it, but if the nid doesn't exist it will report that one 
-# as not found
-# - Also unknown MAC addresses don't trigger a 404 or 400 bad request.
-
-# TODO verify DELETE status codes match swagger
-
 test_name: bssAPIBootparametersBadData
 
 stages:
-- name: bssAPIBootparametersPOSTBadData
+# 1. POST /bootparamters with invalid json. API response code
+# 2. POST /bootparamters with invalid json. API response body
+- name: Perform POST against /bootparamters with invalid json  
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
     method: POST
@@ -71,7 +96,9 @@ stages:
               type: int
               required: False
 
-- name: bssAPIBootparametersPATCHBadData
+# 3. PATCH /bootparamters with invalid json. API response code
+# 4. PATCH /bootparamters with invalid json. API response body
+- name: Perform PATCH against /bootparamters with invalid json
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
     method: PATCH
@@ -102,7 +129,9 @@ stages:
               type: int
               required: False
 
-- name: bssAPIBootparametersPUTBadData
+# 5. PUT /bootparamters with invalid json. API response code
+# 6. PUT /bootparamters with invalid json. API response body
+- name: Perform PUT against /bootparamters with invalid json
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
     method: PUT
@@ -132,7 +161,10 @@ stages:
             status:
               type: int
               required: False
-- name: bssAPIBootparametersDELETEBadData
+
+# 7. DELETE /bootparamters with invalid json. API response code
+# 8. DELETE /bootparamters with invalid json. API response body
+- name: Perform DELETE against /bootparamters with invalid json
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
     method: DELETE
@@ -163,6 +195,8 @@ stages:
               type: int
               required: False
 
+# 9. GET /bootparamters?nid=1notANid with invalid nid. API Response code
+# 10. GET /bootparamters?nid=1notANid with invalid nid. API Response body
 - name: Search BSS bootparameters with invalid NID
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
@@ -195,18 +229,53 @@ stages:
               type: int
               required: False
 
+# 11. GET /bootparamters?mac=1notAMac with invalid mac address. API Response code
+# 12. GET /bootparamters?mac=1notAMac with invalid mav address. API Response body
+- name: Search BSS bootparameters with invalid MAC address
+  request:
+    url: "{bss_base_url}/boot/v1/bootparameters"
+    method: GET
+    verify: !bool "{verify}"
+    params:
+      mac: 1notAMac
+  response:
+    status_code: 404
+    verify_response_with:
+      function: tavern.testutils.helpers:validate_pykwalify
+      extra_kwargs:
+        schema:
+          type: map
+          required: True
+          mapping:
+            type:
+              type: str
+              required: True
+            title:
+              type: str
+              required: True
+            detail:
+              type: str
+              required: False
+            instance:
+              type: str
+              required: False
+            status:
+              type: int
+              required: False
+
 ---
-
 test_name: bssAPIBootparametersNonExistent
+
 stages:
-- name: bssAPIBootparametersPATCHNonExistent
+# 13. GET /bootparamters with non-existent host. API response code
+# 14. GET /bootparamters with non-existent host. API response body
+- name: Perform GET against bootparameters with non-existent host
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
-    method: PATCH
+    method: GET
     verify: !bool "{verify}"
-    json:
-      hosts:
-      - x9999c0s2b0n0
+    params:
+      name: does_not_exist
   response:
     status_code: 404
     verify_response_with:
@@ -231,7 +300,46 @@ stages:
             status:
               type: int
               required: False
-- name: bssAPIBootparametersDELETENonExistentHost
+
+# 15. DISABLED PATCH /bootparamters with non-existent host. API response code
+# 16. DISABLED PATCH /bootparamters with non-existent host. API response body
+# TODO open ticket as a patch can create boot params if no bootparams exists.
+# - name: Perform PATCH against bootparameters with non-existent host
+#   request:
+#     url: "{bss_base_url}/boot/v1/bootparameters"
+#     method: PATCH
+#     verify: !bool "{verify}"
+#     json:
+#       hosts:
+#       - x9999c0s2b0n0
+#   response:
+#     status_code: 404
+#     verify_response_with:
+#       function: tavern.testutils.helpers:validate_pykwalify
+#       extra_kwargs:
+#         schema:
+#           type: map
+#           required: True
+#           mapping:
+#             type:
+#               type: str
+#               required: True
+#             title:
+#               type: str
+#               required: True
+#             detail:
+#               type: str
+#               required: False
+#             instance:
+#               type: str
+#               required: False
+#             status:
+#               type: int
+#               required: False
+
+# 17. DELETE /bootparamters with non-existent host. API response code
+# 18. DELETE /bootparamters with non-existent host. API response body
+- name: Perform DELETE against bootparameters with non-existent host
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
     method: DELETE
@@ -264,14 +372,86 @@ stages:
               type: int
               required: False
 
-- name: bssAPIBootparametersDELETENonExistentNID
+# 19. GET /bootparamters with non-existent nid. API response code
+# 20. GET /bootparamters with non-existent nid. API response body
+- name: Perform GET against bootparameters with non-existent nid
+  request:
+    url: "{bss_base_url}/boot/v1/bootparameters"
+    method: GET
+    verify: !bool "{verify}"
+    params:
+      nid: 2147483647
+  response:
+    status_code: 404
+    verify_response_with:
+      function: tavern.testutils.helpers:validate_pykwalify
+      extra_kwargs:
+        schema:
+          type: map
+          required: True
+          mapping:
+            type:
+              type: str
+              required: True
+            title:
+              type: str
+              required: True
+            detail:
+              type: str
+              required: False
+            instance:
+              type: str
+              required: False
+            status:
+              type: int
+              required: False
+
+# TODO open ticket, as a patch for a non-existent nid returns a 200, not a 404.
+# 21. DISABLED PATCH /bootparamters with non-existent nid. API response code
+# 22. DISABLED PATCH /bootparamters with non-existent nid. API response body
+# - name: Perform PATCH against bootparameters with non-existent nid
+#   request:
+#     url: "{bss_base_url}/boot/v1/bootparameters"
+#     method: PATCH
+#     verify: !bool "{verify}"
+#     json:
+#       nids:
+#       - 2147483647
+#   response:
+#     status_code: 404
+#     verify_response_with:
+#       function: tavern.testutils.helpers:validate_pykwalify
+#       extra_kwargs:
+#         schema:
+#           type: map
+#           required: True
+#           mapping:
+#             type:
+#               type: str
+#               required: True
+#             title:
+#               type: str
+#               required: True
+#             detail:
+#               type: str
+#               required: False
+#             instance:
+#               type: str
+#               required: False
+#             status:
+#               type: int
+#               required: False
+
+# 23. DELETE /bootparamters with non-existent nid. API response code
+# 24. DELETE /bootparamters with non-existent nid. API response body
+- name: Perform DELETE against bootparameters with non-existent nid
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
     method: DELETE
     verify: !bool "{verify}"
     json:
-      hosts:
-      - x9999c0s2b0n0
+      nids:
+      - 2147483647
   response:
     status_code: 400
     verify_response_with:
@@ -296,71 +476,10 @@ stages:
             status:
               type: int
               required: False
-- name: bssAPIBootparametersGETNonExistentHost
-  request:
-    url: "{bss_base_url}/boot/v1/bootparameters"
-    method: GET
-    verify: !bool "{verify}"
-    params:
-      nid: 2147483647
-  response:
-    status_code: 404
-    verify_response_with:
-      function: tavern.testutils.helpers:validate_pykwalify
-      extra_kwargs:
-        schema:
-          type: map
-          required: True
-          mapping:
-            type:
-              type: str
-              required: True
-            title:
-              type: str
-              required: True
-            detail:
-              type: str
-              required: False
-            instance:
-              type: str
-              required: False
-            status:
-              type: int
-              required: False
 
-- name: bssAPIBootparametersGETNonExistentNID
-  request:
-    url: "{bss_base_url}/boot/v1/bootparameters"
-    method: GET
-    verify: !bool "{verify}"
-    params:
-      nid: 2147483647
-  response:
-    status_code: 404
-    verify_response_with:
-      function: tavern.testutils.helpers:validate_pykwalify
-      extra_kwargs:
-        schema:
-          type: map
-          required: True
-          mapping:
-            type:
-              type: str
-              required: True
-            title:
-              type: str
-              required: True
-            detail:
-              type: str
-              required: False
-            instance:
-              type: str
-              required: False
-            status:
-              type: int
-              required: False
-
-- name: bssAPIBootparametersGETNonExistentMAC
+# 25. GET /bootparamters with non-existent mac address. API response code
+# 26. GET /bootparamters with non-existent mac address. API response body
+- name: Perform GET against bootparameters with non-existent MAC address
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
     method: GET
@@ -391,3 +510,75 @@ stages:
             status:
               type: int
               required: False
+
+# TODO open ticket, as a patch for a non-existent nid returns a 200, not a 404.
+# 27. PATCH /bootparamters with non-existent mac address. API response code
+# 28. PATCH /bootparamters with non-existent mac address. API response body
+# - name: Perform PATCH against bootparameters with non-existent host
+#   request:
+#     url: "{bss_base_url}/boot/v1/bootparameters"
+#     method: PATCH
+#     verify: !bool "{verify}"
+#     json:
+#       macs:
+#       - 0e:ff:ff:ff:ff:ff
+#   response:
+#     status_code: 404
+#     verify_response_with:
+#       function: tavern.testutils.helpers:validate_pykwalify
+#       extra_kwargs:
+#         schema:
+#           type: map
+#           required: True
+#           mapping:
+#             type:
+#               type: str
+#               required: True
+#             title:
+#               type: str
+#               required: True
+#             detail:
+#               type: str
+#               required: False
+#             instance:
+#               type: str
+#               required: False
+#             status:
+#               type: int
+#               required: False
+
+# TODO open ticket, as a patch for a non-existent nid returns a 200, not a 404.
+# 29. DISABLED DELETE /bootparamters with non-existent mac address. API response code
+# 30. DISABLED DELETE /bootparamters with non-existent mac address. API response body
+# - name: Perform DELETE against bootparameters with non-existent mac address
+#   request:
+#     url: "{bss_base_url}/boot/v1/bootparameters"
+#     method: DELETE
+#     verify: !bool "{verify}"
+#     json:
+#       macs:
+#       - 0e:ff:ff:ff:ff:ff
+#   response:
+#     status_code: 404
+#     verify_response_with:
+#       function: tavern.testutils.helpers:validate_pykwalify
+#       extra_kwargs:
+#         schema:
+#           type: map
+#           required: True
+#           mapping:
+#             type:
+#               type: str
+#               required: True
+#             title:
+#               type: str
+#               required: True
+#             detail:
+#               type: str
+#               required: False
+#             instance:
+#               type: str
+#               required: False
+#             status:
+#               type: int
+#               required: False

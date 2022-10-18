@@ -1,3 +1,29 @@
+# MIT License
+#
+# (C) Copyright [2022] Hewlett Packard Enterprise Development LP
+#
+# Permission is hereby granted, free of charge, to any person obtaining a
+# copy of this software and associated documentation files (the "Software"),
+# to deal in the Software without restriction, including without limitation
+# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+# and/or sell copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+# OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+# ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+# OTHER DEALINGS IN THE SOFTWARE.
+
+# Tavern test cases for BSS cloud-init API
+# Author: Ryan Sjostrand
+# Service: Boot Script Service
+
 ---
 test_name: bssAPIcloudinit
 
@@ -83,18 +109,13 @@ stages:
     verify: !bool "{verify}"
   response:
     status_code: 204
+  delay_after: 2
 
-    # TODO maybe add a delay here
-
-
-# /src/app $ curl http://cray-bss:27778/user-data
-# #cloud-config
-# foo: bar
-
-# THIS failed once
 - name: Query for cloud-init user-data for the node
-  max_retries: 5
-  delay_after: 1
+  # After forcing BSS to sync with HSM it may take a little bit for BSS to become aware 
+  # of the updated IP address for the test node.
+  # max_retries: 5
+  # delay_after: 1
   request:
     url: "{bss_base_url}/user-data"
     method: GET
@@ -104,8 +125,8 @@ stages:
     headers:
       content-type: text/yaml
 
-    # The Response is yaml and not json. Tavern currently support yaml response, so as a hack we can 
-    # regular expressions to validate the output.
+    # The Response is yaml and not json. Tavern currently does not support yaml responses.
+    # So a external function was made to perform some simple validation.
     #
     # A response similar to following is expected:
     #
@@ -113,6 +134,7 @@ stages:
     # local-hostname: x9999c0s1b0n0
     # user-data-key: bar
     verify_response_with:
+      # cloud-init user data should start with "#cloud-config"
       - function: bss_test_utils:better_validate_regex
         extra_kwargs:
           expression: "#cloud-config"
@@ -158,7 +180,6 @@ stages:
               enum:
               - Worker
 
-# TODO Add this to the swagger, as it it missing
 - name: Query cloud-init meta-data for a particular key
   request:
     url: "{bss_base_url}/meta-data"
@@ -176,7 +197,7 @@ stages:
           enum:
           - foo
 
-- name: "Phone home back to cloud-init with POST to /phone-home"
+- name: Phone home back to cloud-init with POST to /phone-home
   request:
     url: "{bss_base_url}/phone-home"
     method: POST

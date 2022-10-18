@@ -1,3 +1,29 @@
+# MIT License
+#
+# (C) Copyright [2022] Hewlett Packard Enterprise Development LP
+#
+# Permission is hereby granted, free of charge, to any person obtaining a
+# copy of this software and associated documentation files (the "Software"),
+# to deal in the Software without restriction, including without limitation
+# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+# and/or sell copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+# OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+# ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+# OTHER DEALINGS IN THE SOFTWARE.
+
+# Destructive Tavern test cases for BSS bootscript API
+# Author: Ryan Sjostrand
+# Service: Boot Script Service
+
 ---
 test_name: bssAPIbootscript
 
@@ -25,21 +51,10 @@ stages:
       json:
         node_mac_address: '[0].MACAddress'
 
-# TODO remove
-- name: Delete existing test bootparameters if it exists
+- name: Create or update Bootparameteter for compute node
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
-    method: DELETE
-    verify: !bool "{verify}"
-    json:
-      hosts:
-      - "{node_xname}"
-
-# TODO PUT
-- name: Create Bootparameteter
-  request:
-    url: "{bss_base_url}/boot/v1/bootparameters"
-    method: POST
+    method: PUT
     verify: !bool "{verify}"
     json:
       hosts:
@@ -48,7 +63,7 @@ stages:
       kernel: s3://boot-images/00000000-0000-0000-0000-000000000000/kernel
       initrd: s3://boot-images/00000000-0000-0000-0000-000000000000/initrd
   response:
-    status_code: 201
+    status_code: 200
 
 - name: Query bootscript by xname
   request:
@@ -119,9 +134,6 @@ stages:
     headers:
       content-type: text/plain; charset=UTF-8
 
-
-# 6. GET /bootscript?nid={nid}&retry={retry} API response code
-# 7. GET /bootscript?nid={nid}&retry={retry} API response body
 - name: Ensure the boot script service can retrieve a bootscript for a particular nid with the number of retries set to 7
   request:
     url: "{bss_base_url}/boot/v1/bootscript"
@@ -149,19 +161,10 @@ stages:
 test_name: bssAPIbootscriptUnknown
 
 stages:
-- name: Delete existing unknown bootparameters if it exists
+- name: Create or update Bootparameteter for unknown hosts
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
-    method: DELETE
-    verify: !bool "{verify}"
-    json:
-      hosts:
-      - Unknown-x86_64
-
-- name: Create Bootparameteter
-  request:
-    url: "{bss_base_url}/boot/v1/bootparameters"
-    method: POST
+    method: PUT
     verify: !bool "{verify}"
     json:
       hosts:
@@ -170,7 +173,7 @@ stages:
       kernel: s3://boot-images/00000000-0000-0000-0000-000000000000/kernel
       initrd: s3://boot-images/00000000-0000-0000-0000-000000000000/initrd
   response:
-    status_code: 201
+    status_code: 200
 
 - name: Query for bootscript for unknown hardware
   request:
