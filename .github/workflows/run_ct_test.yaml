@@ -77,10 +77,25 @@ jobs:
           ./run.py configs/sls/small_mountain.json
 
       - name: Run smoke tests
-        run: ./runSmokeTestsWithSimulator.sh
+        run: |
+          if [[ -f "runSmokeTestsWithSimulator.sh" ]]; then
+            ./runSmokeTestsWithSimulator.sh
+          else
+            echo "Skipping"
+          fi
 
       - name: Load simulation for tavern tests
-        run: ./runTavernTestsLoadSimulator.sh
+        run: | 
+          if [[ -f "runTavernTestsLoadSimulator.sh" ]]; then
+            ./runTavernTestsLoadSimulator.sh
+          else
+            echo "Skipping"
+          fi
       
       - name: Run tavern tests
-        run: ./runTavernTestsWithSimulator.sh
+        run: |
+          if [[ -f "runTavernTestsWithSimulator.sh" ]]; then
+            ./runTavernTestsWithSimulator.sh
+          else
+            echo "Skipping"
+          fi
