@@ -4,6 +4,16 @@ jobs:
   run_ct_test:
     name: Run CT Tests
     runs-on: ubuntu-latest
+    env:
+      IMAGES_UNDER_TEST: |
+        [
+          {
+            "ImageName": "cray-bss",
+            "DockerComposeServices": [
+              "cray-bss"
+            ]
+          }
+        ]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -21,22 +31,45 @@ jobs:
       - name: Build images under test
         shell: bash
         run: |
-          # create service image
           make image
 
-          # Update the docker-compose
-          export IMAGE="cray-bss:$(cat .version)"
-          yq -i e  '.services.cray-bss.image = env(IMAGE)' ./hms-simulation-environment/docker-compose.yaml
+      - name: Update docker-compose file with images under test
+        shell: python
+        run: |
+          import os
+          import sys
+          import json
+          import subprocess
 
-          # For debugging output the modified docker-compose compose file
-          echo "Updated ./hms-simulation-environment/docker-compose.yaml"
-          cat ./hms-simulation-environment/docker-compose.yaml
+          # Read in version from .version
+          version = None
+          with open('.version') as f:
+            version = f.readline().strip()
+
+          print('Version: ', version)
+
+          # Read in IMAGES_UNDER_TEST from the environment
+          images_under_test = json.loads(os.environ['IMAGES_UNDER_TEST'])
+
+          # Update docker-compose file for each service
+          for image_under_test in images_under_test:
+            for service in image_under_test["DockerComposeServices"]:
+              cmd = ['yq', '-i', 'e', f'.services.{service}.image = "{image_under_test["ImageName"]}:{version}"', './hms-simulation-environment/docker-compose.yaml']
+
+              print(f'Running command: {cmd}')
+              result = subprocess.run(cmd)
+              if result.returncode != 0:
+                  sys.exit(1)
 
       - name: Standup simulation environment
         shell: bash
         run: |
           set -ex
           cd hms-simulation-environment
+
+          # For debugging output the modified docker-compose compose file
+          echo "Updated docker-compose.yaml"
+          cat docker-compose.yaml
 
           # Setup python virtual environment
           ./setup_venv.sh
