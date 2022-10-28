@@ -214,10 +214,10 @@ stages:
       verify_response_with:
         ## The retry paramater will be only present if a node has a valid bootscript, which is something that cannot be 
         ## always be assumed.
-        # - function: tavern.testutils.helpers:validate_regex
+        # - function: bss_test_utils:better_validate_regex
         #   extra_kwargs:
         #     expression: "retry=8"
-        - function: tavern.testutils.helpers:validate_regex
+        - function: bss_test_utils:better_validate_regex
           extra_kwargs:
             expression: "ipxe"
 

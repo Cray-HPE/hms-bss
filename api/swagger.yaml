@@ -97,7 +97,7 @@ paths:
           in: query
           type: string
           description: >-
-           A specific sub key(s) to query. Seperated by periods.
+           A specific sub key(s) to query. Separated by periods.
       responses:
         '200':
           description: Meta data for node
@@ -596,7 +596,7 @@ paths:
           enum:
             - bootscript
             - user-data
-          description: The endpoint to get the last access informaion for.
+          description: The endpoint to get the last access information for.
       responses:
         '200':
           description: Endpoint access information
@@ -616,19 +616,18 @@ paths:
         This endpoint can be used as a liveness probe for the BSS to determine if it is alive or dead.
       responses:
         '200':
-          description: 'The BSS REST API is alive and accessable.'
+          description: 'The BSS REST API is alive and accessible.'
           schema:
             type: object
             properties:
-              # MOVE to defintion
               bss-status:
                 type: string
                 enum: ["running"]
                 description: Current status of BSS.
-        # '500':
-        #   description: Internal Server Error
-        #   schema:
-        #     $ref: '#/definitions/Error'
+        '500':
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/Error'
   /boot/v1/service/etcd:
     get:
       summary: "Retrieve the current connection status to ETCD"
@@ -648,7 +647,6 @@ paths:
           description: 'The ETCD database connection is healthy.'
           schema:
             type: object
-            # Move to defition
             properties:
               bss-status-etcd:
                 type: string
@@ -681,7 +679,6 @@ paths:
           description: 'The HSM connection is healthy.'
           schema:
             type: object
-            # Move to defition
             properties:
               bss-status-hsm:
                 type: string
@@ -711,7 +708,6 @@ paths:
           description: 'The current running service version.'
           schema:
             type: object
-            # Move to defition
             properties:
               bss-version:
                 type: string
@@ -727,19 +723,20 @@ paths:
 
   /boot/v1/service/status/all:
     get: 
-      summary: "Retreive the overall service health"
+      summary: "Retrieve the overall service health"
       tags:
       - service-status
       - cli_ignore
       description: |
-        Retreive the overall health of the service, and determine if the service is healthy to serve
+        Retrieve the overall health of the service, and determine if the service is healthy to serve
         requests as a readiness probe.
         
-        This will retrieve the current BSS version and status, along with the conneciton status to HSM and ETCD.
+        This will retrieve the current BSS version and status, along with the connection status to HSM and ETCD.
         
       responses:
         '200':
-          description: 'TODO.'
+          description: |
+            All service checks reported a healthy status.
           schema:
             type: object
             properties:
@@ -758,7 +755,8 @@ paths:
                 type: string
                 example: 1.21.0
         '500':
-          description: 'TODO.'
+          description: |
+            One or more service checks reported an unhealthy status.
           schema:
             type: object
             properties:
@@ -837,8 +835,9 @@ definitions:
         example: "http://10.252.100.50/apis/ars/downloads/7e0bcf9f-10fc-46a9-b2f8-ba8814c1999c"
       cloud-init:
         $ref: '#/definitions/CloudInit'
+
   CloudInit:
-    description: Cloud-Init metadata for the hosts
+    description: Cloud-Init data for the hosts
     type: object
     properties:
       meta-data:
@@ -847,19 +846,20 @@ definitions:
         $ref: '#/definitions/CloudInitUserData'
       phone-home:
         $ref: '#/definitions/CloudInitPhoneHome'
-    example: {"user-data": {"foo": "bar"}, "metdata": {"foo":"bar"}}
+    example: {"user-data": {"foo": "bar"}, "meta-data": {"foo":"bar"}}
+
   CloudInitMetadata:
-    description: TODO
+    description: Cloud-Init Instance Metadata for a host.
     type: object
     additionalProperties: true
 
   CloudInitUserData:
-    description: TODO
+    description: Cloud-Init User data for a host. 
     type: object
     additionalProperties: true
 
   CloudInitPhoneHome:
-    description: TODO
+    description: Data sent from the Phone Home Cloud-Init module after a host's boot is complete.
     type: object
     properties:
       pub_key_dsa:
@@ -929,8 +929,7 @@ definitions:
       EndpointEnabled:
         type: boolean
         example: true
-      
-      
+
   StateInfo:
     description: >-
       This data structure is used to return the full component and boot

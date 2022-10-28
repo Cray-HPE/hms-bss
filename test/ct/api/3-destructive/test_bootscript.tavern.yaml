@@ -78,35 +78,35 @@ stages:
       content-type: text/plain; charset=UTF-8
     verify_response_with:
       # Verify that this is a ipxe bootscript
-      - function: tavern.testutils.helpers:validate_regex
+      - function: bss_test_utils:better_validate_regex
         extra_kwargs:
           expression: "#!ipxe"
       
       # Verify that BSS generated/expanded S3 urls
-      - function: tavern.testutils.helpers:validate_regex
+      - function: bss_test_utils:better_validate_regex
         extra_kwargs:
           expression: 'kernel http[s]?:\/\/.+/boot-images/00000000-0000-0000-0000-000000000000\/kernel'
-      - function: tavern.testutils.helpers:validate_regex
+      - function: bss_test_utils:better_validate_regex
         extra_kwargs:
           expression: 'initrd http[s]?:\/\/.+/boot-images/00000000-0000-0000-0000-000000000000\/initrd'
 
       # Verify that provided kernel parameter exists on the kernel command line
-      - function: tavern.testutils.helpers:validate_regex
+      - function: bss_test_utils:better_validate_regex
         extra_kwargs:
           expression: 'kernel --name .+console.tty0'
 
       # Verify the node xname has been passed onto the kernel command line
-      - function: tavern.testutils.helpers:validate_regex
+      - function: bss_test_utils:better_validate_regex
         extra_kwargs:
           expression: 'kernel --name .+xname={node_xname}'
 
       # Verify the node nid has been passed onto the kernel command line
-      - function: tavern.testutils.helpers:validate_regex
+      - function: bss_test_utils:better_validate_regex
         extra_kwargs:
           expression: 'kernel --name .+nid={node_nid}'
 
       # Verify BSS referral token is present
-      - function: tavern.testutils.helpers:validate_regex
+      - function: bss_test_utils:better_validate_regex
         extra_kwargs:
           expression: 'kernel --name .+bss_referral_token='
 
@@ -133,6 +133,39 @@ stages:
     status_code: 200
     headers:
       content-type: text/plain; charset=UTF-8
+    verify_response_with:
+      # Verify that this is a ipxe bootscript
+      - function: bss_test_utils:better_validate_regex
+        extra_kwargs:
+          expression: "#!ipxe"
+
+      # Verify that BSS generated/expanded S3 urls
+      - function: bss_test_utils:better_validate_regex
+        extra_kwargs:
+          expression: 'kernel http[s]?:\/\/.+/boot-images/00000000-0000-0000-0000-000000000000\/kernel'
+      - function: bss_test_utils:better_validate_regex
+        extra_kwargs:
+          expression: 'initrd http[s]?:\/\/.+/boot-images/00000000-0000-0000-0000-000000000000\/initrd'
+
+      # Verify that provided kernel parameter exists on the kernel command line
+      - function: bss_test_utils:better_validate_regex
+        extra_kwargs:
+          expression: 'kernel --name .+console.tty0'
+
+      # Verify the node xname has been passed onto the kernel command line
+      - function: bss_test_utils:better_validate_regex
+        extra_kwargs:
+          expression: 'kernel --name .+xname={node_xname}'
+
+      # Verify the node nid has been passed onto the kernel command line
+      - function: bss_test_utils:better_validate_regex
+        extra_kwargs:
+          expression: 'kernel --name .+nid={node_nid}'
+
+      # Verify BSS referral token is present
+      - function: bss_test_utils:better_validate_regex
+        extra_kwargs:
+          expression: 'kernel --name .+bss_referral_token='
 
 - name: Ensure the boot script service can retrieve a bootscript for a particular nid with the number of retries set to 7
   request:
@@ -148,15 +181,97 @@ stages:
       content-type: text/plain; charset=UTF-8
     verify_response_with:
       # Verify that this is a ipxe bootscript
-      - function: tavern.testutils.helpers:validate_regex
+      - function: bss_test_utils:better_validate_regex
         extra_kwargs:
           expression: "#!ipxe"
 
       # Verify the retry counter incremented by 1 
-      - function: tavern.testutils.helpers:validate_regex
+      - function: bss_test_utils:better_validate_regex
         extra_kwargs:
           expression: "retry=8"
 
+---
+test_name: bssAPIBootscriptByHSMRole
+
+stages:
+- name: Query HSM State Components for a compute node
+  request:
+    url: "{hsm_base_url}/hsm/v2/State/Components?Type=Node&Role=Compute"
+    method: GET
+    verify: !bool "{verify}"
+  response:
+    status_code: 200
+    save:
+      json:
+        node_xname: Components[0].ID
+        node_nid: Components[0].NID
+
+- name: Query HSM EthernetInterfaces for the compute nodes MAC address
+  request:
+    url: "{hsm_base_url}/hsm/v2/Inventory/EthernetInterfaces?ComponentID={node_xname}"
+    method: GET
+    verify: !bool "{verify}"
+  response:
+    status_code: 200
+    save:
+      json:
+        node_mac_address: '[0].MACAddress'
+
+- name: Delete existing test bootparameters if it exists
+  request:
+    url: "{bss_base_url}/boot/v1/bootparameters"
+    method: DELETE
+    verify: !bool "{verify}"
+    json:
+      hosts:
+      - "{node_xname}"
+
+- name: Create or update Bootparameteter for Compute nodes
+  request:
+    url: "{bss_base_url}/boot/v1/bootparameters"
+    method: PUT
+    verify: !bool "{verify}"
+    json:
+      hosts:
+      - Compute
+      params: console=tty0 compute_node
+      kernel: s3://boot-images/00000000-0000-0000-0000-000000000000/kernel
+      initrd: s3://boot-images/00000000-0000-0000-0000-000000000000/initrd
+  response:
+    status_code: 200
+
+
+- name: Query bootscript with MAC address
+  request:
+    url: "{bss_base_url}/boot/v1/bootscript"
+    method: GET
+    verify: !bool "{verify}"
+    params:
+      mac: "{node_mac_address}"
+  response:
+    status_code: 200
+    headers:
+      content-type: text/plain; charset=UTF-8
+    verify_response_with:
+      # Verify that this is a ipxe bootscript
+      - function: bss_test_utils:better_validate_regex
+        extra_kwargs:
+          expression: "#!ipxe"
+
+      # Verify compute_node is present
+      - function: bss_test_utils:better_validate_regex
+        extra_kwargs:
+          expression: "kernel --name .+compute_node"
+
+      # Verify the node xname has been passed onto the kernel command line
+      - function: bss_test_utils:better_validate_regex
+        extra_kwargs:
+          expression: 'kernel --name .+xname={node_xname}'
+
+      # Verify the node nid has been passed onto the kernel command line
+      - function: bss_test_utils:better_validate_regex
+        extra_kwargs:
+          expression: 'kernel --name .+nid={node_nid}'
 ---
 test_name: bssAPIbootscriptUnknown
 
@@ -189,12 +304,12 @@ stages:
       content-type: text/plain; charset=UTF-8
     verify_response_with:
       # Verify that this is a ipxe bootscript
-      - function: tavern.testutils.helpers:validate_regex
+      - function: bss_test_utils:better_validate_regex
         extra_kwargs:
           expression: "#!ipxe"
 
       # Verify the retry counter incremented by 1 
-      - function: tavern.testutils.helpers:validate_regex
+      - function: bss_test_utils:better_validate_regex
         extra_kwargs:
           expression: "unknown_hardware"
 

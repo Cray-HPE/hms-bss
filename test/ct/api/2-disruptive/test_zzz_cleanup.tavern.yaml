@@ -50,7 +50,7 @@ stages:
     - 400
     - 404
 
-- name: Delete testing bootparameters by kernel 0
+- name: Delete testing bootparameters for x9999c0s1b0n0
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
     method: DELETE
@@ -58,6 +58,48 @@ stages:
     json:
       hosts:
       - x9999c0s1b0n0
+  response:
+    status_code:
+    - 200
+    - 400
+    - 404
+
+- name: Delete testing bootparameters for x9999c0s6b0n0
+  request:
+    url: "{bss_base_url}/boot/v1/bootparameters"
+    method: DELETE
+    verify: !bool "{verify}"
+    json:
+      hosts:
+      - x9999c0s6b0n0
+  response:
+    status_code:
+    - 200
+    - 400
+    - 404
+
+- name: Delete testing bootparameters for x9999c0s6b0n1
+  request:
+    url: "{bss_base_url}/boot/v1/bootparameters"
+    method: DELETE
+    verify: !bool "{verify}"
+    json:
+      hosts:
+      - x9999c0s6b0n1
+  response:
+    status_code:
+    - 200
+    - 400
+    - 404
+
+- name: Delete testing bootparameters for x9999c0s6b0n2
+  request:
+    url: "{bss_base_url}/boot/v1/bootparameters"
+    method: DELETE
+    verify: !bool "{verify}"
+    json:
+      hosts:
+      - x9999c0s6b0n2
   response:
     status_code:
     - 200
@@ -103,6 +145,19 @@ stages:
     - 400
     - 404
 
+- name: Delete testing bootparameters by kernel 2
+  request:
+    url: "{bss_base_url}/boot/v1/bootparameters"
+    method: DELETE
+    verify: !bool "{verify}"
+    json:
+      kernel: s3://boot-images/00000000-0000-0000-0000-000000000003/kernel
+  response:
+    status_code:
+    - 200
+    - 400
+    - 404
+
 - name: Delete testing bootparameters by initrd 0
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
@@ -136,6 +191,19 @@ stages:
     verify: !bool "{verify}"
     json:
       initrd: s3://boot-images/00000000-0000-0000-0000-000000000002/initrd
+  response:
+    status_code:
+    - 200
+    - 400
+    - 404
+
+- name: Delete testing bootparameters by initrd 3
+  request:
+    url: "{bss_base_url}/boot/v1/bootparameters"
+    method: DELETE
+    verify: !bool "{verify}"
+    json:
+      initrd: s3://boot-images/00000000-0000-0000-0000-000000000003/initrd
   response:
     status_code:
     - 200

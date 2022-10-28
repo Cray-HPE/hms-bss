@@ -24,31 +24,6 @@
 # Author: Ryan Sjostrand
 # Service: Boot Script Service
 
-# HMS test metrics test cases: 24
-# 1. POST /boot/v1/bootparameters API response code
-# 2. GET /boot/v1/bootparameters API response code
-# 3. GET /boot/v1/bootparameters API response body
-# 4. DELETE /boot/v1/bootparameters Delete boot parameter by host. API response code
-# 5. DELETE /boot/v1/bootparameters Delete boot parameter by kernel. API response code
-# 6. DELETE /boot/v1/bootparameters Delete boot parameter by initrd. API response code
-# 7. POST /boot/v1/bootparameters with xname as identifier. API response code
-# 8. POST /boot/v1/bootparameters with xname as identifier. API headers
-# 9. POST /boot/v1/bootparameters with duplicate xname as identifier. API response code
-# 10. POST /boot/v1/bootparameters with duplicate xname as identifier. API response body
-# 11. GET /boot/v1/bootparameters?host=xname API response code
-# 12. GET /boot/v1/bootparameters?host=xname API response body
-# 13. PUT /boot/v1/bootparameters with xname as identifier. API response code
-# 14. PUT /boot/v1/bootparameters with xname as identifier. API headers
-# 15. GET /boot/v1/bootparameters?host=xname Verify PUT success. API response code
-# 16. GET /boot/v1/bootparameters?host=xname Verify PUT success. API response body
-# 17. PATCH /boot/v1/bootparameters with xname as identifier. API response code
-# 18. GET /boot/v1/bootparameters?host=xname Verify PATCH success. API response code
-# 19. GET /boot/v1/bootparameters?host=xname Verify PATCH success. API response body
-# 20. DELETE /boot/v1/bootparameters Delete boot parameter by host. API response code
-# 21. GET /boot/v1/bootparameters?host=xname Retrieve non-existent boot parameter. API response code
-# 22. GET /boot/v1/bootparameters?host=xname Retrieve non-existent boot parameter. API response body
-# 23. DELETE /boot/v1/bootparameters Delete non-existent boot parameter by host. API response code
-# 24. DELETE /boot/v1/bootparameters Delete non-existent boot parameter by host. API response body
 ---
 test_name: bssAPIBootparameters
 
@@ -62,7 +37,6 @@ stages:
       hosts:
       - x9999c0s1b0n0
 
-# 1. POST /boot/v1/bootparameters API response code
 - name: Create Bootparameter with xname
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
@@ -77,8 +51,6 @@ stages:
   response:
     status_code: 201
 
-# 2. GET /boot/v1/bootparameters API response code
-# 3. GET /boot/v1/bootparameters API response body
 - name: Ensure that the BSS bootparameters can be retrieved
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
@@ -116,36 +88,7 @@ stages:
               cloud-init:
                 type: map
                 allowempty: true
-                # TODO figure out
-                # mapping:
-                #   meta-data:
-                #     type: none
-                #     # type: map
-                #     # allowempty: True
-                #     # # - type: none
-                #   user-data:
-                #     type: "none"
-                #     # type: map
-                #     # allowempty: True
-                #   phone-home:
-                #     type: map
-                #     mapping:
-                #       pub_key_dsa:
-                #         type: str
-                #       pub_key_rsa:
-                #         type: str
-                #       pub_key_ecdsa:
-                #         type: str
-                #       pub_key_ed25519:
-                #         type: str
-                #       instance_id:
-                #         type: str
-                #       hostname:
-                #         type: str
-                #       fqdn:
-                #         type: str
 
-# 4. DELETE /boot/v1/bootparameters Delete boot parameter by host. API response code
 - name: Delete testing bootparameters by xname
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
@@ -157,7 +100,6 @@ stages:
   response:
     status_code: 200  
 
-# 5. DELETE /boot/v1/bootparameters Delete boot parameter by kernel. API response code
 - name: Delete testing bootparameters by kernel
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
@@ -168,7 +110,6 @@ stages:
   response:
     status_code: 200  
 
-# 6. DELETE /boot/v1/bootparameters Delete boot parameter by initrd. API response code
 - name: Delete testing bootparameters by initrd
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
@@ -192,8 +133,6 @@ stages:
       hosts:
       - x9999c0s1b0n0
 
-# 7. POST /boot/v1/bootparameters with xname as identifier. API response code
-# 8. POST /boot/v1/bootparameters with xname as identifier. API headers
 - name: Create Bootparameteters with xname specified as identifier
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
@@ -210,8 +149,6 @@ stages:
     headers:
       BSS-Referral-Token: !anystr
 
-# 9. POST /boot/v1/bootparameters with duplicate xname as identifier. API response code
-# 10. POST /boot/v1/bootparameters with duplicate xname as identifier. API response body
 - name: Create duplicate Bootparameteters with xname specified as identifier
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
@@ -248,8 +185,6 @@ stages:
               type: int
               required: False
 
-# 11. GET /boot/v1/bootparameters?host=xname API response code
-# 12. GET /boot/v1/bootparameters?host=xname API response body
 - name: Retrieve created Bootparameteters with xname specified as identifier
   request:
     url: "{bss_base_url}/boot/v1/bootparameters?name=x9999c0s1b0n0"
@@ -338,8 +273,6 @@ stages:
                         enum:
                         - ""
 
-# 13. PUT /boot/v1/bootparameters with xname as identifier. API response code
-# 14. PUT /boot/v1/bootparameters with xname as identifier. API headers
 - name: Replace Bootparameteters with xname specified as identifier
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
@@ -356,8 +289,6 @@ stages:
     headers:
       BSS-Referral-Token: !anystr
 
-# 15. GET /boot/v1/bootparameters?host=xname Verify PUT success. API response code
-# 16. GET /boot/v1/bootparameters?host=xname Verify PUT success. API response body
 - name: Retrieve replaced Bootparameteters with xname specified as identifier
   request:
     url: "{bss_base_url}/boot/v1/bootparameters?name=x9999c0s1b0n0"
@@ -446,7 +377,6 @@ stages:
                         enum:
                         - ""
 
-# 17. PATCH /boot/v1/bootparameters with xname as identifier. API response code
 - name: Update Bootparameteters with xname specified as identifier
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
@@ -460,8 +390,6 @@ stages:
   response:
     status_code: 200
 
-# 18. GET /boot/v1/bootparameters?host=xname Verify PATCH success. API response code
-# 19. GET /boot/v1/bootparameters?host=xname Verify PATCH success. API response body
 - name: Retrieve replaced Bootparameteters with xname specified as identifier
   request:
     url: "{bss_base_url}/boot/v1/bootparameters?name=x9999c0s1b0n0"
@@ -550,7 +478,6 @@ stages:
                         enum:
                         - ""
 
-# 20. DELETE /boot/v1/bootparameters Delete boot parameter by host. API response code
 - name: Delete Bootparameters with xname as host
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
@@ -562,8 +489,6 @@ stages:
   response:
     status_code: 200
 
-# 21. GET /boot/v1/bootparameters?host=xname Retrieve non-existent boot parameter. API response code
-# 22. GET /boot/v1/bootparameters?host=xname Retrieve non-existent boot parameter. API response body
 - name: Retrieve deleted Bootparameteters with xname specified as identifier
   request:
     url: "{bss_base_url}/boot/v1/bootparameters?name=x9999c0s1b0n0"
@@ -594,8 +519,6 @@ stages:
               type: int
               required: False
 
-# 23. DELETE /boot/v1/bootparameters Delete non-existent boot parameter by host. API response code
-# 24. DELETE /boot/v1/bootparameters Delete non-existent boot parameter by host. API response body
 - name: Delete Bootparameters with xname as host
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
@@ -628,3 +551,891 @@ stages:
             status:
               type: int
               required: False
+
+---
+test_name: bssAPIBootparameterMultipleHosts
+
+stages:
+- name: Delete existing test bootparameters if it exists
+  request:
+    url: "{bss_base_url}/boot/v1/bootparameters"
+    method: DELETE
+    verify: !bool "{verify}"
+    json:
+      hosts:
+      - x9999c0s6b0n0
+      - x9999c0s6b0n1
+      - x9999c0s6b0n2
+
+- name: Create Bootparameteters with multiple hosts x9999c0s6b0n[0,1]
+  request:
+    url: "{bss_base_url}/boot/v1/bootparameters"
+    method: POST
+    verify: !bool "{verify}"
+    json:
+      hosts:
+      - x9999c0s6b0n0
+      - x9999c0s6b0n1
+      params: console=tty0
+      kernel: s3://boot-images/00000000-0000-0000-0000-000000000003/kernel
+      initrd: s3://boot-images/00000000-0000-0000-0000-000000000003/initrd
+  response:
+    status_code: 201
+    headers:
+      BSS-Referral-Token: !anystr
+
+- name: Verify bootparamter for x9999c0s6b0n0 was created
+  request:
+    url: "{bss_base_url}/boot/v1/bootparameters"
+    params:
+      name: x9999c0s6b0n0
+    method: GET
+    verify: !bool "{verify}"
+  response:
+    status_code: 200
+    verify_response_with:
+      function: tavern.testutils.helpers:validate_pykwalify
+      extra_kwargs:
+        schema:
+          type: seq
+          range:
+            max: 1
+          matching: all
+          sequence:
+          - type: map
+            mapping:
+              hosts:
+                type: seq
+                sequence:
+                - type: str
+                  enum:
+                  - x9999c0s6b0n0
+              macs:
+                type: seq
+                range:
+                  max: 0
+                sequence:
+                - type: str
+              nids:
+                type: seq
+                range:
+                  max: 0
+                sequence:
+                - type: int
+              params:
+                type: str
+                enum: 
+                - console=tty0
+              kernel:
+                type: str
+                enum:
+                - s3://boot-images/00000000-0000-0000-0000-000000000003/kernel
+              initrd:
+                type: str
+                enum:
+                - s3://boot-images/00000000-0000-0000-0000-000000000003/initrd
+              cloud-init:
+                type: map
+                allowempty: true
+                mapping:
+                  meta-data:
+                    type: none
+                  user-data:
+                    type: none
+                  phone-home:
+                    type: map
+                    mapping:
+                      pub_key_dsa:
+                        type: str
+                        enum:
+                        - ""
+                      pub_key_rsa:
+                        type: str
+                        enum:
+                        - ""
+                      pub_key_ecdsa:
+                        type: str
+                        enum:
+                        - ""
+                      pub_key_ed25519:
+                        type: str
+                        enum:
+                        - ""
+                      instance_id:
+                        type: str
+                        enum:
+                        - ""
+                      hostname:
+                        type: str
+                        enum:
+                        - ""
+                      fqdn:
+                        type: str
+                        enum:
+                        - ""
+
+- name: Verify bootparamter for x9999c0s6b0n1 was created
+  request:
+    url: "{bss_base_url}/boot/v1/bootparameters"
+    params:
+      name: x9999c0s6b0n1
+    method: GET
+    verify: !bool "{verify}"
+  response:
+    status_code: 200
+    verify_response_with:
+      function: tavern.testutils.helpers:validate_pykwalify
+      extra_kwargs:
+        schema:
+          type: seq
+          range:
+            max: 1
+          matching: all
+          sequence:
+          - type: map
+            mapping:
+              hosts:
+                type: seq
+                sequence:
+                - type: str
+                  enum:
+                  - x9999c0s6b0n1
+              macs:
+                type: seq
+                range:
+                  max: 0
+                sequence:
+                - type: str
+              nids:
+                type: seq
+                range:
+                  max: 0
+                sequence:
+                - type: int
+              params:
+                type: str
+                enum: 
+                - console=tty0
+              kernel:
+                type: str
+                enum:
+                - s3://boot-images/00000000-0000-0000-0000-000000000003/kernel
+              initrd:
+                type: str
+                enum:
+                - s3://boot-images/00000000-0000-0000-0000-000000000003/initrd
+              cloud-init:
+                type: map
+                allowempty: true
+                mapping:
+                  meta-data:
+                    type: none
+                  user-data:
+                    type: none
+                  phone-home:
+                    type: map
+                    mapping:
+                      pub_key_dsa:
+                        type: str
+                        enum:
+                        - ""
+                      pub_key_rsa:
+                        type: str
+                        enum:
+                        - ""
+                      pub_key_ecdsa:
+                        type: str
+                        enum:
+                        - ""
+                      pub_key_ed25519:
+                        type: str
+                        enum:
+                        - ""
+                      instance_id:
+                        type: str
+                        enum:
+                        - ""
+                      hostname:
+                        type: str
+                        enum:
+                        - ""
+                      fqdn:
+                        type: str
+                        enum:
+                        - ""
+
+- name: Update bootparamter for only x9999c0s6b0n1
+  request:
+    url: "{bss_base_url}/boot/v1/bootparameters"
+    method: PATCH
+    verify: !bool "{verify}"
+    json:
+      hosts:
+      - x9999c0s6b0n1
+      params: console=tty0 updated
+  response:
+    status_code: 200
+
+- name: Verify bootparamter for x9999c0s6b0n0 remains unchanged
+  request:
+    url: "{bss_base_url}/boot/v1/bootparameters"
+    params:
+      name: x9999c0s6b0n0
+    method: GET
+    verify: !bool "{verify}"
+  response:
+    status_code: 200
+    verify_response_with:
+      function: tavern.testutils.helpers:validate_pykwalify
+      extra_kwargs:
+        schema:
+          type: seq
+          range:
+            max: 1
+          matching: all
+          sequence:
+          - type: map
+            mapping:
+              hosts:
+                type: seq
+                sequence:
+                - type: str
+                  enum:
+                  - x9999c0s6b0n0
+              macs:
+                type: seq
+                range:
+                  max: 0
+                sequence:
+                - type: str
+              nids:
+                type: seq
+                range:
+                  max: 0
+                sequence:
+                - type: int
+              params:
+                type: str
+                enum: 
+                - console=tty0
+              kernel:
+                type: str
+                enum:
+                - s3://boot-images/00000000-0000-0000-0000-000000000003/kernel
+              initrd:
+                type: str
+                enum:
+                - s3://boot-images/00000000-0000-0000-0000-000000000003/initrd
+              cloud-init:
+                type: map
+                allowempty: true
+                mapping:
+                  meta-data:
+                    type: none
+                  user-data:
+                    type: none
+                  phone-home:
+                    type: map
+                    mapping:
+                      pub_key_dsa:
+                        type: str
+                        enum:
+                        - ""
+                      pub_key_rsa:
+                        type: str
+                        enum:
+                        - ""
+                      pub_key_ecdsa:
+                        type: str
+                        enum:
+                        - ""
+                      pub_key_ed25519:
+                        type: str
+                        enum:
+                        - ""
+                      instance_id:
+                        type: str
+                        enum:
+                        - ""
+                      hostname:
+                        type: str
+                        enum:
+                        - ""
+                      fqdn:
+                        type: str
+                        enum:
+                        - ""
+
+- name: Verify bootparamter for x9999c0s6b0n1 was updated
+  request:
+    url: "{bss_base_url}/boot/v1/bootparameters"
+    params:
+      name: x9999c0s6b0n1
+    method: GET
+    verify: !bool "{verify}"
+  response:
+    status_code: 200
+    verify_response_with:
+      function: tavern.testutils.helpers:validate_pykwalify
+      extra_kwargs:
+        schema:
+          type: seq
+          range:
+            max: 1
+          matching: all
+          sequence:
+          - type: map
+            mapping:
+              hosts:
+                type: seq
+                sequence:
+                - type: str
+                  enum:
+                  - x9999c0s6b0n1
+              macs:
+                type: seq
+                range:
+                  max: 0
+                sequence:
+                - type: str
+              nids:
+                type: seq
+                range:
+                  max: 0
+                sequence:
+                - type: int
+              params:
+                type: str
+                enum: 
+                - console=tty0 updated
+              kernel:
+                type: str
+                enum:
+                - s3://boot-images/00000000-0000-0000-0000-000000000003/kernel
+              initrd:
+                type: str
+                enum:
+                - s3://boot-images/00000000-0000-0000-0000-000000000003/initrd
+              cloud-init:
+                type: map
+                allowempty: true
+                mapping:
+                  meta-data:
+                    type: none
+                  user-data:
+                    type: none
+                  phone-home:
+                    type: map
+                    mapping:
+                      pub_key_dsa:
+                        type: str
+                        enum:
+                        - ""
+                      pub_key_rsa:
+                        type: str
+                        enum:
+                        - ""
+                      pub_key_ecdsa:
+                        type: str
+                        enum:
+                        - ""
+                      pub_key_ed25519:
+                        type: str
+                        enum:
+                        - ""
+                      instance_id:
+                        type: str
+                        enum:
+                        - ""
+                      hostname:
+                        type: str
+                        enum:
+                        - ""
+                      fqdn:
+                        type: str
+                        enum:
+                        - ""
+
+- name: Replace bootparameters with multiple hosts x9999c0s6b0n[0,1] 
+  request:
+    url: "{bss_base_url}/boot/v1/bootparameters"
+    method: PUT
+    verify: !bool "{verify}"
+    json:
+      hosts:
+      - x9999c0s6b0n0
+      - x9999c0s6b0n1
+      params: console=tty0 replaced
+      kernel: s3://boot-images/00000000-0000-0000-0000-000000000003/kernel
+      initrd: s3://boot-images/00000000-0000-0000-0000-000000000003/initrd
+  response:
+    status_code: 200
+    headers:
+      BSS-Referral-Token: !anystr
+
+- name: Verify bootparamter for x9999c0s6b0n0 was updated
+  request:
+    url: "{bss_base_url}/boot/v1/bootparameters"
+    params:
+      name: x9999c0s6b0n0
+    method: GET
+    verify: !bool "{verify}"
+  response:
+    status_code: 200
+    verify_response_with:
+      function: tavern.testutils.helpers:validate_pykwalify
+      extra_kwargs:
+        schema:
+          type: seq
+          range:
+            max: 1
+          matching: all
+          sequence:
+          - type: map
+            mapping:
+              hosts:
+                type: seq
+                sequence:
+                - type: str
+                  enum:
+                  - x9999c0s6b0n0
+              macs:
+                type: seq
+                range:
+                  max: 0
+                sequence:
+                - type: str
+              nids:
+                type: seq
+                range:
+                  max: 0
+                sequence:
+                - type: int
+              params:
+                type: str
+                enum: 
+                - console=tty0 replaced
+              kernel:
+                type: str
+                enum:
+                - s3://boot-images/00000000-0000-0000-0000-000000000003/kernel
+              initrd:
+                type: str
+                enum:
+                - s3://boot-images/00000000-0000-0000-0000-000000000003/initrd
+              cloud-init:
+                type: map
+                allowempty: true
+                mapping:
+                  meta-data:
+                    type: none
+                  user-data:
+                    type: none
+                  phone-home:
+                    type: map
+                    mapping:
+                      pub_key_dsa:
+                        type: str
+                        enum:
+                        - ""
+                      pub_key_rsa:
+                        type: str
+                        enum:
+                        - ""
+                      pub_key_ecdsa:
+                        type: str
+                        enum:
+                        - ""
+                      pub_key_ed25519:
+                        type: str
+                        enum:
+                        - ""
+                      instance_id:
+                        type: str
+                        enum:
+                        - ""
+                      hostname:
+                        type: str
+                        enum:
+                        - ""
+                      fqdn:
+                        type: str
+                        enum:
+                        - ""
+
+- name: Verify bootparamter for x9999c0s6b0n1 was updated
+  request:
+    url: "{bss_base_url}/boot/v1/bootparameters"
+    params:
+      name: x9999c0s6b0n1
+    method: GET
+    verify: !bool "{verify}"
+  response:
+    status_code: 200
+    verify_response_with:
+      function: tavern.testutils.helpers:validate_pykwalify
+      extra_kwargs:
+        schema:
+          type: seq
+          range:
+            max: 1
+          matching: all
+          sequence:
+          - type: map
+            mapping:
+              hosts:
+                type: seq
+                sequence:
+                - type: str
+                  enum:
+                  - x9999c0s6b0n1
+              macs:
+                type: seq
+                range:
+                  max: 0
+                sequence:
+                - type: str
+              nids:
+                type: seq
+                range:
+                  max: 0
+                sequence:
+                - type: int
+              params:
+                type: str
+                enum: 
+                - console=tty0 replaced
+              kernel:
+                type: str
+                enum:
+                - s3://boot-images/00000000-0000-0000-0000-000000000003/kernel
+              initrd:
+                type: str
+                enum:
+                - s3://boot-images/00000000-0000-0000-0000-000000000003/initrd
+              cloud-init:
+                type: map
+                allowempty: true
+                mapping:
+                  meta-data:
+                    type: none
+                  user-data:
+                    type: none
+                  phone-home:
+                    type: map
+                    mapping:
+                      pub_key_dsa:
+                        type: str
+                        enum:
+                        - ""
+                      pub_key_rsa:
+                        type: str
+                        enum:
+                        - ""
+                      pub_key_ecdsa:
+                        type: str
+                        enum:
+                        - ""
+                      pub_key_ed25519:
+                        type: str
+                        enum:
+                        - ""
+                      instance_id:
+                        type: str
+                        enum:
+                        - ""
+                      hostname:
+                        type: str
+                        enum:
+                        - ""
+                      fqdn:
+                        type: str
+                        enum:
+                        - ""
+
+- name: Create and replace bootparamaters with multiple hosts x9999c0s6b0n[1, 2]
+  request:
+    url: "{bss_base_url}/boot/v1/bootparameters"
+    method: PUT
+    verify: !bool "{verify}"
+    json:
+      hosts:
+      - x9999c0s6b0n1
+      - x9999c0s6b0n2
+      params: console=tty0 create_replaced
+      kernel: s3://boot-images/00000000-0000-0000-0000-000000000003/kernel
+      initrd: s3://boot-images/00000000-0000-0000-0000-000000000003/initrd
+  response:
+    status_code: 200
+    headers:
+      BSS-Referral-Token: !anystr
+
+- name: Verify bootparamter for x9999c0s6b0n0 was unchanged
+  request:
+    url: "{bss_base_url}/boot/v1/bootparameters"
+    params:
+      name: x9999c0s6b0n0
+    method: GET
+    verify: !bool "{verify}"
+  response:
+    status_code: 200
+    verify_response_with:
+      function: tavern.testutils.helpers:validate_pykwalify
+      extra_kwargs:
+        schema:
+          type: seq
+          range:
+            max: 1
+          matching: all
+          sequence:
+          - type: map
+            mapping:
+              hosts:
+                type: seq
+                sequence:
+                - type: str
+                  enum:
+                  - x9999c0s6b0n0
+              macs:
+                type: seq
+                range:
+                  max: 0
+                sequence:
+                - type: str
+              nids:
+                type: seq
+                range:
+                  max: 0
+                sequence:
+                - type: int
+              params:
+                type: str
+                enum: 
+                - console=tty0 replaced
+              kernel:
+                type: str
+                enum:
+                - s3://boot-images/00000000-0000-0000-0000-000000000003/kernel
+              initrd:
+                type: str
+                enum:
+                - s3://boot-images/00000000-0000-0000-0000-000000000003/initrd
+              cloud-init:
+                type: map
+                allowempty: true
+                mapping:
+                  meta-data:
+                    type: none
+                  user-data:
+                    type: none
+                  phone-home:
+                    type: map
+                    mapping:
+                      pub_key_dsa:
+                        type: str
+                        enum:
+                        - ""
+                      pub_key_rsa:
+                        type: str
+                        enum:
+                        - ""
+                      pub_key_ecdsa:
+                        type: str
+                        enum:
+                        - ""
+                      pub_key_ed25519:
+                        type: str
+                        enum:
+                        - ""
+                      instance_id:
+                        type: str
+                        enum:
+                        - ""
+                      hostname:
+                        type: str
+                        enum:
+                        - ""
+                      fqdn:
+                        type: str
+                        enum:
+                        - ""
+
+- name: Verify bootparamter for x9999c0s6b0n1 was updated
+  request:
+    url: "{bss_base_url}/boot/v1/bootparameters"
+    params:
+      name: x9999c0s6b0n1
+    method: GET
+    verify: !bool "{verify}"
+  response:
+    status_code: 200
+    verify_response_with:
+      function: tavern.testutils.helpers:validate_pykwalify
+      extra_kwargs:
+        schema:
+          type: seq
+          range:
+            max: 1
+          matching: all
+          sequence:
+          - type: map
+            mapping:
+              hosts:
+                type: seq
+                sequence:
+                - type: str
+                  enum:
+                  - x9999c0s6b0n1
+              macs:
+                type: seq
+                range:
+                  max: 0
+                sequence:
+                - type: str
+              nids:
+                type: seq
+                range:
+                  max: 0
+                sequence:
+                - type: int
+              params:
+                type: str
+                enum: 
+                - console=tty0 create_replaced
+              kernel:
+                type: str
+                enum:
+                - s3://boot-images/00000000-0000-0000-0000-000000000003/kernel
+              initrd:
+                type: str
+                enum:
+                - s3://boot-images/00000000-0000-0000-0000-000000000003/initrd
+              cloud-init:
+                type: map
+                allowempty: true
+                mapping:
+                  meta-data:
+                    type: none
+                  user-data:
+                    type: none
+                  phone-home:
+                    type: map
+                    mapping:
+                      pub_key_dsa:
+                        type: str
+                        enum:
+                        - ""
+                      pub_key_rsa:
+                        type: str
+                        enum:
+                        - ""
+                      pub_key_ecdsa:
+                        type: str
+                        enum:
+                        - ""
+                      pub_key_ed25519:
+                        type: str
+                        enum:
+                        - ""
+                      instance_id:
+                        type: str
+                        enum:
+                        - ""
+                      hostname:
+                        type: str
+                        enum:
+                        - ""
+                      fqdn:
+                        type: str
+                        enum:
+                        - ""
+
+- name: Verify bootparamter for x9999c0s6b0n2 was created
+  request:
+    url: "{bss_base_url}/boot/v1/bootparameters"
+    params:
+      name: x9999c0s6b0n2
+    method: GET
+    verify: !bool "{verify}"
+  response:
+    status_code: 200
+    verify_response_with:
+      function: tavern.testutils.helpers:validate_pykwalify
+      extra_kwargs:
+        schema:
+          type: seq
+          range:
+            max: 1
+          matching: all
+          sequence:
+          - type: map
+            mapping:
+              hosts:
+                type: seq
+                sequence:
+                - type: str
+                  enum:
+                  - x9999c0s6b0n2
+              macs:
+                type: seq
+                range:
+                  max: 0
+                sequence:
+                - type: str
+              nids:
+                type: seq
+                range:
+                  max: 0
+                sequence:
+                - type: int
+              params:
+                type: str
+                enum: 
+                - console=tty0 create_replaced
+              kernel:
+                type: str
+                enum:
+                - s3://boot-images/00000000-0000-0000-0000-000000000003/kernel
+              initrd:
+                type: str
+                enum:
+                - s3://boot-images/00000000-0000-0000-0000-000000000003/initrd
+              cloud-init:
+                type: map
+                allowempty: true
+                mapping:
+                  meta-data:
+                    type: none
+                  user-data:
+                    type: none
+                  phone-home:
+                    type: map
+                    mapping:
+                      pub_key_dsa:
+                        type: str
+                        enum:
+                        - ""
+                      pub_key_rsa:
+                        type: str
+                        enum:
+                        - ""
+                      pub_key_ecdsa:
+                        type: str
+                        enum:
+                        - ""
+                      pub_key_ed25519:
+                        type: str
+                        enum:
+                        - ""
+                      instance_id:
+                        type: str
+                        enum:
+                        - ""
+                      hostname:
+                        type: str
+                        enum:
+                        - ""
+                      fqdn:
+                        type: str
+                        enum:
+                        - ""

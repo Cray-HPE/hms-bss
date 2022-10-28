@@ -128,6 +128,20 @@ stages:
     - 400
     - 404
 
+- name: Delete testing bootparameters for Compute role
+  request:
+    url: "{bss_base_url}/boot/v1/bootparameters"
+    method: DELETE
+    verify: !bool "{verify}"
+    json:
+      hosts:
+      - Compute
+  response:
+    status_code:
+    - 200
+    - 400
+    - 404
+
 - name: Remove test HSM EthernetInterfaces for the CT Test container
   request:
     url: "{hsm_base_url}/hsm/v2/Inventory/EthernetInterfaces/0efffffffffe"
