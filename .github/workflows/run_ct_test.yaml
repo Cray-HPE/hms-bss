@@ -2,15 +2,6 @@ name: Run CT Tests
 on: [push, pull_request, workflow_dispatch]
 jobs:
   run_ct_test:
-    uses: Cray-HPE/hms-build-image-workflows/.github/workflows/run_ct_test_with_hms_sim.yaml@CASMHMS-5796
+    uses: Cray-HPE/hms-build-image-workflows/.github/workflows/run_ct_test.yaml@v1
     with:
       runs-on: ubuntu-latest
-      images-under-test: |
-        [
-          {
-            "ImageName": "cray-bss",
-            "DockerComposeServices": [
-              "cray-bss"
-            ]
-          }
-        ]
