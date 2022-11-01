@@ -301,9 +301,8 @@ stages:
               type: int
               required: False
 
-# 15. DISABLED PATCH /bootparamters with non-existent host. API response code
-# 16. DISABLED PATCH /bootparamters with non-existent host. API response body
-# TODO open ticket as a patch can create boot params if no bootparams exists.
+# 15. DISABLED CASMHMS-5816 PATCH /bootparamters with non-existent host. API response code
+# 16. DISABLED CASMHMS-5816 PATCH /bootparamters with non-existent host. API response body
 # - name: Perform PATCH against bootparameters with non-existent host
 #   request:
 #     url: "{bss_base_url}/boot/v1/bootparameters"
@@ -406,9 +405,8 @@ stages:
               type: int
               required: False
 
-# TODO open ticket, as a patch for a non-existent nid returns a 200, not a 404.
-# 21. DISABLED PATCH /bootparamters with non-existent nid. API response code
-# 22. DISABLED PATCH /bootparamters with non-existent nid. API response body
+# 21. DISABLED CASMHMS-5817 PATCH /bootparamters with non-existent nid. API response code
+# 22. DISABLED CASMHMS-5817 PATCH /bootparamters with non-existent nid. API response body
 # - name: Perform PATCH against bootparameters with non-existent nid
 #   request:
 #     url: "{bss_base_url}/boot/v1/bootparameters"
@@ -511,9 +509,8 @@ stages:
               type: int
               required: False
 
-# TODO open ticket, as a patch for a non-existent nid returns a 200, not a 404.
-# 27. PATCH /bootparamters with non-existent mac address. API response code
-# 28. PATCH /bootparamters with non-existent mac address. API response body
+# 27. DISABLED CASMHMS-5816 PATCH /bootparamters with non-existent mac address. API response code
+# 28. DISABLED CASMHMS-5816 PATCH /bootparamters with non-existent mac address. API response body
 # - name: Perform PATCH against bootparameters with non-existent host
 #   request:
 #     url: "{bss_base_url}/boot/v1/bootparameters"
@@ -547,9 +544,8 @@ stages:
 #               type: int
 #               required: False
 
-# TODO open ticket, as a patch for a non-existent nid returns a 200, not a 404.
-# 29. DISABLED DELETE /bootparamters with non-existent mac address. API response code
-# 30. DISABLED DELETE /bootparamters with non-existent mac address. API response body
+# 29. DISABLED CASMHMS-5817 DELETE /bootparamters with non-existent mac address. API response code
+# 30. DISABLED CASMHMS-5817 DELETE /bootparamters with non-existent mac address. API response body
 # - name: Perform DELETE against bootparameters with non-existent mac address
 #   request:
 #     url: "{bss_base_url}/boot/v1/bootparameters"

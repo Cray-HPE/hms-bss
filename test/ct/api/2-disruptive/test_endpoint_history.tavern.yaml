@@ -82,9 +82,7 @@ stages:
               last_epoch:
                 type: int
 
-# TODO need to open a ticket that a 400 bad request status code should be returned if only endpoint is provided instead of a 500 status code,
-# or change the endpoint-history to allow us query for all endpoints that have reached a particular endpoint.
-#
+# DISABLED CASMHMS-5814 BSS Endpoint History returns 500 status code when specifying only endpoint query parameter.
 # - name: Perform GET against /endpoint-history with endpoint bootscript
 #   request:
 #     url: "{bss_base_url}/boot/v1/endpoint-history"
@@ -113,6 +111,7 @@ stages:
 #               last_epoch:
 #                 type: int
 
+# DISABLED CASMHMS-5814 BSS Endpoint History returns 500 status code when specifying only endpoint query parameter.
 # - name: Perform GET against /endpoint-history with endpoint user-data
 #   request:
 #     url: "{bss_base_url}/boot/v1/endpoint-history"
