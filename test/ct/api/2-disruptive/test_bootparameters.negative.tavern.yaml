@@ -25,47 +25,47 @@
 # Service: Boot Script Service
 
 # HMS test metrics test cases: 30 (8 disabled)
-# 1. POST /bootparamters with invalid json. API response code
-# 2. POST /bootparamters with invalid json. API response body
-# 3. PATCH /bootparamters with invalid json. API response code
-# 4. PATCH /bootparamters with invalid json. API response body
-# 5. PUT /bootparamters with invalid json. API response code
-# 6. PUT /bootparamters with invalid json. API response body
-# 7. DELETE /bootparamters with invalid json. API response code
-# 8. DELETE /bootparamters with invalid json. API response body
+# 1. POST /bootparameters with invalid json. API response code
+# 2. POST /bootparameters with invalid json. API response body
+# 3. PATCH /bootparameters with invalid json. API response code
+# 4. PATCH /bootparameters with invalid json. API response body
+# 5. PUT /bootparameters with invalid json. API response code
+# 6. PUT /bootparameters with invalid json. API response body
+# 7. DELETE /bootparameters with invalid json. API response code
+# 8. DELETE /bootparameters with invalid json. API response body
 #
-# 9. GET /bootparamters?nid=1notANid with invalid nid. API Response code
-# 10. GET /bootparamters?nid=1notANid with invalid nid. API Response body
-# 11. GET /bootparamters?mac=1notAMac with invalid mac address. API Response code
-# 12. GET /bootparamters?mac=1notAMac with invalid mav address. API Response body
+# 9. GET /bootparameters?nid=1notANid with invalid nid. API Response code
+# 10. GET /bootparameters?nid=1notANid with invalid nid. API Response body
+# 11. GET /bootparameters?mac=1notAMac with invalid mac address. API Response code
+# 12. GET /bootparameters?mac=1notAMac with invalid mav address. API Response body
 #
-# 13. GET /bootparamters with non-existent host. API response code
-# 14. GET /bootparamters with non-existent host. API response body
-# 15. DISABLED PATCH /bootparamters with non-existent host. API response code
-# 16. DISABLED PATCH /bootparamters with non-existent host. API response body
-# 17. DELETE /bootparamters with non-existent host. API response code
-# 18. DELETE /bootparamters with non-existent host. API response body
+# 13. GET /bootparameters with non-existent host. API response code
+# 14. GET /bootparameters with non-existent host. API response body
+# 15. DISABLED PATCH /bootparameters with non-existent host. API response code
+# 16. DISABLED PATCH /bootparameters with non-existent host. API response body
+# 17. DELETE /bootparameters with non-existent host. API response code
+# 18. DELETE /bootparameters with non-existent host. API response body
 #
-# 19. GET /bootparamters with non-existent nid. API response code
-# 20. GET /bootparamters with non-existent nid. API response body
-# 21. DISABLED PATCH /bootparamters with non-existent nid. API response code
-# 22. DISABLED PATCH /bootparamters with non-existent nid. API response body
-# 23. DELETE /bootparamters with non-existent nid. API response code
-# 24. DELETE /bootparamters with non-existent nid. API response body
+# 19. GET /bootparameters with non-existent nid. API response code
+# 20. GET /bootparameters with non-existent nid. API response body
+# 21. DISABLED PATCH /bootparameters with non-existent nid. API response code
+# 22. DISABLED PATCH /bootparameters with non-existent nid. API response body
+# 23. DELETE /bootparameters with non-existent nid. API response code
+# 24. DELETE /bootparameters with non-existent nid. API response body
 #
-# 25. GET /bootparamters with non-existent mac address. API response code
-# 26. GET /bootparamters with non-existent mac address. API response body
-# 27. DISABLED PATCH /bootparamters with non-existent mac address. API response code
-# 28. DISABLED PATCH /bootparamters with non-existent mac address. API response body
-# 29. DISABLED DELETE /bootparamters with non-existent mac address. API response code
-# 30. DISABLED DELETE /bootparamters with non-existent mac address. API response body
+# 25. GET /bootparameters with non-existent mac address. API response code
+# 26. GET /bootparameters with non-existent mac address. API response body
+# 27. DISABLED PATCH /bootparameters with non-existent mac address. API response code
+# 28. DISABLED PATCH /bootparameters with non-existent mac address. API response body
+# 29. DISABLED DELETE /bootparameters with non-existent mac address. API response code
+# 30. DISABLED DELETE /bootparameters with non-existent mac address. API response body
 ---
 test_name: bssAPIBootparametersBadData
 
 stages:
-# 1. POST /bootparamters with invalid json. API response code
-# 2. POST /bootparamters with invalid json. API response body
-- name: Perform POST against /bootparamters with invalid json  
+# 1. POST /bootparameters with invalid json. API response code
+# 2. POST /bootparameters with invalid json. API response body
+- name: Perform POST against /bootparameters with invalid json  
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
     method: POST
@@ -96,9 +96,9 @@ stages:
               type: int
               required: False
 
-# 3. PATCH /bootparamters with invalid json. API response code
-# 4. PATCH /bootparamters with invalid json. API response body
-- name: Perform PATCH against /bootparamters with invalid json
+# 3. PATCH /bootparameters with invalid json. API response code
+# 4. PATCH /bootparameters with invalid json. API response body
+- name: Perform PATCH against /bootparameters with invalid json
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
     method: PATCH
@@ -129,9 +129,9 @@ stages:
               type: int
               required: False
 
-# 5. PUT /bootparamters with invalid json. API response code
-# 6. PUT /bootparamters with invalid json. API response body
-- name: Perform PUT against /bootparamters with invalid json
+# 5. PUT /bootparameters with invalid json. API response code
+# 6. PUT /bootparameters with invalid json. API response body
+- name: Perform PUT against /bootparameters with invalid json
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
     method: PUT
@@ -162,9 +162,9 @@ stages:
               type: int
               required: False
 
-# 7. DELETE /bootparamters with invalid json. API response code
-# 8. DELETE /bootparamters with invalid json. API response body
-- name: Perform DELETE against /bootparamters with invalid json
+# 7. DELETE /bootparameters with invalid json. API response code
+# 8. DELETE /bootparameters with invalid json. API response body
+- name: Perform DELETE against /bootparameters with invalid json
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
     method: DELETE
@@ -195,8 +195,8 @@ stages:
               type: int
               required: False
 
-# 9. GET /bootparamters?nid=1notANid with invalid nid. API Response code
-# 10. GET /bootparamters?nid=1notANid with invalid nid. API Response body
+# 9. GET /bootparameters?nid=1notANid with invalid nid. API Response code
+# 10. GET /bootparameters?nid=1notANid with invalid nid. API Response body
 - name: Search BSS bootparameters with invalid NID
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
@@ -229,8 +229,8 @@ stages:
               type: int
               required: False
 
-# 11. GET /bootparamters?mac=1notAMac with invalid mac address. API Response code
-# 12. GET /bootparamters?mac=1notAMac with invalid mav address. API Response body
+# 11. GET /bootparameters?mac=1notAMac with invalid mac address. API Response code
+# 12. GET /bootparameters?mac=1notAMac with invalid mav address. API Response body
 - name: Search BSS bootparameters with invalid MAC address
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
@@ -267,8 +267,8 @@ stages:
 test_name: bssAPIBootparametersNonExistent
 
 stages:
-# 13. GET /bootparamters with non-existent host. API response code
-# 14. GET /bootparamters with non-existent host. API response body
+# 13. GET /bootparameters with non-existent host. API response code
+# 14. GET /bootparameters with non-existent host. API response body
 - name: Perform GET against bootparameters with non-existent host
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
@@ -301,8 +301,8 @@ stages:
               type: int
               required: False
 
-# 15. DISABLED CASMHMS-5816 PATCH /bootparamters with non-existent host. API response code
-# 16. DISABLED CASMHMS-5816 PATCH /bootparamters with non-existent host. API response body
+# 15. DISABLED CASMHMS-5816 PATCH /bootparameters with non-existent host. API response code
+# 16. DISABLED CASMHMS-5816 PATCH /bootparameters with non-existent host. API response body
 # - name: Perform PATCH against bootparameters with non-existent host
 #   request:
 #     url: "{bss_base_url}/boot/v1/bootparameters"
@@ -336,8 +336,8 @@ stages:
 #               type: int
 #               required: False
 
-# 17. DELETE /bootparamters with non-existent host. API response code
-# 18. DELETE /bootparamters with non-existent host. API response body
+# 17. DELETE /bootparameters with non-existent host. API response code
+# 18. DELETE /bootparameters with non-existent host. API response body
 - name: Perform DELETE against bootparameters with non-existent host
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
@@ -371,8 +371,8 @@ stages:
               type: int
               required: False
 
-# 19. GET /bootparamters with non-existent nid. API response code
-# 20. GET /bootparamters with non-existent nid. API response body
+# 19. GET /bootparameters with non-existent nid. API response code
+# 20. GET /bootparameters with non-existent nid. API response body
 - name: Perform GET against bootparameters with non-existent nid
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
@@ -405,8 +405,8 @@ stages:
               type: int
               required: False
 
-# 21. DISABLED CASMHMS-5817 PATCH /bootparamters with non-existent nid. API response code
-# 22. DISABLED CASMHMS-5817 PATCH /bootparamters with non-existent nid. API response body
+# 21. DISABLED CASMHMS-5817 PATCH /bootparameters with non-existent nid. API response code
+# 22. DISABLED CASMHMS-5817 PATCH /bootparameters with non-existent nid. API response body
 # - name: Perform PATCH against bootparameters with non-existent nid
 #   request:
 #     url: "{bss_base_url}/boot/v1/bootparameters"
@@ -440,8 +440,8 @@ stages:
 #               type: int
 #               required: False
 
-# 23. DELETE /bootparamters with non-existent nid. API response code
-# 24. DELETE /bootparamters with non-existent nid. API response body
+# 23. DELETE /bootparameters with non-existent nid. API response code
+# 24. DELETE /bootparameters with non-existent nid. API response body
 - name: Perform DELETE against bootparameters with non-existent nid
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
@@ -475,8 +475,8 @@ stages:
               type: int
               required: False
 
-# 25. GET /bootparamters with non-existent mac address. API response code
-# 26. GET /bootparamters with non-existent mac address. API response body
+# 25. GET /bootparameters with non-existent mac address. API response code
+# 26. GET /bootparameters with non-existent mac address. API response body
 - name: Perform GET against bootparameters with non-existent MAC address
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
@@ -509,8 +509,8 @@ stages:
               type: int
               required: False
 
-# 27. DISABLED CASMHMS-5816 PATCH /bootparamters with non-existent mac address. API response code
-# 28. DISABLED CASMHMS-5816 PATCH /bootparamters with non-existent mac address. API response body
+# 27. DISABLED CASMHMS-5816 PATCH /bootparameters with non-existent mac address. API response code
+# 28. DISABLED CASMHMS-5816 PATCH /bootparameters with non-existent mac address. API response body
 # - name: Perform PATCH against bootparameters with non-existent host
 #   request:
 #     url: "{bss_base_url}/boot/v1/bootparameters"
@@ -544,8 +544,8 @@ stages:
 #               type: int
 #               required: False
 
-# 29. DISABLED CASMHMS-5817 DELETE /bootparamters with non-existent mac address. API response code
-# 30. DISABLED CASMHMS-5817 DELETE /bootparamters with non-existent mac address. API response body
+# 29. DISABLED CASMHMS-5817 DELETE /bootparameters with non-existent mac address. API response code
+# 30. DISABLED CASMHMS-5817 DELETE /bootparameters with non-existent mac address. API response body
 # - name: Perform DELETE against bootparameters with non-existent mac address
 #   request:
 #     url: "{bss_base_url}/boot/v1/bootparameters"

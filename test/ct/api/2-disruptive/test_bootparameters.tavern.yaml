@@ -133,7 +133,7 @@ stages:
       hosts:
       - x9999c0s1b0n0
 
-- name: Create Bootparameteters with xname specified as identifier
+- name: Create Bootparameters with xname specified as identifier
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
     method: POST
@@ -149,7 +149,7 @@ stages:
     headers:
       BSS-Referral-Token: !anystr
 
-- name: Create duplicate Bootparameteters with xname specified as identifier
+- name: Create duplicate Bootparameters with xname specified as identifier
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
     method: POST
@@ -185,7 +185,7 @@ stages:
               type: int
               required: False
 
-- name: Retrieve created Bootparameteters with xname specified as identifier
+- name: Retrieve created Bootparameters with xname specified as identifier
   request:
     url: "{bss_base_url}/boot/v1/bootparameters?name=x9999c0s1b0n0"
     method: GET
@@ -273,7 +273,7 @@ stages:
                         enum:
                         - ""
 
-- name: Replace Bootparameteters with xname specified as identifier
+- name: Replace Bootparameters with xname specified as identifier
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
     method: PUT
@@ -289,7 +289,7 @@ stages:
     headers:
       BSS-Referral-Token: !anystr
 
-- name: Retrieve replaced Bootparameteters with xname specified as identifier
+- name: Retrieve replaced Bootparameters with xname specified as identifier
   request:
     url: "{bss_base_url}/boot/v1/bootparameters?name=x9999c0s1b0n0"
     method: GET
@@ -377,7 +377,7 @@ stages:
                         enum:
                         - ""
 
-- name: Update Bootparameteters with xname specified as identifier
+- name: Update Bootparameters with xname specified as identifier
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
     method: PATCH
@@ -390,7 +390,7 @@ stages:
   response:
     status_code: 200
 
-- name: Retrieve replaced Bootparameteters with xname specified as identifier
+- name: Retrieve replaced Bootparameters with xname specified as identifier
   request:
     url: "{bss_base_url}/boot/v1/bootparameters?name=x9999c0s1b0n0"
     method: GET
@@ -489,7 +489,7 @@ stages:
   response:
     status_code: 200
 
-- name: Retrieve deleted Bootparameteters with xname specified as identifier
+- name: Retrieve deleted Bootparameters with xname specified as identifier
   request:
     url: "{bss_base_url}/boot/v1/bootparameters?name=x9999c0s1b0n0"
     method: GET
@@ -567,7 +567,7 @@ stages:
       - x9999c0s6b0n1
       - x9999c0s6b0n2
 
-- name: Create Bootparameteters with multiple hosts x9999c0s6b0n[0,1]
+- name: Create Bootparameters with multiple hosts x9999c0s6b0n[0,1]
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
     method: POST
@@ -584,7 +584,7 @@ stages:
     headers:
       BSS-Referral-Token: !anystr
 
-- name: Verify bootparamter for x9999c0s6b0n0 was created
+- name: Verify bootparameter for x9999c0s6b0n0 was created
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
     params:
@@ -674,7 +674,7 @@ stages:
                         enum:
                         - ""
 
-- name: Verify bootparamter for x9999c0s6b0n1 was created
+- name: Verify bootparameter for x9999c0s6b0n1 was created
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
     params:
@@ -764,7 +764,7 @@ stages:
                         enum:
                         - ""
 
-- name: Update bootparamter for only x9999c0s6b0n1
+- name: Update bootparameter for only x9999c0s6b0n1
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
     method: PATCH
@@ -776,7 +776,7 @@ stages:
   response:
     status_code: 200
 
-- name: Verify bootparamter for x9999c0s6b0n0 remains unchanged
+- name: Verify bootparameter for x9999c0s6b0n0 remains unchanged
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
     params:
@@ -866,7 +866,7 @@ stages:
                         enum:
                         - ""
 
-- name: Verify bootparamter for x9999c0s6b0n1 was updated
+- name: Verify bootparameter for x9999c0s6b0n1 was updated
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
     params:
@@ -973,7 +973,7 @@ stages:
     headers:
       BSS-Referral-Token: !anystr
 
-- name: Verify bootparamter for x9999c0s6b0n0 was updated
+- name: Verify bootparameter for x9999c0s6b0n0 was updated
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
     params:
@@ -1063,7 +1063,7 @@ stages:
                         enum:
                         - ""
 
-- name: Verify bootparamter for x9999c0s6b0n1 was updated
+- name: Verify bootparameter for x9999c0s6b0n1 was updated
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
     params:
@@ -1170,7 +1170,7 @@ stages:
     headers:
       BSS-Referral-Token: !anystr
 
-- name: Verify bootparamter for x9999c0s6b0n0 was unchanged
+- name: Verify bootparameter for x9999c0s6b0n0 was unchanged
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
     params:
@@ -1260,7 +1260,7 @@ stages:
                         enum:
                         - ""
 
-- name: Verify bootparamter for x9999c0s6b0n1 was updated
+- name: Verify bootparameter for x9999c0s6b0n1 was updated
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
     params:
@@ -1350,7 +1350,7 @@ stages:
                         enum:
                         - ""
 
-- name: Verify bootparamter for x9999c0s6b0n2 was created
+- name: Verify bootparameter for x9999c0s6b0n2 was created
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
     params:

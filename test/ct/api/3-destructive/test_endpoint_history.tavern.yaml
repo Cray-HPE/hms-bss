@@ -45,7 +45,7 @@ stages:
         json:
           node_xname: Components[0].ID
 
-- name: Create or Update Bootparameteter for compute node
+- name: Create or Update Bootparameter for compute node
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
     method: PUT
@@ -190,7 +190,7 @@ stages:
   response:
     status_code: 200
 
-- name: Remove test Bootparameteter for compute node
+- name: Remove test Bootparameter for compute node
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
     method: DELETE

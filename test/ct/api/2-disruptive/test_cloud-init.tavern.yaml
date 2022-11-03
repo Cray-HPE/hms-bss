@@ -83,7 +83,7 @@ stages:
   response:
     status_code: 204
 
-- name: Create or update Bootparameteter for node with cloud-init data
+- name: Create or update Bootparameter for node with cloud-init data
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
     method: PUT

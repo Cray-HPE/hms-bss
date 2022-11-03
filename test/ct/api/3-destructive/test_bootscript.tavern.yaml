@@ -51,7 +51,7 @@ stages:
       json:
         node_mac_address: '[0].MACAddress'
 
-- name: Create or update Bootparameteter for compute node
+- name: Create or update Bootparameter for compute node
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
     method: PUT
@@ -226,7 +226,7 @@ stages:
       hosts:
       - "{node_xname}"
 
-- name: Create or update Bootparameteter for Compute nodes
+- name: Create or update Bootparameter for Compute nodes
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
     method: PUT
@@ -276,7 +276,7 @@ stages:
 test_name: bssAPIbootscriptUnknown
 
 stages:
-- name: Create or update Bootparameteter for unknown hosts
+- name: Create or update Bootparameter for unknown hosts
   request:
     url: "{bss_base_url}/boot/v1/bootparameters"
     method: PUT
