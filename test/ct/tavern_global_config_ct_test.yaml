@@ -5,4 +5,5 @@ description: common configuration for all tavern invocations
 variables:
   verify: false
   bss_base_url: http://cray-bss:27778
+  hsm_base_url: http://cray-smd:27779
 

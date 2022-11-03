@@ -1,6 +1,6 @@
 # MIT License
 #
-# (C) Copyright [2021-2022] Hewlett Packard Enterprise Development LP
+# (C) Copyright [2022] Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -20,24 +20,42 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-# Service
-NAME ?= cray-bss
-VERSION ?= $(shell cat .version)
+# Tavern negative test cases for BSS dumpstate API
+# Author: Ryan Sjostrand
+# Service: Boot Script Service
 
+---
+test_name: bssAPIdumpstateNegative
 
-all : image unittest ct snyk ct_image
+stages:
+- name: Perform DELETE against /dumpstate
+  request:
+    url: "{bss_base_url}/boot/v1/dumpstate"
+    method: DELETE
+    verify: !bool "{verify}"
+  response:
+    status_code: 405
 
-image:
-	docker build ${NO_CACHE} --pull ${DOCKER_ARGS} --tag '${NAME}:${VERSION}' .
+- name: Perform PATCH against /dumpstate
+  request:
+    url: "{bss_base_url}/boot/v1/dumpstate"
+    method: PATCH
+    verify: !bool "{verify}"
+  response:
+    status_code: 405
 
-unittest:
-	./runUnitTest.sh
+- name: Perform POST against /dumpstate
+  request:
+    url: "{bss_base_url}/boot/v1/dumpstate"
+    method: POST
+    verify: !bool "{verify}"
+  response:
+    status_code: 405
 
-snyk:
-	./runSnyk.sh
-
-ct:
-	./runCT.sh
-
-ct_image:
-	docker build --no-cache -f test/ct/Dockerfile test/ct/ --tag hms-bss-hmth-test:${VERSION}
+- name: Perform PUT against /dumpstate
+  request:
+    url: "{bss_base_url}/boot/v1/dumpstate"
+    method: PUT
+    verify: !bool "{verify}"
+  response:
+    status_code: 405

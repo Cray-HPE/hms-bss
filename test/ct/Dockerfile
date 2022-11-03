@@ -20,14 +20,16 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-FROM artifactory.algol60.net/csm-docker/stable/hms-test:3.2.0
+FROM artifactory.algol60.net/csm-docker/stable/hms-test:4.0.0
 
 COPY smoke/ /src/app
-COPY functional/ /src/app
+COPY api/ /src/app/api
 COPY tavern_global_config_ct_test.yaml /src/app/tavern_global_config_ct_test.yaml
+COPY bss_test_utils.py /src/libs/bss_test_utils.py
 
 ENV PATH="/src/libs:${PATH}"
 ENV PATH="/src/app:${PATH}"
+ENV PYTHONPATH=$PYTHONPATH:/src/libs 
 
 USER root
 RUN chown -R 65534:65534 /src

@@ -16,20 +16,20 @@ info:
 
     ## Resources
 
-    ### /bootscript
+    ### /boot/v1/bootscript
 
     Retrieve the iPXE bootscript for a host. One of the three parameters is required - name,
     MAC, or NID.
 
-    ### /bootparameters
+    ### /boot/v1/bootparameters
 
     Set, update, delete, and retrieve boot script parameters for specific hosts.
 
-    ### /hosts
+    ### /boot/v1/hosts
 
     Retrieve the latest host information like state, nid, and id from HSM.
 
-    ### /dumpstate
+    ### /boot/v1/dumpstate
 
     Dump internal state of boot script service for debugging purposes.
 
@@ -37,7 +37,7 @@ info:
 
     ### Define Boot Parameters for all Nodes
 
-    #### POST /bootparameters
+    #### POST /boot/v1/bootparameters
 
     Define boot parameters. Specify the host as Default. While BSS allows for fine grained
     control of individual nodes, the Default tag is typically more convenient,
@@ -50,33 +50,33 @@ info:
     The kernel and initrd fields contain a URL to the respective images.
     The params field is a string that will be passed to the kernel during the boot process.
 
-    #### GET /bootscript
+    #### GET /boot/v1/bootscript
 
     Verify the bootscript to ensure it's what you want
 
     ### Update Boot Parameters
 
-    #### GET /hosts
+    #### GET /boot/v1/hosts
 
     Retrieve list of hosts known to HSM and select the host for which
     the boot parameters need to be changed.
 
-    #### GET /bootparameters
+    #### GET /boot/v1/bootparameters
 
     Retrieve the boot parameters for the specific host.
 
-    #### PUT /bootparameters
+    #### PUT /boot/v1/bootparameters
 
     Update boot parameters for the host.
 
-    #### GET /bootparameters
+    #### GET /boot/v1/bootparameters
 
     Verify the boot parameters for the specific host.
 
   version: 1.0.0
   title: Boot Script Service
 host: 'bootscriptserver:27778'
-basePath: /apis/bss/boot/v1
+basePath: /apis/bss
 schemes:
   - http
 produces:
@@ -97,7 +97,7 @@ paths:
           in: query
           type: string
           description: >-
-           A specific sub key(s) to query. Seperated by periods.
+           A specific sub key(s) to query. Separated by periods.
       responses:
         '200':
           description: Meta data for node
@@ -152,13 +152,18 @@ paths:
       tags:
         - cli_ignore
       operationId: phone_home_post
-      produces:
-        - text/yaml
+      # produces:
+      #   - text/yaml
+      parameters:
+        - name: phoneHomeData
+          in: body
+          schema:
+            $ref: '#/definitions/CloudInitPhoneHome'
       responses:
         '200':
           description: Meta data for node
           schema:
-            type: object
+           $ref: '#/definitions/BootParams'
         '400':
           description: Bad Request
           schema:
@@ -174,7 +179,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /bootscript:
+  /boot/v1/bootscript:
     get:
       summary: Retrieve iPXE boot script
       tags:
@@ -229,9 +234,16 @@ paths:
         '200':
           description: Bootscript for requested MAC address
           schema:
-            type: array
-            items:
-              type: string
+            type: string
+            example: |
+              #!ipxe
+              kernel --name kernel http://rgw-vip.nmn/boot-images/00000000-0000-0000-0000-000000000000/kernel initrd=initrd console=ttyS0,115200 bad_page=panic crashkernel=512M hugepagelist=2m-2g intel_iommu=off intel_pstate=disable iommu.passthrough=on numa_interleave_omit=headless oops=panic pageblock_order=14 rd.neednet=1 rd.retry=10 rd.shell systemd.unified_cgroup_hierarchy=1 ip=dhcp quiet spire_join_token=00000000-0000-0000-0000-000000000000 root=craycps-s3:s3://boot-images/00000000-0000-0000-0000-000000000000/rootfs:00000000000000000000000000000000-000:dvs:api-gw-service-nmn.local:300:hsn0,nmn0:0 nmd_data=url=s3://boot-images/00000000-0000-0000-0000-000000000000/rootfs bos_session_id=000000-0000-0000-0000-000000000000 xname=x3000c0s17b3n0 nid=3 bss_referral_token=00000000-0000-0000-0000-000000000000 ds=nocloud-net;s=http://10.92.100.81:8888/ || goto boot_retry
+              initrd --name initrd http://rgw-vip.nmn/boot-images/00000000-0000-0000-0000-000000000000/initrd || goto boot_retry
+              boot || goto boot_retry
+              :boot_retry
+              sleep 30
+              chain https://api-gw-service-nmn.local/apis/bss/boot/v1/bootscript?mac=b4:2e:99:df:eb:bf&retry=1
+
         '400':
           description: Bad Request
           schema:
@@ -247,7 +259,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /bootparameters:
+  /boot/v1/bootparameters:
     get:
       summary: Retrieve boot parameters
       tags:
@@ -489,7 +501,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/Error'
-  /hosts:
+  /boot/v1/hosts:
     get:
       summary: Retrieve hosts
       tags:
@@ -542,7 +554,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/Error'
-  /dumpstate:
+  /boot/v1/dumpstate:
     get:
       summary: Retrieve dumpstate
       tags:
@@ -564,7 +576,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/Error'
-  /endpoint-history:
+  /boot/v1/endpoint-history:
     get:
       summary: Retrieve access information for xname and endpoint
       tags:
@@ -584,7 +596,7 @@ paths:
           enum:
             - bootscript
             - user-data
-          description: The endpoint to get the last access informaion for.
+          description: The endpoint to get the last access information for.
       responses:
         '200':
           description: Endpoint access information
@@ -592,6 +604,178 @@ paths:
             type: array
             items:
               $ref: '#/definitions/EndpointAccess'
+  /boot/v1/service/status:
+    get:
+      summary: "Retrieve the current status of BSS"
+      tags:
+      - service-status
+      - cli_ignore
+      description: |
+        Retrieve the current status of the BSS service itself.
+        
+        This endpoint can be used as a liveness probe for the BSS to determine if it is alive or dead.
+      responses:
+        '200':
+          description: 'The BSS REST API is alive and accessible.'
+          schema:
+            type: object
+            properties:
+              bss-status:
+                type: string
+                enum: ["running"]
+                description: Current status of BSS.
+        '500':
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/Error'
+  /boot/v1/service/etcd:
+    get:
+      summary: "Retrieve the current connection status to ETCD"
+      tags:
+      - service-status
+      - cli_ignore
+      description: |
+        Retrieve the current connection status to the BSS ETCD database.
+        
+        The connection to ETCD will be tested by writing a value to ETCD, and then reading it
+        back from the database. If the value is successfuly writen to ETCD and read back as the 
+        same value, then the connection to ETCD is considered to be 'connected. Otherwise, there
+        is a connection error.
+        
+      responses:
+        '200':
+          description: 'The ETCD database connection is healthy.'
+          schema:
+            type: object
+            properties:
+              bss-status-etcd:
+                type: string
+                enum: ["connected"]
+                description: Current connection status to ETCD.
+        '500':
+          description: 'The ETCD database connection is unhealthy.'
+          schema:
+            type: object
+            properties:
+              bss-status-etcd:
+                type: string
+                enum: ["error"]
+                description: Current connection status to ETCD.
+            
+  /boot/v1/service/hsm:
+    get:
+      summary: "Retrieve the current connection status to HSM"
+      tags:
+      - service-status
+      - cli_ignore
+      description: | 
+        Retrieve the current connection status to the Hardware State Manager (HSM).
+        
+        The connection to HSM will be tested by querying a HSM endpoint to verify HSM
+        is alive.
+
+      responses:
+        '200':
+          description: 'The HSM connection is healthy.'
+          schema:
+            type: object
+            properties:
+              bss-status-hsm:
+                type: string
+                enum: ["connected"]
+                description: Current connection status to HSM.
+        '500':
+          description: 'The HSM connection is unhealthy.'
+          schema:
+            type: object
+            properties:
+              bss-status-hsm:
+                type: string
+                enum: ["error"]
+                description: Current connection status to HSM.
+
+  /boot/v1/service/version:
+    get:
+      summary: "Retrieve the service version"
+      tags:
+      - service-status
+      - cli_ignore
+      description: |
+        Retrieve the current service version.
+      
+      responses:
+        '200':
+          description: 'The current running service version.'
+          schema:
+            type: object
+            properties:
+              bss-version:
+                type: string
+                example: 1.21.0
+        '500':
+          description: 'Internal Server Error. Unable to determine current running service version.'
+          schema:
+            type: object
+            properties:
+              bss-version:
+                type: string
+                enum: ["error"]
+
+  /boot/v1/service/status/all:
+    get: 
+      summary: "Retrieve the overall service health"
+      tags:
+      - service-status
+      - cli_ignore
+      description: |
+        Retrieve the overall health of the service, and determine if the service is healthy to serve
+        requests as a readiness probe.
+        
+        This will retrieve the current BSS version and status, along with the connection status to HSM and ETCD.
+        
+      responses:
+        '200':
+          description: |
+            All service checks reported a healthy status.
+          schema:
+            type: object
+            properties:
+              bss-status:
+                type: string
+                enum: ["running"]
+              bss-status-etcd:
+                type: string
+                enum: ["connected"]
+                description: Current connection status to ETCD.
+              bss-status-hsm:
+                type: string
+                enum: ["connected"]
+                description: Current connection status to HSM.
+              bss-version:
+                type: string
+                example: 1.21.0
+        '500':
+          description: |
+            One or more service checks reported an unhealthy status.
+          schema:
+            type: object
+            properties:
+              bss-status:
+                type: string
+                enum: ["running"]
+              bss-status-etcd:
+                type: string
+                enum: ["connected", "error"]
+                description: Current connection status to ETCD.
+                example: "error"
+              bss-status-hsm:
+                type: string
+                enum: ["connected", "error"]
+                description: Current connection status to HSM.
+                example: "error"
+              bss-version:
+                type: string
+                example: 1.21.0
 definitions:
   BootParams:
     description: >-
@@ -650,35 +834,102 @@ definitions:
         description: URL or file system path specifying initrd image.
         example: "http://10.252.100.50/apis/ars/downloads/7e0bcf9f-10fc-46a9-b2f8-ba8814c1999c"
       cloud-init:
-        type: object
-        description: Cloud-Init metadata for the hosts
-        example: {"user-data": {"foo": "bar"}}
+        $ref: '#/definitions/CloudInit'
+
+  CloudInit:
+    description: Cloud-Init data for the hosts
+    type: object
+    properties:
+      meta-data:
+        $ref: '#/definitions/CloudInitMetadata'
+      user-data:
+        $ref: '#/definitions/CloudInitUserData'
+      phone-home:
+        $ref: '#/definitions/CloudInitPhoneHome'
+    example: {"user-data": {"foo": "bar"}, "meta-data": {"foo":"bar"}}
+
+  CloudInitMetadata:
+    description: Cloud-Init Instance Metadata for a host.
+    type: object
+    additionalProperties: true
+
+  CloudInitUserData:
+    description: Cloud-Init User data for a host. 
+    type: object
+    additionalProperties: true
+
+  CloudInitPhoneHome:
+    description: Data sent from the Phone Home Cloud-Init module after a host's boot is complete.
+    type: object
+    properties:
+      pub_key_dsa:
+        type: string
+      pub_key_rsa:
+        type: string
+      pub_key_ecdsa:
+        type: string
+      pub_key_ed25519:
+        type: string
+      instance_id:
+        type: string
+      hostname:
+        type: string
+      fqdn:
+        type: string
+
   Component:
     description: This data structure is used to return host info for debug purposes
     type: object
     properties:
-      id:
+      ID:
         type: string
         example: "x0c0s21b0n0"
-      state:
+      Type:
+        type: string
+        example: "Node"
+      State:
         type: string
         example: "Ready"
-      class:
+      Flag:
         type: string
-      fqdn:
+        example: "OK"
+      Enabled:
+        type: boolean
+        example: true
+      Role:
         type: string
-      nid:
+        example: Compute
+      RubeRole:
+        type: string
+        example: Worker
+      NID:
         type: integer
         example: 2
-      mac:
+      NetType:
+        type: string
+        example: Sling
+      Arch:
+        type: string
+        example: X86
+      Class:
+        type: string
+      ReservationDisabled:
+        type: boolean
+        example: false
+      Locked:
+        type: boolean
+        example: false
+      FQDN:
+        type: string
+      MAC:
         type: array
         items:
           type: string
         example: ["00:40:a6:82:f6:c5","a4:bf:01:3e:c0:a2","00:40:a6:82:f7:0c"]
-      nicaddr:
-        type: array
-        items:
-          type: integer
+      EndpointEnabled:
+        type: boolean
+        example: true
+
   StateInfo:
     description: >-
       This data structure is used to return the full component and boot
@@ -704,10 +955,7 @@ definitions:
       This data structure is used to return the component info for a /hosts get request
     type: array
     items:
-      type: object
-      properties:
-        schema:
-          $ref: '#/definitions/Component'
+      $ref: '#/definitions/Component'
   EndpointAccess:
     description: >-
                  This data structure is used to return the endpoint access information for a given resource.
@@ -724,7 +972,7 @@ definitions:
           - user-data
       last_epoch:
         type: integer
-        description: Unix epoch time of last request.
+        description: Unix epoch time of last request. An epoch of 0 indicates a request has not taken place.
         example: 1635284155
   Error:
     description: Return an RFC7808 error response.
@@ -740,3 +988,4 @@ definitions:
         type: string
       instance:
         type: string
+

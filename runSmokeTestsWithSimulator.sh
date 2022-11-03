@@ -1,6 +1,8 @@
+#!/bin/bash
+#
 # MIT License
 #
-# (C) Copyright [2021-2022] Hewlett Packard Enterprise Development LP
+# (C) Copyright [2022] Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -19,25 +21,10 @@
 # OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
+#
+set -ex
 
-# Service
-NAME ?= cray-bss
-VERSION ?= $(shell cat .version)
-
-
-all : image unittest ct snyk ct_image
-
-image:
-	docker build ${NO_CACHE} --pull ${DOCKER_ARGS} --tag '${NAME}:${VERSION}' .
-
-unittest:
-	./runUnitTest.sh
-
-snyk:
-	./runSnyk.sh
-
-ct:
-	./runCT.sh
-
-ct_image:
-	docker build --no-cache -f test/ct/Dockerfile test/ct/ --tag hms-bss-hmth-test:${VERSION}
+make ct_image
+VERSION=$(cat .version)
+docker run --rm --network hms-simulation-environment_simulation hms-bss-hmth-test:${VERSION} \
+    smoke -f smoke.json -u http://cray-bss:27778

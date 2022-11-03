@@ -7,7 +7,7 @@ jobs:
   build_and_release:
     uses: Cray-HPE/hms-build-image-workflows/.github/workflows/build_and_release_image.yaml@v1
     with:
-      image-name: cray-bss-test
+      image-name: cray-bss-hmth-test
       docker-build-file: test/ct/Dockerfile #the test/ct/Dockerfile is what we want!
       docker-build-context: test/ct
       enable-pr-comment: true

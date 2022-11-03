@@ -35,36 +35,30 @@ echo "COMPOSE_FILE: $COMPOSE_FILE"
 
 
 function cleanup() {
-  docker-compose down
-  if ! [[ $? -eq 0 ]]; then
+  echo "Cleaning up containers..."
+  if ! docker compose down --remove-orphans; then
     echo "Failed to decompose environment!"
     exit 1
   fi
   exit $1
 }
 
-
 # Get the base containers running
 echo "Starting containers..."
-docker-compose build --no-cache
-docker-compose up  -d cray-bss #this will stand up everything except for the integration test container
-docker-compose up -d ct-tests-functional-wait-for-smd
-docker wait ${COMPOSE_PROJECT_NAME}_ct-tests-functional-wait-for-smd_1
-docker logs ${COMPOSE_PROJECT_NAME}_ct-tests-functional-wait-for-smd_1
-docker-compose up --exit-code-from ct-tests-smoke ct-tests-smoke
-test_result=$?
-echo "Cleaning up containers..."
-if [[ $test_result -ne 0 ]]; then
+docker compose build --no-cache
+docker compose up -d cray-bss #this will stand up everything except for the integration test container
+
+# wait for containers to stabilize and simulated HSM hardware discoveries to complete
+docker compose up --exit-code-from wait-for-smd wait-for-smd
+
+if ! docker compose up --exit-code-from smoke smoke; then
   echo "CT smoke tests FAILED!"
   cleanup 1
 fi
 
-docker-compose up --exit-code-from ct-tests-functional ct-tests-functional
-test_result=$?
-# Clean up
-echo "Cleaning up containers..."
-if [[ $test_result -ne 0 ]]; then
-  echo "CT functional tests FAILED!"
+# execute the CT functional tests
+if ! docker compose up --exit-code-from tavern tavern; then
+  echo "CT tavern tests FAILED!"
   cleanup 1
 fi
 
