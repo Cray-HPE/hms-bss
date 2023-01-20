@@ -66,6 +66,14 @@ stages:
     status_code: 200
 
 - name: Query bootscript by xname
+  # Sometimes BSS returns a bootscript to re-attempt getting a bootscript, and this normally
+  # happens when BSS is syncing with HSM.
+  # Example:
+  #  #!ipxe
+  #  sleep 10
+  #  chain https://api-gw-service-nmn.local/apis/bss/boot/v1/bootscript?mac=00:40:a6:42:3a:58&retry=1
+  max_retries: 8
+  delay_after: 2
   request:
     url: "{bss_base_url}/boot/v1/bootscript"
     method: GET
@@ -111,6 +119,14 @@ stages:
           expression: 'kernel --name .+bss_referral_token='
 
 - name: Query bootscript by MAC address
+  # Sometimes BSS returns a bootscript to re-attempt getting a bootscript, and this normally
+  # happens when BSS is syncing with HSM.
+  # Example:
+  #  #!ipxe
+  #  sleep 10
+  #  chain https://api-gw-service-nmn.local/apis/bss/boot/v1/bootscript?mac=00:40:a6:42:3a:58&retry=1
+  max_retries: 8
+  delay_after: 2
   request:
     url: "{bss_base_url}/boot/v1/bootscript"
     method: GET
@@ -123,6 +139,14 @@ stages:
       content-type: text/plain; charset=UTF-8
 
 - name: Query bootscript by NID
+  # Sometimes BSS returns a bootscript to re-attempt getting a bootscript, and this normally
+  # happens when BSS is syncing with HSM.
+  # Example:
+  #  #!ipxe
+  #  sleep 10
+  #  chain https://api-gw-service-nmn.local/apis/bss/boot/v1/bootscript?mac=00:40:a6:42:3a:58&retry=1
+  max_retries: 8
+  delay_after: 2
   request:
     url: "{bss_base_url}/boot/v1/bootscript"
     method: GET
