@@ -18,7 +18,7 @@ info:
 
     ### /boot/v1/bootscript
 
-    Retrieve the iPXE bootscript for a host. One of the three parameters is required - name,
+    Retrieve the iPXE boot script for a host. One of the three parameters is required - name,
     MAC, or NID.
 
     ### /boot/v1/bootparameters
@@ -27,7 +27,7 @@ info:
 
     ### /boot/v1/hosts
 
-    Retrieve the latest host information like state, nid, and id from HSM.
+    Retrieve the latest host information like state, NID, and ID from HSM.
 
     ### /boot/v1/dumpstate
 
@@ -45,14 +45,14 @@ info:
 
 
     Along with the host, the kernel, initrd, and params should be defined.
-    The kernel is required for BSS to generate a bootscript, but initrd and
+    The kernel is required for BSS to generate a boot script, but initrd and
     params are typically needed for the node to boot successfully.
     The kernel and initrd fields contain a URL to the respective images.
     The params field is a string that will be passed to the kernel during the boot process.
 
     #### GET /boot/v1/bootscript
 
-    Verify the bootscript to ensure it's what you want
+    Verify the boot script to ensure it's what you want
 
     ### Update Boot Parameters
 
@@ -97,10 +97,10 @@ paths:
           in: query
           type: string
           description: >-
-           A specific sub key(s) to query. Separated by periods.
+           Specific sub key(s) to query. Separated by periods.
       responses:
         '200':
-          description: Meta data for node
+          description: meta-data for node
           schema:
             type: object
         '400':
@@ -109,7 +109,7 @@ paths:
             $ref: '#/definitions/Error'
         '404':
           description: >-
-            Does Not Exist - Either the host, MAC or nid are unknown and there
+            Does Not Exist - Either the host, MAC or NID are unknown and there
             is no Default, or the existing entry does not specify a kernel image
             for boot.
           schema:
@@ -128,7 +128,7 @@ paths:
         - text/yaml
       responses:
         '200':
-          description: Meta data for node
+          description: user-data for node
           schema:
             type: object
         '400':
@@ -137,7 +137,7 @@ paths:
             $ref: '#/definitions/Error'
         '404':
           description: >-
-            Does Not Exist - Either the host, MAC or nid are unknown and there
+            Does Not Exist - Either the host, MAC or NID are unknown and there
             is no Default, or the existing entry does not specify a kernel image
             for boot.
           schema:
@@ -170,7 +170,7 @@ paths:
             $ref: '#/definitions/Error'
         '404':
           description: >-
-            Does Not Exist - Either the host, MAC or nid are unknown and there
+            Does Not Exist - Either the host, MAC or NID are unknown and there
             is no Default, or the existing entry does not specify a kernel image
             for boot.
           schema:
@@ -186,9 +186,9 @@ paths:
         - bootscript
       description: >-
         Retrieve iPXE boot script for the host specified by the MAC parameter.
-        Alternatively, for test/convenience purposes, use the name or the nid parameter to
+        Alternatively, for test/convenience purposes, use the name or the NID parameter to
         specify the host name or xname.
-        Do not specify more than one parameter (mac, name, or nid) in the request as
+        Do not specify more than one parameter (MAC, name, or NID) in the request as
         results are undefined if they do not all refer to the same node.
 
       operationId: bootscript_get
@@ -227,12 +227,12 @@ paths:
           type: integer
           description: >-
             Timestamp for when the HSM state info needs to be
-            up to date by.  This is the unix concept of time, the number
+            up to date by.  This is the Unix concept of time, the number
             of seconds since Jan 1, 1970 UTC. This parameter is mostly used by the software
             itself.
       responses:
         '200':
-          description: Bootscript for requested MAC address
+          description: Boot script for requested MAC address
           schema:
             type: string
             example: |
@@ -250,7 +250,7 @@ paths:
             $ref: '#/definitions/Error'
         '404':
           description: >-
-            Does Not Exist - Either the host, MAC or nid are unknown and there
+            Does Not Exist - Either the host, MAC, or NID are unknown and there
             is no Default, or the existing entry does not specify a kernel image
             for boot.
           schema:
@@ -268,18 +268,18 @@ paths:
         Retrieve the boot parameters for one or more hosts.
         If no parameters are provided, then all known parameters are returned.
         Filtering can be accomplished by either providing a body of the boot parameters or
-        one of the three query parameters namely host names, MAC addresses, and/or nids.
+        one of the three query parameters: host names, MAC addresses, and/or NIDs.
         The body of boot parameters can also provide a kernel or initrd path which will be
         returned along with any bootparameter settings as well.
         Alternatively, query parameters name=, mac=, and/or nid= can provide the
-        filtering of individual items or comma separated lists of items.
+        filtering of individual items or comma-separated lists of items.
         The response is a list of boot parameter items.
         These items will include the individual kernel and initrd images, along
         with any related boot parameters.
         If filtering parameters are provided, each parameter will provide a
         result if one exists.
         Note that the kernel and initrd images are specified with a URL or path.
-        A plain path will result in a tftp download from this server.
+        A plain path will result in a TFTP download from this server.
         If a URL is provided, it can be from any available service which iPXE
         supports, and any location that the iPXE client has access to.
       parameters:
@@ -311,7 +311,7 @@ paths:
           schema:
             $ref: '#/definitions/Error'
         '404':
-          description: 'Does Not Exist - Cannot find host, MAC, or nid'
+          description: 'Does Not Exist - Cannot find host, MAC, or NID'
           schema:
             $ref: '#/definitions/Error'
         '500':
@@ -328,10 +328,10 @@ paths:
         - bootparameters
       description: >-
         Define boot parameters. Specify a list of one of the
-        following parameters: hosts, macs, or nids along with the boot parameters to
+        following parameters: hosts, MACs, or NIDs along with the boot parameters to
         associate with those hosts.
         You can either use specific hosts or specify a general tag for hosts.
-        Specific hosts can be specified either by a hostname (xname), a nid, or a MAC address.
+        Specific hosts can be specified either by a hostname (xname), a NID, or a MAC address.
         It is recommended to use the xname. Otherwise, a tag can be used for the hosts parameter.
         A tag is "Default", or one of the roles that a node may be defined as in the
         hardware state manager (HSM). Some of the HSM roles like 'Compute', 'Storage', 'System',
@@ -343,11 +343,11 @@ paths:
         Along with the hosts, there must be a kernel image reference in order for the boot
         script service to be able to generate a boot script.
         In most cases, there should also be an initrd image reference, unless the kernel
-        being booted is stand-alone and does not require an initrd image.
+        being booted is standalone and does not require an initrd image.
         Finally, the params entry can be used to specify boot parameters for the
         specified hosts.
 
-        Note that if there is no exisiting params entry for a host, a new entry for the
+        Note that if there is no existing params entry for a host, a new entry for the
         host is created. If an entry already exists for the host, this request will fail.
 
 
@@ -385,12 +385,12 @@ paths:
         - bootparameters
       description: >-
         Set or update boot parameters for one or more hosts.
-        Specify a list of one of the following parameters: hosts, macs, or nids along with
+        Specify a list of one of the following parameters: hosts, MACs, or NIDs along with
         the boot parameters to associate with those hosts.
 
 
         You can either use specific hosts or specify a general tag for hosts.
-        Specific hosts can be specified either by a hostname (xname), a nid, or a MAC address.
+        Specific hosts can be specified either by a hostname (xname), a NID, or a MAC address.
         It is recommended to use the xname. Otherwise, a tag can be used for the hosts parameter.
         A tag is "Default", or one of the roles that a node may be defined as in the
         hardware state manager (HSM). Some of the HSM roles like 'Compute', 'Storage', 'System',
@@ -402,7 +402,7 @@ paths:
         Along with the hosts, there must be a kernel image reference in order for the boot
         script service to be able to generate a boot script.
         In most cases, there should also be an initrd image reference, unless the kernel
-        being booted is stand-alone and does not require an initrd image.
+        being booted is standalone and does not require an initrd image.
         Finally, the params entry can be used to specify boot parameters specific to the specified hosts.
         If there are no boot params stored for one or more hosts, then a new entry for that host
         will be created.
@@ -430,7 +430,7 @@ paths:
           schema:
             $ref: '#/definitions/Error'
         '404':
-          description: 'Does Not Exist - Cannot find specified host, mac, or nid'
+          description: 'Does Not Exist - Cannot find specified host, MAC, or NID'
           schema:
             $ref: '#/definitions/Error'
         '500':
@@ -463,7 +463,7 @@ paths:
           schema:
             $ref: '#/definitions/Error'
         '404':
-          description: 'Does Not Exist - Cannot find entry for specified host, mac, or nid'
+          description: 'Does Not Exist - Cannot find entry for specified host, MAC, or NID'
           schema:
             $ref: '#/definitions/Error'
         '500':
@@ -476,7 +476,7 @@ paths:
         - bootparameters
       description: >-
         Remove an existing boot parameter settings for one or more hosts, as specified by
-        hosts, macs, or nids.
+        hosts, MACs, or NIDs.
         If you specify a kernel or initrd image, the image entry is removed, and the
         references by any existing hosts are removed.
         Note that this can leave a host unbootable, and so will need to be updated with new
@@ -494,7 +494,7 @@ paths:
           schema:
             $ref: '#/definitions/Error'
         '404':
-          description: 'Does Not Exist - Cannot find specified host, mac, or nid'
+          description: 'Does Not Exist - Cannot find specified host, MAC, or NID'
           schema:
             $ref: '#/definitions/Error'
         '500':
@@ -513,11 +513,11 @@ paths:
         If any of these parameters are specified, then only host information for
         those items are returned in the response.
         Multiple hosts can be specified for any of these parameters by
-        specifying a comma separated list of items, or by providing the query
+        specifying a comma-separated list of items, or by providing the query
         parameter itself more than once.
         If the same host is referenced more
         than once, its information will be returned multiple times.
-        In particular, if a host is referenced by both its host name and nid
+        In particular, if a host is referenced by both its host name and NID
         and/or MAC address, this same host information will be returned once for
         each reference.
       parameters:
@@ -583,7 +583,7 @@ paths:
         - endpoint-history
       description: >-
                    Retrieve access information for xname and endpoint. Every time a node requests special
-                   types of endpoint (its bootscript or cloud-init data) that is recorded in the database. This is
+                   types of endpoint (its boot script or cloud-init data) that is recorded in the database. This is
                    useful for determining a number of things most notably as a way to monitor boot progress.
       parameters:
         - name: name
@@ -638,8 +638,8 @@ paths:
         Retrieve the current connection status to the BSS ETCD database.
         
         The connection to ETCD will be tested by writing a value to ETCD, and then reading it
-        back from the database. If the value is successfuly writen to ETCD and read back as the 
-        same value, then the connection to ETCD is considered to be 'connected. Otherwise, there
+        back from the database. If the value is successfully writen to ETCD and read back as the 
+        same value, then the connection to ETCD is considered to be connected. Otherwise, there
         is a connection error.
         
       responses:
@@ -781,14 +781,14 @@ definitions:
     description: >-
       When used as a request body, the caller sets boot parameters and specifies hosts,
       along with the kernel image path/URL and initrd path/URL. To specify hosts, use one of
-      the three parameters - hosts, macs, or nids.
-      If MAC addresses, or nids are used, they are mapped to host names based on information
-      retrieved from the hardware state manager.  Likewise, if nids are used, they are mapped
+      the three parameters - hosts, MACs, or NIDs.
+      If MAC addresses are used, they are mapped to host names based on information
+      retrieved from the hardware state manager.  Likewise, if NIDs are used, they are mapped
       to host names with the same hardware state manager info.  While the expected usage is
       to specify hosts based on their host names, the "macs" and "nids" alternatives may be
       more convenient in some contexts.
 
-      You can also specify a general tag for hosts. A tag is "Default",
+      You can also specify a general tag for hosts. A tag is 'Default',
       or one of the roles that a node may be defined as in the hardware state manager (HSM).
       Some of the HSM roles like 'Compute', 'Storage', 'System', and 'Application' can be
       specified as hosts and are managed similar to specific hosts. While BSS allows for
@@ -796,11 +796,11 @@ definitions:
       especially for a large system.
 
 
-      Alternatively, if you specify a kernel or initrd image and params, but no host, mac,
-      or nid, the boot script service will associate the specified params with the specified
+      Alternatively, if you specify a kernel or initrd image and params, but no host, MAC,
+      or NID, the boot script service will associate the specified params with the specified
       kernel or initrd image.
       When used as a response body, identifies the hosts available for booting using either
-      hosts, macs, or nids, depending on which parameter was used in the request.
+      hosts, MACs, or NIDs, depending on which parameter was used in the request.
     type: object
     properties:
       hosts:
@@ -988,4 +988,3 @@ definitions:
         type: string
       instance:
         type: string
-
