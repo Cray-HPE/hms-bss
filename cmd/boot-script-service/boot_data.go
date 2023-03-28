@@ -642,11 +642,13 @@ func searchKeyspace(prefix string) ([]hmetcd.Kvi_KV, error) {
 	// > If range_end is key plus one (e.g., "aa"+1 == "ab", "a\xff"+1 == "b"), then the range request gets all keys
 	// > prefixed with key.
 	// https://github.com/etcd-io/etcd/pull/7206/commits/7e31ddd32a4511c436b14e30ef43756ac782d080
+
+	rangeStart := prefix
 	rangePrefix := prefix[:len(prefix)-1]
 	rangeLastNextChar := prefix[len(prefix)-1:][0] + 1
 	rangeEnd := fmt.Sprintf("%s%c", rangePrefix, rangeLastNextChar)
 
-	return kvstore.GetRange(rangePrefix, rangeEnd)
+	return kvstore.GetRange(rangeStart, rangeEnd)
 }
 
 func getAccessesForPrefix(prefix string) (accesses []bssTypes.EndpointAccess, err error) {
@@ -681,14 +683,28 @@ func getAccessesForPrefix(prefix string) (accesses []bssTypes.EndpointAccess, er
 func SearchEndpointAccessed(name string, endpointType bssTypes.EndpointType) (accesses []bssTypes.EndpointAccess,
 	err error) {
 	if name == "" && endpointType == "" {
-		return getAccessesForPrefix(endpointAccessPfx)
+		return getAccessesForPrefix(fmt.Sprintf("%s/", endpointAccessPfx))
 	} else if name != "" && endpointType == "" {
-		return getAccessesForPrefix(fmt.Sprintf("%s/%s", endpointAccessPfx, name))
+		return getAccessesForPrefix(fmt.Sprintf("%s/%s/", endpointAccessPfx, name))
 	} else if name != "" && endpointType != "" {
 		var epoch int64
 		epoch, err = getEndpointAccessed(name, endpointType)
 		if err != nil {
 			return
+		}
+		// epoch == 0 means the given name and endpoint combo has never been accessed.
+		// A long existing bug/feature of bss has been to return a value in this case with a LastEpoch value of zero.
+		// The following preserves that behavior, but only if the endpoint type is valid.
+		if epoch == 0 {
+			hasValidType := false
+			for _, t := range bssTypes.EndpointTypes {
+				if strings.EqualFold(string(endpointType), string(t)) {
+					hasValidType = true
+				}
+			}
+			if !hasValidType {
+				return
+			}
 		}
 
 		access := bssTypes.EndpointAccess{

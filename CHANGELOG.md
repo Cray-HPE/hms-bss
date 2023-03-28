@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.24.0] - 2023-03-28
+
+### Changed
+
+- CASMHMS-5812 and CASMHMS-5813: Fixed the endpoint-history API to filter data correctly when using the name and endpoint query parameters.
+
 ## [1.23.0] - 2023-01-24
 
 ### Changed
