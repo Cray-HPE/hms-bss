@@ -59,11 +59,11 @@ stages:
   response:
     status_code: 200
 
-# Please note that this stage is a hack to retrieve and save the IP address of this container into 
+# Please note that this stage is a hack to retrieve and save the IP address of this container into
 # a variable. Perhaps a plugin might be better here.
 - name: Retrieve test container IP address
   request:
-    # The endpoint that we hit doesn't really matter, just 
+    # The endpoint that we hit doesn't really matter, just
     url: "{bss_base_url}/boot/v1/service/status"
     method: GET
     verify: !bool "{verify}"
@@ -135,8 +135,38 @@ stages:
                 - bootscript
               last_epoch:
                 type: int
-                range: 
+                range:
                   min: 0 # If the epoch time is 0, then that means the endpoint wasn't really queried.
+
+# Verify that there are no matches when using a bad endpoint.
+- name: Query endpoint-history with bad endpoint
+  request:
+    url: "{bss_base_url}/boot/v1/endpoint-history"
+    method: GET
+    verify: !bool "{verify}"
+    params:
+      name: "{node_xname}"
+      endpoint: bootscript-bad
+  response:
+    status_code: 200
+    verify_response_with:
+      function: tavern.testutils.helpers:validate_pykwalify
+      extra_kwargs:
+        schema:
+          type: seq
+          matching: all
+          range:
+            min: 0
+            max: 0
+          sequence:
+          - type: map
+            mapping:
+              name:
+                type: str
+              endpoint:
+                type: str
+              last_epoch:
+                type: int
 
 - name: Query for cloud-init user-data for the node
   request:
@@ -179,8 +209,37 @@ stages:
                 - user-data
               last_epoch:
                 type: int
-                range: 
+                range:
                   min: 1 # If the epoch time is 0, then that means the endpoint wasn't really queried.
+
+# Verify that there are no matches when using a prefix of the xname.
+- name: Query endpoint-history with xname prefix
+  request:
+    url: "{bss_base_url}/boot/v1/endpoint-history"
+    method: GET
+    verify: !bool "{verify}"
+    params:
+      name: x1000
+  response:
+    status_code: 200
+    verify_response_with:
+      function: tavern.testutils.helpers:validate_pykwalify
+      extra_kwargs:
+        schema:
+          type: seq
+          matching: all
+          range:
+            min: 0
+            max: 0
+          sequence:
+          - type: map
+            mapping:
+              name:
+                type: str
+              endpoint:
+                type: str
+              last_epoch:
+                type: int
 
 - name: Remove test HSM EthernetInterfaces for the CT Test container
   request:
