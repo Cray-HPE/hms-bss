@@ -83,19 +83,43 @@ func TestReplaceS3Params_regex(t *testing.T) {
 	}
 }
 
-func TestReplaceS3Params_replace(t *testing.T) {
-	params := fmt.Sprintf("%s %s  %s %s %s",
+// TestReplaceS3Params_replace_kernel_metal tests that the “metal.server=s3://<url>“ argument is recognized and given a pre-signed URL.
+func TestReplaceS3Params_replace_kernel_metal(t *testing.T) {
+	params := fmt.Sprintf("%s %s %s %s %s",
 		"metal.server=s3://ncn-images/k8s/0.2.78/filesystem.squashfs",
 		"bond=bond0",
 		"metal.server=s3://bucket/path",
 		"root=craycps-s3:s3://boot-images",
 		"m=s3://b/p")
 
-	expected_params := fmt.Sprintf("%s %s  %s %s %s",
+	expected_params := fmt.Sprintf("%s %s %s %s %s",
 		"metal.server=s3://ncn-images/k8s/0.2.78/filesystem.squashfs_signed",
 		"bond=bond0",
 		"metal.server=s3://bucket/path_signed",
 		"root=craycps-s3:s3://boot-images",
+		"m=s3://b/p")
+
+	newParams, err := replaceS3Params(params, mockGetSignedS3Url)
+	if err != nil {
+		t.Errorf("replaceS3Params returned an error for params: %s, error: %v\n", params, err)
+	}
+	if newParams != expected_params {
+		t.Errorf("replaceS3Params failed.\n  expected: %s\n  actual: %s\n", expected_params, newParams)
+	}
+}
+
+// TestReplaceS3Params_replace_kernel_live tests that the dmsquash-live “root=live:s3://<url>“ argument is recognized and given a pre-signed URL.
+func TestReplaceS3Params_replace_kernel_live(t *testing.T) {
+	params := fmt.Sprintf("%s %s %s %s",
+		"root=live:s3://boot-images/k8s/0.2.78/rootfs",
+		"bond=bond0",
+		"root=live:s3://bucket/path",
+		"m=s3://b/p")
+
+	expected_params := fmt.Sprintf("%s %s %s %s",
+		"root=live:s3://boot-images/k8s/0.2.78/rootfs_signed",
+		"bond=bond0",
+		"root=live:s3://bucket/path_signed",
 		"m=s3://b/p")
 
 	newParams, err := replaceS3Params(params, mockGetSignedS3Url)
