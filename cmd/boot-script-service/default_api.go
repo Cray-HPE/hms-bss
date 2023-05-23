@@ -76,7 +76,7 @@ var gwURI = getEnvVal("BSS_GW_URI", "/apis/bss")
 var s3Client *hms_s3.S3Client
 
 // regex for matching s3 URIs in the params field
-var s3ParamsRegex = "(^|[ ])((metal.server=)(s3://[^ ]*))"
+var s3ParamsRegex = "(^|[ ])((metal.server=|root=live:)(s3://[^ ]*))"
 
 type (
 	// function interface for checkURL()
