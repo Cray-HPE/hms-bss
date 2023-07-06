@@ -1,5 +1,6 @@
 kubernetes/.packaged/
 .idea/
+*.swp
 
 # Prevent certificates from getting checked in
 *.ca
@@ -8,3 +9,6 @@ kubernetes/.packaged/
 *.csr
 *.key
 *.pem
+
+# compiled go command
+boot-script-service

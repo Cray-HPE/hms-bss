@@ -5,11 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.23.0] - 2023-07-06
+## [1.26.0] - 2023-07-06
+
+### Added
+
+- Added retries to destructive bootscript CT tests for hms-nightly-integration runs.
+
+## [1.25.1] - 2023-05-30
 
 ### Changed
 
-- Added retries to destructive bootscript CT tests for hms-nightly-integration runs.
+- CASMCMS-8651: Update example fields in API spec to be links to S3 instead of dear departed ARS.
+
+## [1.25.0] - 2023-05-22
+
+### Added
+
+- CASMHMS-6018: Add support for creating pre-signed URLs for `root=live:` parameters, enabling native dmsquash-live dracut usage.
+
+## [1.24.0] - 2023-03-28
+
+### Changed
+
+- CASMHMS-5812 and CASMHMS-5813: Fixed the endpoint-history API to filter data correctly when using the name and endpoint query parameters.
+
+## [1.23.0] - 2023-01-24
+
+### Changed
+
+- CASMHMS-5894: Minor language linting of API spec; corrected markdown errors in changelog
 
 ## [1.22.0] - 2022-11-01
 
@@ -260,11 +284,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - CASMCLOUD-1023
   These are changes to charts in support of:
-  *moving to Helm v1/Loftsman v1
-  *the newest 2.x cray-service base chart
-    +upgraded to support Helm v3
-    +modified containers/init containers, volume, and persistent volume claim value definitions to be objects instead of arrays
-  *the newest 0.2.x cray-jobs base chart ◦upgraded to support Helm v3
+  - moving to Helm v1/Loftsman v1
+  - the newest 2.x cray-service base chart
+    - upgraded to support Helm v3
+    - modified containers/init containers, volume, and persistent volume claim value definitions to be objects instead of arrays
+  - the newest 0.2.x cray-jobs base chart upgraded to support Helm v3
 
 ## [1.3.5] - 2020-08-18
 
