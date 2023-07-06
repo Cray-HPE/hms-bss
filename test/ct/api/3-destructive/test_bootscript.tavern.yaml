@@ -1,6 +1,6 @@
 # MIT License
 #
-# (C) Copyright [2022] Hewlett Packard Enterprise Development LP
+# (C) Copyright [2022-2023] Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -67,12 +67,12 @@ stages:
 
 - name: Query bootscript by xname
   # Sometimes BSS returns a bootscript to re-attempt getting a bootscript, and this normally
-  # happens when BSS is syncing with HSM.
+  # happens when BSS is syncing with HSM. Add retries to account for this.
   # Example:
   #  #!ipxe
   #  sleep 10
   #  chain https://api-gw-service-nmn.local/apis/bss/boot/v1/bootscript?mac=00:40:a6:42:3a:58&retry=1
-  max_retries: 8
+  max_retries: 15
   delay_after: 2
   request:
     url: "{bss_base_url}/boot/v1/bootscript"
@@ -120,12 +120,12 @@ stages:
 
 - name: Query bootscript by MAC address
   # Sometimes BSS returns a bootscript to re-attempt getting a bootscript, and this normally
-  # happens when BSS is syncing with HSM.
+  # happens when BSS is syncing with HSM. Add retries to account for this.
   # Example:
   #  #!ipxe
   #  sleep 10
   #  chain https://api-gw-service-nmn.local/apis/bss/boot/v1/bootscript?mac=00:40:a6:42:3a:58&retry=1
-  max_retries: 8
+  max_retries: 15
   delay_after: 2
   request:
     url: "{bss_base_url}/boot/v1/bootscript"
@@ -140,12 +140,12 @@ stages:
 
 - name: Query bootscript by NID
   # Sometimes BSS returns a bootscript to re-attempt getting a bootscript, and this normally
-  # happens when BSS is syncing with HSM.
+  # happens when BSS is syncing with HSM. Add retries to account for this.
   # Example:
   #  #!ipxe
   #  sleep 10
   #  chain https://api-gw-service-nmn.local/apis/bss/boot/v1/bootscript?mac=00:40:a6:42:3a:58&retry=1
-  max_retries: 8
+  max_retries: 15
   delay_after: 2
   request:
     url: "{bss_base_url}/boot/v1/bootscript"
