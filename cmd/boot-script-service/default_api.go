@@ -1,6 +1,6 @@
 // MIT License
 //
-// (C) Copyright [2021-2022] Hewlett Packard Enterprise Development LP
+// (C) Copyright [2021-2024] Hewlett Packard Enterprise Development LP
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -628,21 +628,23 @@ func buildBootScript(bd BootData, sp scriptParams, chain, role, subRole, descr s
 	}
 	u := bd.Kernel.Path
 	u, err = checkURL(u)
-	if err == nil {
-		script += "kernel --name kernel " + u + " " + strings.Trim(params, " ")
-		script += " || goto boot_retry\n"
-		if bd.Initrd.Path != "" {
-			u, err = checkURL(bd.Initrd.Path)
-			if err == nil {
-				script += "initrd --name initrd " + u + " || goto boot_retry\n"
-			}
-		}
-		script += "boot || goto boot_retry\n:boot_retry\n"
-		// We could vary the length of the sleep based on retry count or some
-		// other criteria.
-		// For now, just sleep a bit
-		script += fmt.Sprintf("sleep %d\n", retryDelay) + chain + "\n"
+	if err != nil {
+		return script, err
 	}
+	script += "kernel --name kernel " + u + " " + strings.Trim(params, " ")
+	script += " || goto boot_retry\n"
+	if bd.Initrd.Path != "" {
+		u, err = checkURL(bd.Initrd.Path)
+		if err == nil {
+			script += "initrd --name initrd " + u + " || goto boot_retry\n"
+			script += "imgstat || echo Could not show image information."
+		}
+	}
+	script += "boot || goto boot_retry\n:boot_retry\n"
+	// We could vary the length of the sleep based on retry count or some
+	// other criteria.
+	// For now, just sleep a bit
+	script += fmt.Sprintf("sleep %d\n", retryDelay) + chain + "\n"
 	return script, err
 }
 
