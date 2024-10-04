@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - CASMHSM-6283: Fix loop caused by missing newline.
 
-## [1.27.0]
+## [1.27.0] - 2024-09-30
 
 ### Changed
 
