@@ -637,7 +637,7 @@ func buildBootScript(bd BootData, sp scriptParams, chain, role, subRole, descr s
 		u, err = checkURL(bd.Initrd.Path)
 		if err == nil {
 			script += "initrd --name initrd " + u + " || goto boot_retry\n"
-			script += "imgstat || echo Could not show image information."
+			script += "imgstat || echo Could not show image information.\n"
 		}
 	}
 	script += "boot || goto boot_retry\n:boot_retry\n"
