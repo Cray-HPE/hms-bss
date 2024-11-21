@@ -24,7 +24,7 @@
 
 ### build-base stage ###
 # Build base just has the packages installed we need.
-FROM artifactory.algol60.net/docker.io/library/golang:1.16-alpine AS build-base
+FROM artifactory.algol60.net/docker.io/library/golang:1.23.3-alpine3.20 AS build-base
 
 RUN set -ex \
     && apk -U upgrade \
@@ -45,7 +45,7 @@ COPY .version $GOPATH/src/github.com/Cray-HPE/hms-bss/.version
 ### Build Stage ###
 FROM base AS builder
 
-RUN set -ex && go build -v -i -o /usr/local/bin/boot-script-service github.com/Cray-HPE/hms-bss/cmd/boot-script-service
+RUN set -ex && go build -v -o /usr/local/bin/boot-script-service github.com/Cray-HPE/hms-bss/cmd/boot-script-service
 
 ### Final Stage ###
 FROM artifactory.algol60.net/docker.io/alpine:3.15
