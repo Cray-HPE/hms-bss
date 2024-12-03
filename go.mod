@@ -17,7 +17,7 @@ require (
 require (
 	github.com/Cray-HPE/hms-certs v1.3.2 // indirect
 	github.com/Cray-HPE/hms-securestorage v1.12.2 // indirect
-	github.com/aws/aws-sdk-go v1.29.2 // indirect
+	github.com/aws/aws-sdk-go v1.34.0 // indirect
 	github.com/coreos/go-semver v0.3.1 // indirect
 	github.com/coreos/go-systemd/v22 v22.5.0 // indirect
 	github.com/fatih/color v1.15.0 // indirect
@@ -34,7 +34,7 @@ require (
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/hashicorp/vault/api v1.0.4 // indirect
 	github.com/hashicorp/vault/sdk v0.1.13 // indirect
-	github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af // indirect
+	github.com/jmespath/go-jmespath v0.3.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
