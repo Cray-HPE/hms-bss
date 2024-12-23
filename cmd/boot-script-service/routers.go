@@ -1,6 +1,6 @@
 // MIT License
 //
-// (C) Copyright [2021] Hewlett Packard Enterprise Development LP
+// (C) Copyright [2021,2025] Hewlett Packard Enterprise Development LP
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -37,8 +37,9 @@ package main
 
 import (
 	"fmt"
-	base "github.com/Cray-HPE/hms-base"
 	"net/http"
+
+	base "github.com/Cray-HPE/hms-base"
 )
 
 const (
@@ -67,6 +68,10 @@ func initHandlers() {
 	http.HandleFunc(notifierEndpoint, scn)
 	// endpoint-access
 	http.HandleFunc(baseEndpoint+"/endpoint-history", endpointHistoryGet)
+
+	// If the 'pprof' build tag is set, then this will register pprof handlers,
+	// otherwise this function is stubbed and will do nothing.
+	RegisterPProfHandlers()
 }
 
 func Index(w http.ResponseWriter, r *http.Request) {

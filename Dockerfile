@@ -1,6 +1,6 @@
 # MIT License
 #
-# (C) Copyright [2018-2021] Hewlett Packard Enterprise Development LP
+# (C) Copyright [2018-2021,2024-2025] Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -45,7 +45,15 @@ COPY .version $GOPATH/src/github.com/Cray-HPE/hms-bss/.version
 ### Build Stage ###
 FROM base AS builder
 
-RUN set -ex && go build -v -o /usr/local/bin/boot-script-service github.com/Cray-HPE/hms-bss/cmd/boot-script-service
+# Set profiling to disabled by default
+ARG ENABLE_PPROF=true
+
+# Conditionally build with the pprof tag if profiling is enabled
+RUN if [ "$ENABLE_PPROF" = "true" ]; then \
+        set -ex && go build -v -tags pprof -o /usr/local/bin/boot-script-service github.com/Cray-HPE/hms-bss/cmd/boot-script-service; \
+    else \
+        set -ex && go build -v -o /usr/local/bin/boot-script-service github.com/Cray-HPE/hms-bss/cmd/boot-script-service; \
+    fi
 
 ### Final Stage ###
 FROM artifactory.algol60.net/docker.io/alpine:3.15
