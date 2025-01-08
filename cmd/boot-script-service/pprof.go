@@ -28,26 +28,5 @@
 package main
 
 import (
-	"net/http"
-	"net/http/pprof"
 	_ "net/http/pprof"
 )
-
-func RegisterPProfHandlers() {
-	// Main profiling entry point
-	http.HandleFunc("/v1/debug/pprof/", pprof.Index) // Index listing all pprof endpoints
-
-	// Specific profiling handlers
-	http.HandleFunc("/v1/debug/pprof/cmdline", pprof.Cmdline) // Command-line arguments
-	http.HandleFunc("/v1/debug/pprof/profile", pprof.Profile) // CPU profile (default: 30 seconds)
-	http.HandleFunc("/v1/debug/pprof/symbol", pprof.Symbol)   // Symbol resolution for addresses
-	http.HandleFunc("/v1/debug/pprof/trace", pprof.Trace)     // Execution trace (default: 1 second)
-
-	// Additional profiling endpoints
-	http.Handle("/v1/debug/pprof/allocs", pprof.Handler("allocs"))             // Heap allocation samples
-	http.Handle("/v1/debug/pprof/block", pprof.Handler("block"))               // Goroutine blocking events
-	http.Handle("/v1/debug/pprof/goroutine", pprof.Handler("goroutine"))       // Stack traces of all goroutines
-	http.Handle("/v1/debug/pprof/heap", pprof.Handler("heap"))                 // Memory heap profile
-	http.Handle("/v1/debug/pprof/mutex", pprof.Handler("mutex"))               // Mutex contention profile
-	http.Handle("/v1/debug/pprof/threadcreate", pprof.Handler("threadcreate")) // Stack traces of thread creation
-}
