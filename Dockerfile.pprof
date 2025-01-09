@@ -1,6 +1,6 @@
 # MIT License
 #
-# (C) Copyright [2018-2021,2025] Hewlett Packard Enterprise Development LP
+# (C) Copyright [2018-2021,2024-2025] Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -20,7 +20,8 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-# Dockerfile for building HMS bss.
+# Dockerfile for building HMS bss with pprof support.
+# The only difference from primary dockerfile is building with the pprof tag
 
 ### build-base stage ###
 # Build base just has the packages installed we need.
@@ -45,7 +46,7 @@ COPY .version $GOPATH/src/github.com/Cray-HPE/hms-bss/.version
 ### Build Stage ###
 FROM base AS builder
 
-RUN set -ex && go build -v -o /usr/local/bin/boot-script-service github.com/Cray-HPE/hms-bss/cmd/boot-script-service
+RUN set -ex && go build -v -tags pprof -o /usr/local/bin/boot-script-service github.com/Cray-HPE/hms-bss/cmd/boot-script-service
 
 ### Final Stage ###
 FROM artifactory.algol60.net/docker.io/alpine:3.15
