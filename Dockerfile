@@ -1,6 +1,6 @@
 # MIT License
 #
-# (C) Copyright [2018-2021] Hewlett Packard Enterprise Development LP
+# (C) Copyright [2018-2021,2025] Hewlett Packard Enterprise Development LP
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -76,8 +76,8 @@ ENV BSS_OPTS="--insecure"
 ENV BSS_RETRY_DELAY=30
 ENV BSS_HSM_RETRIEVAL_DELAY=10
 
-ENV ETCD_HOST "etcd"
-ENV ETCD_PORT "2379"
+ENV ETCD_HOST="etcd"
+ENV ETCD_PORT="2379"
 
 # Other potentially useful env variables:
 # BSS_IPXE_SERVER defaults to "api-gw-service-nmn.local"

@@ -77,8 +77,8 @@ ENV BSS_OPTS="--insecure"
 ENV BSS_RETRY_DELAY=30
 ENV BSS_HSM_RETRIEVAL_DELAY=10
 
-ENV ETCD_HOST "etcd"
-ENV ETCD_PORT "2379"
+ENV ETCD_HOST="etcd"
+ENV ETCD_PORT="2379"
 
 # Other potentially useful env variables:
 # BSS_IPXE_SERVER defaults to "api-gw-service-nmn.local"
