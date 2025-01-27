@@ -45,8 +45,8 @@ import (
 	"time"
 
 	base "github.com/Cray-HPE/hms-base/v2"
-	rf "github.com/Cray-HPE/hms-smd/pkg/redfish"
-	"github.com/Cray-HPE/hms-smd/pkg/sm"
+	rf "github.com/Cray-HPE/hms-smd/v2/pkg/redfish"
+	"github.com/Cray-HPE/hms-smd/v2/pkg/sm"
 )
 
 const badMAC = "not available"
