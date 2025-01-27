@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.12.0] - 2025-02-07
+
+### Security
+
+- Update module dependencies
+- Remove deprecated Version from docker compose files
+- Replace "docker-compose" with "docker compose" in runUnitTest.sh
+
+## [1.11.0] - 2024-11-22
+
+### Changed
+
+- Updated go to 1.23
+
+## [1.10.1] - 2021-08-10
+
+### Changed
+
+- updated docker file and added .github
+
+## [1.10.0] - 2021-08-03
+
+### Changed
+
+- Upgraded AWS SDK to v1.40.14.
+
 ## [1.9.2] - 2021-07-21
 
 ### Changed
