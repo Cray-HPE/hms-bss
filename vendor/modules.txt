@@ -1,6 +1,9 @@
 # github.com/Cray-HPE/hms-base v1.15.0
 ## explicit; go 1.16
 github.com/Cray-HPE/hms-base
+# github.com/Cray-HPE/hms-base/v2 v2.2.0
+## explicit; go 1.23
+github.com/Cray-HPE/hms-base/v2
 # github.com/Cray-HPE/hms-certs v1.3.2
 ## explicit; go 1.16
 github.com/Cray-HPE/hms-certs/pkg/hms_certs
@@ -69,11 +72,10 @@ github.com/coreos/go-systemd/v22/journal
 # github.com/evanphx/json-patch v4.9.0+incompatible
 ## explicit
 github.com/evanphx/json-patch
-# github.com/fatih/color v1.15.0
+# github.com/fsnotify/fsnotify v1.8.0
 ## explicit; go 1.17
-# github.com/fsnotify/fsnotify v1.4.9
-## explicit; go 1.13
 github.com/fsnotify/fsnotify
+github.com/fsnotify/fsnotify/internal
 # github.com/gogo/protobuf v1.3.2
 ## explicit; go 1.15
 github.com/gogo/protobuf/gogoproto
@@ -91,14 +93,14 @@ github.com/google/uuid
 # github.com/hashicorp/errwrap v1.0.0
 ## explicit
 github.com/hashicorp/errwrap
-# github.com/hashicorp/go-cleanhttp v0.5.1
-## explicit
+# github.com/hashicorp/go-cleanhttp v0.5.2
+## explicit; go 1.13
 github.com/hashicorp/go-cleanhttp
 # github.com/hashicorp/go-multierror v1.1.0
 ## explicit; go 1.14
 github.com/hashicorp/go-multierror
-# github.com/hashicorp/go-retryablehttp v0.7.0
-## explicit; go 1.13
+# github.com/hashicorp/go-retryablehttp v0.7.7
+## explicit; go 1.19
 github.com/hashicorp/go-retryablehttp
 # github.com/hashicorp/go-rootcerts v1.0.1
 ## explicit; go 1.12
@@ -133,10 +135,6 @@ github.com/hashicorp/vault/sdk/helper/strutil
 github.com/jmespath/go-jmespath
 # github.com/kr/pretty v0.3.1
 ## explicit; go 1.12
-# github.com/mattn/go-colorable v0.1.13
-## explicit; go 1.15
-# github.com/mattn/go-isatty v0.0.19
-## explicit; go 1.15
 # github.com/mitchellh/go-homedir v1.1.0
 ## explicit
 github.com/mitchellh/go-homedir
@@ -203,7 +201,7 @@ golang.org/x/net/http2/hpack
 golang.org/x/net/idna
 golang.org/x/net/internal/timeseries
 golang.org/x/net/trace
-# golang.org/x/sys v0.27.0
+# golang.org/x/sys v0.29.0
 ## explicit; go 1.18
 golang.org/x/sys/unix
 golang.org/x/sys/windows
