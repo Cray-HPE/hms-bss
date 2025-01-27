@@ -34,7 +34,7 @@ import (
 	"net/http"
 	"strings"
 
-	yaml "gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v3"
 
 	base "github.com/Cray-HPE/hms-base/v2"
 )
