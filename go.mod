@@ -7,7 +7,7 @@ toolchain go1.23.3
 require (
 	github.com/Cray-HPE/hms-base/v2 v2.2.0
 	github.com/Cray-HPE/hms-hmetcd v1.12.0
-	github.com/Cray-HPE/hms-s3 v1.9.2
+	github.com/Cray-HPE/hms-s3 v1.11.1-0.20250127195103-c6ad4b3d6a10
 	github.com/Cray-HPE/hms-smd/v2 v2.33.0
 	github.com/evanphx/json-patch v4.9.0+incompatible
 	github.com/google/uuid v1.6.0
@@ -19,7 +19,7 @@ require (
 	github.com/Cray-HPE/hms-certs v1.3.2 // indirect
 	github.com/Cray-HPE/hms-securestorage v1.12.2 // indirect
 	github.com/Cray-HPE/hms-xname v1.4.0 // indirect
-	github.com/aws/aws-sdk-go v1.29.2 // indirect
+	github.com/aws/aws-sdk-go v1.55.6 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/coreos/go-semver v0.3.1 // indirect
 	github.com/coreos/go-systemd/v22 v22.5.0 // indirect
@@ -37,7 +37,7 @@ require (
 	github.com/hashicorp/go-sockaddr v1.0.6 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/hashicorp/vault/api v1.15.0 // indirect
-	github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af // indirect
+	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
