@@ -7,7 +7,7 @@ toolchain go1.23.3
 require (
 	github.com/Cray-HPE/hms-base/v2 v2.2.0
 	github.com/Cray-HPE/hms-hmetcd v1.12.0
-	github.com/Cray-HPE/hms-s3 v1.11.1-0.20250127195103-c6ad4b3d6a10
+	github.com/Cray-HPE/hms-s3 v1.12.0
 	github.com/Cray-HPE/hms-smd/v2 v2.33.0
 	github.com/evanphx/json-patch v5.9.0+incompatible
 	github.com/google/uuid v1.6.0
