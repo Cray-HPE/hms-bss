@@ -201,14 +201,14 @@ func metaDataGetAPI(w http.ResponseWriter, r *http.Request) {
 				fmt.Sprintf("Not Found"))
 			return
 		}
-		debugf("metaDataGetAPI(%s): Query, returning data: %v\n", remoteaddr, rval)
+		debugf("metaDataGetAPI(%s): Returning query data\n", remoteaddr)
 		w.WriteHeader(httpStatus)
 		json.NewEncoder(w).Encode(rval)
 	} else {
 		// No query, return all data
 		w.WriteHeader(httpStatus)
 		json.NewEncoder(w).Encode(mergedData)
-		debugf("metaDataGetAPI(%s): No query, returning all data: %v\n", remoteaddr, mergedData)
+		debugf("metaDataGetAPI(%s): No query, returning all data\n", remoteaddr)
 	}
 }
 

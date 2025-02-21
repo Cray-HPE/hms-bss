@@ -20,12 +20,10 @@
 // ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-//
 // Shasta boot script server state change notification management
 //
 // Set up state change notification subscriptions in order to keep the known
 // configuration up-to-date with the state manager.
-//
 package main
 
 import (
