@@ -364,19 +364,15 @@ func getStateInfo() (ret *SMData) {
 }
 
 func protectedGetState(ts int64) (*SMData, map[string]SMComponent) {
-	debugf("protectedGetState(): ts=%s smTimeStamp=%s smData=0x%p\n",
+	debugf("protectedGetState(): ts=%s smTimeStamp=%s smData=%p\n",
          time.Unix(ts, 0).Format("15:04:05"),
          time.Unix(smTimeStamp, 0).Format("15:04:05"), smData)
 
 	smMutex.Lock()
 	defer smMutex.Unlock()
 
-	if ts < 0 || ts > smTimeStamp || smData == nil {
-		if ts <= 0 {
-			smTimeStamp = time.Now().Unix()
-		} else {
-			smTimeStamp = ts
-		}
+	if ts > smTimeStamp || smData == nil {
+		smTimeStamp = time.Now().Unix()
 
 		log.Printf("Re-caching HSM state at %s\n",
                time.Unix(smTimeStamp, 0).Format("15:04:05"))
