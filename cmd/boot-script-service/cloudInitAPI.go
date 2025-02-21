@@ -202,16 +202,14 @@ func metaDataGetAPI(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		debugf("metaDataGetAPI(%s): Query, returning data: %v\n", remoteaddr, rval)
+		w.WriteHeader(httpStatus)
 		json.NewEncoder(w).Encode(rval)
 	} else {
 		// No query, return all data
+		w.WriteHeader(httpStatus)
 		json.NewEncoder(w).Encode(mergedData)
 		debugf("metaDataGetAPI(%s): No query, returning all data: %v\n", remoteaddr, mergedData)
 	}
-
-	w.WriteHeader(httpStatus)
-	return
-
 }
 
 func userDataGetAPI(w http.ResponseWriter, r *http.Request) {
