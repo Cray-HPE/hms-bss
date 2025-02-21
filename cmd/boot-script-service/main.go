@@ -69,13 +69,14 @@ var (
 	// TODO: Set the default to a well known link local address when we have it.
 	// This will also mean we change the virtual service into an Ingress with
 	// this well known IP.
-	advertiseAddress  = "" // i.e. http://{IP to reach this service}
-	insecure          = false
-	debugFlag         = true
-	kvstore           hmetcd.Kvi
-	retryDelay        = uint(30)
-	hsmRetrievalDelay = uint(10)
-	notifier          *ScnNotifier
+	advertiseAddress     = "" // i.e. http://{IP to reach this service}
+	insecure             = false
+	debugFlag            = false
+	cacheEvictionTimeout = uint(10)
+	kvstore              hmetcd.Kvi
+	retryDelay           = uint(30)
+	hsmRetrievalDelay    = uint(10)
+	notifier             *ScnNotifier
 )
 
 func parseEnv(evar string, v interface{}) (ret error) {
@@ -218,10 +219,13 @@ func main() {
 	parseEnv("DATASTORE_BASE", &datastoreBase)
 	parseEnv("BSS_INSECURE", &insecure)
 	parseEnv("BSS_DEBUG", &debugFlag)
+	parseEnv("BSS_DEBUG", &cacheEvictionTimeout)
 	parseEnv("BSS_RETRY_DELAY", &retryDelay)
 	parseEnv("BSS_RETRIEVAL_DELAY", &hsmRetrievalDelay)
 	parseEnv("SPIRE_TOKEN_URL", &spireServiceURL)
 	parseEnv("BSS_ADVERTISE_ADDRESS", &advertiseAddress)
+
+debugFlag = true // JOSH TODO: REMOVE BEFORE CHECKING IN
 
 	flag.StringVar(&httpListen, "http-listen", httpListen, "HTTP server IP + port binding")
 	flag.StringVar(&hsmBase, "hsm", hsmBase, "Hardware State Manager location as URI, e.g. [scheme]://[host[:port]]")
@@ -232,6 +236,7 @@ func main() {
 	flag.StringVar(&advertiseAddress, "cloud-init-address", advertiseAddress, "IP:PORT to advertise for cloud-init calls. This needs to be an IP as we do not have DNS when cloud-init runs")
 	flag.BoolVar(&insecure, "insecure", insecure, "Don't enforce https certificate security")
 	flag.BoolVar(&debugFlag, "debug", debugFlag, "Enable debug output")
+	flag.UintVar(&cacheEvictionTimeout, "cache-eviction-timeout", cacheEvictionTimeout, "Cache eviction timeout in seconds (0 to disable)")
 	flag.UintVar(&retryDelay, "retry-delay", retryDelay, "Retry delay in seconds")
 	flag.UintVar(&hsmRetrievalDelay, "hsm-retrieval-delay", hsmRetrievalDelay, "SM Retrieval delay in seconds")
 	flag.Parse()

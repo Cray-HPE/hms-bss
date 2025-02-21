@@ -440,15 +440,14 @@ func FindSMCompByNid(nid int) (SMComponent, bool) {
 }
 
 func FindXnameByIP(ip string) (string, bool) {
-	// This is how many minutes we subtract from time.Now().
-	// This will cause refreshState to refresh ever `cacheEvictionTime` minutes.
-	// 10 minutes was chosen to start with as it seems reasonable.
+	// cacheEvictionTimeout is how many minutes we subtract from time.Now().
+	// This will cause refreshState to refresh every `cacheEvictionTime` minutes.
+	// 10 minutes was chosen as the default because it seems reasonable.
 	// We need to semi-frequently refresh this data in case IP addresses change
 	// due to DHCP lease expirations.
-	cacheEvictionTime := 10
 
 	currTime := time.Now()
-	ts := currTime.Add(time.Duration(-cacheEvictionTime) * time.Minute)
+	ts := currTime.Add(time.Duration(-cacheEvictionTimeout) * time.Minute)
 	state := refreshState(ts.Unix())
 
 	ethIFace, found := state.IPAddrs[ip]
