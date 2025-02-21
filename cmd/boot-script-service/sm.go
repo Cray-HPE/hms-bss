@@ -378,7 +378,7 @@ func protectedGetState(ts int64) (*SMData, map[string]SMComponent) {
 			smTimeStamp = ts
 		}
 
-		log.Printf("Re-caching HSM state at %d\n", smTimeStamp)
+		log.Printf("Re-caching HSM state at %s\n", time.Unix(smTimeStamp, 0))
 
 		newSMData := getStateInfo()
 
