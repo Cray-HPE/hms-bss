@@ -28,11 +28,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/Cray-HPE/hms-bss/pkg/bssTypes"
 	"log"
 	"math/rand"
 	"net/http"
 	"strings"
+
+	"github.com/Cray-HPE/hms-bss/pkg/bssTypes"
 
 	yaml "gopkg.in/yaml.v2"
 
@@ -200,10 +201,12 @@ func metaDataGetAPI(w http.ResponseWriter, r *http.Request) {
 				fmt.Sprintf("Not Found"))
 			return
 		}
+		debugf("metaDataGetAPI(%s): Query, returning data: %v\n", remoteaddr, rval)
 		json.NewEncoder(w).Encode(rval)
 	} else {
 		// No query, return all data
 		json.NewEncoder(w).Encode(mergedData)
+		debugf("metaDataGetAPI(%s): No query, returning all data: %v\n", remoteaddr, mergedData)
 	}
 
 	w.WriteHeader(httpStatus)
