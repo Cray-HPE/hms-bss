@@ -364,15 +364,23 @@ func getStateInfo() (ret *SMData) {
 }
 
 func protectedGetState(ts int64) (*SMData, map[string]SMComponent) {
+	debugf("protectedGetState(): ts=%s smTimeStamp=%d smData=0x%p\n",
+         ts, smTimeStamp, smData)
+
 	smMutex.Lock()
 	defer smMutex.Unlock()
+
 	if ts < 0 || ts > smTimeStamp || smData == nil {
 		if ts <= 0 {
 			smTimeStamp = time.Now().Unix()
 		} else {
 			smTimeStamp = ts
 		}
+
+		log.Printf("Re-caching HSM state at %d\n", smTimeStamp)
+
 		newSMData := getStateInfo()
+
 		if newSMData != nil {
 			smData = newSMData
 			smDataMap = makeSmMap(smData)
@@ -448,6 +456,10 @@ func FindXnameByIP(ip string) (string, bool) {
 
 	currTime := time.Now()
 	ts := currTime.Add(time.Duration(-cacheEvictionTimeout) * time.Minute)
+
+	debugf("FindXnameByIP(\"%s\"): currTime=%d ts=%d cacheEvictionTimeout=%d\n",
+         ip, currTime, ts, cacheEvictionTimeout)
+
 	state := refreshState(ts.Unix())
 
 	ethIFace, found := state.IPAddrs[ip]
@@ -455,9 +467,13 @@ func FindXnameByIP(ip string) (string, bool) {
 		// If we didn't find the IP, try again with a current timestamp
 		// to force getting new state from HSM. In case the hardware came up
 		// within the last cache eviction period.
+
+		log.Printf("FindXnameByIP(\"%s\"): IP not found in cache, forcing a state refresh\n", ip)
+
 		state = refreshState(time.Now().Unix())
 		ethIFace, found = state.IPAddrs[ip]
-	}
+  }
+
 	return ethIFace.CompID, found
 }
 
