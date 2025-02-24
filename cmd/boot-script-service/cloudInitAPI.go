@@ -71,6 +71,7 @@ func generateInstanceID(prefix string) string {
 
 func findRemoteAddr(r *http.Request) string {
 	remoteaddr := r.Header.Get("X-Forwarded-For")
+	debugf("findRemoteAddr(): X-Forwarder-For=%v\n", remoteaddr)
 	if remoteaddr == "" {
 		// Since IPV6 address have colons we only strip the last colon which
 		// is the port. We know this from the http docs indicating IP:PORT
@@ -141,6 +142,8 @@ func metaDataGetAPI(w http.ResponseWriter, r *http.Request) {
 
 	remoteaddr := findRemoteAddr(r)
 
+	debugf("metaDataGetAPI(%s): Processing request %v\n", r.RemoteAddr, r.URL)
+
 	// Get the xname to lookup metadata.
 	xname, found := FindXnameByIP(remoteaddr)
 	if !found {
@@ -196,7 +199,7 @@ func metaDataGetAPI(w http.ResponseWriter, r *http.Request) {
 		lookupKey := strings.Split(lookupKeys[0], ".")
 		rval, err := mapLookup(mergedData, lookupKey...)
 		if err != nil {
-			debugf("CloudInit MetaData: Query Not Found: %v\n", err)
+			debugf("metaDataGetAPI(%s): Query Not Found: %v\n", RemoteAddr, err)
 			base.SendProblemDetailsGeneric(w, http.StatusNotFound,
 				fmt.Sprintf("Not Found"))
 			return

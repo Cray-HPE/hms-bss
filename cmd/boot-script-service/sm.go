@@ -184,24 +184,31 @@ func ensureLegalMAC(mac string) string {
 func getStateFromHSM() *SMData {
 	if smClient != nil {
 		log.Printf("Retrieving state info from %s", smBaseURL)
+
 		url := smBaseURL + "/State/Components?type=Node"
-		debugf("url: %s, smClient: %v\n", url, smClient)
+
+		debugf("getStateFromHSM(): url=%s, smClient=%v\n", url, smClient)
+
 		req, rerr := http.NewRequest(http.MethodGet, url, nil)
 		if rerr != nil {
 			log.Printf("Failed to create HTTP request for '%s': %v", url, rerr)
 			return nil
 		}
 		req.Close = true
+
 		base.SetHTTPUserAgent(req, serviceName)
 		r, err := smClient.Do(req)
 		if err != nil {
 			log.Printf("Sm State request %s failed: %v", url, err)
 			return nil
 		}
+
 		debugf("getStateFromHSM(): GET %s -> r: %v, err: %v\n", url, r, err)
+
 		var comps SMData
 		err = json.NewDecoder(r.Body).Decode(&comps)
 		r.Body.Close()
+
 		// Set up an indexing map to speed up lookup of components in the list
 		compsIndex := make(map[string]int, len(comps.Components))
 		for i, c := range comps.Components {
@@ -215,17 +222,22 @@ func getStateFromHSM() *SMData {
 			return nil
 		}
 		req.Close = true
+
 		base.SetHTTPUserAgent(req, serviceName)
 		r, err = smClient.Do(req)
 		if err != nil {
 			log.Printf("Sm Inventory request %s failed: %v", url, err)
 			return nil
 		}
+
 		debugf("getStateFromHSM(): GET %s -> r: %v, err: %v\n", url, r, err)
+
 		var ep sm.ComponentEndpointArray
 		ce, err := ioutil.ReadAll(r.Body)
 		err = json.Unmarshal(ce, &ep)
+
 		debugf("getStateFromHSM(): GET %s -> r: %v, err: %v\n", url, r, err)
+
 		r.Body.Close()
 
 		type myCompEndpt struct {
@@ -246,7 +258,8 @@ func getStateFromHSM() *SMData {
 		// likely have duplicates in the Redfish Endpoint IDs.
 		cMap := make(map[string]bool)
 		for idx, e := range ep.ComponentEndpoints {
-			debugf("Endpoint: %v\n", e)
+			debugf("getStateFromHSM(): Endpoint=%v\n", e)
+
 			if cIndex, gotIt := compsIndex[e.ID]; gotIt {
 				comps.Components[cIndex].Fqdn = e.FQDN
 				if e.MACAddr != "" && !strings.EqualFold(e.MACAddr, badMAC) &&
@@ -254,10 +267,10 @@ func getStateFromHSM() *SMData {
 					comps.Components[cIndex].Mac = append(comps.Components[cIndex].Mac, e.MACAddr)
 				}
 				if mep.CompEndpts[idx].Enabled != nil {
-					debugf("%s: Enable: %s", e.ID, *mep.CompEndpts[idx].Enabled)
+					debugf("getStateFromHSM(): %s: Enable: %s", e.ID, *mep.CompEndpts[idx].Enabled)
 					comps.Components[cIndex].EndpointEnabled = *mep.CompEndpts[idx].Enabled
 				} else {
-					debugf("%s: Enable: nil (true)", e.ID)
+          debugf("getStateFromHSM(): %s: Enable: nil (true)", e.ID)
 					comps.Components[cIndex].EndpointEnabled = true
 				}
 				switch e.ComponentEndpointType {
@@ -282,12 +295,14 @@ func getStateFromHSM() *SMData {
 			return nil
 		}
 		req.Close = true
+
 		base.SetHTTPUserAgent(req, serviceName)
 		r, err = smClient.Do(req)
 		if err != nil {
 			log.Printf("Sm Inventory request %s failed: %v", url, err)
 			return nil
 		}
+
 		debugf("getStateFromHSM(): GET %s -> r: %v, err: %v\n", url, r, err)
 
 		var ethIfaces []sm.CompEthInterfaceV2
@@ -298,7 +313,7 @@ func getStateFromHSM() *SMData {
 
 		addresses := make(map[string]sm.CompEthInterfaceV2)
 		for _, e := range ethIfaces {
-			debugf("EthInterface: %v\n", e)
+			debugf("getStateFromHSM(): EthInterface=%v\n", e)
 			for _, ip := range e.IPAddrs {
 				if ip.IPAddr != "" {
 					addresses[ip.IPAddr] = e
@@ -321,7 +336,7 @@ func getStateFromHSM() *SMData {
 		compList := make([]string, 0, len(cMap)+len(comps.Components))
 		for i, c := range comps.Components {
 			compList = append(compList, c.ID)
-			debugf("Comp[%d]: %v\n", i, c)
+			debugf("getStateFromHSM(): Comp[%d]=%v\n", i, c)
 		}
 		// Add Redfish Endpoints to the component list for subscription to the notifier
 		for k := range cMap {
@@ -330,13 +345,13 @@ func getStateFromHSM() *SMData {
 		notifier.subscribe(compList)
 		return &comps
 	}
+
 	return nil
 }
 
 func getStateFromFile() (ret *SMData) {
 	if smJSONFile != "" {
 		log.Printf("Retrieving state info from %s", smJSONFile)
-		debugf("Reading HSM info from %s", smJSONFile)
 		f, err := os.Open(smJSONFile)
 		if err != nil {
 			log.Printf("Error: %v\n", err)
@@ -424,10 +439,10 @@ func FindSMCompByNameInCache(host string) (SMComponent, bool) {
 }
 
 func FindSMCompByName(host string) (SMComponent, bool) {
-	debugf("Searching SM data for %s\n", host)
+	debugf("FindSMCompByName(%s): Searching SM data\n", host)
 	state := getState()
 	for i, v := range state.Components {
-		debugf("SM data[%d]: %v\n", i, v)
+		debugf("FindSMCompByName(%s): SM data[%d]=%v\n", host, i, v)
 		if v.ID == host {
 			return v, true
 		}
