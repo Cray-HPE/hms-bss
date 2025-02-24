@@ -823,7 +823,7 @@ func lookup(name, altName, role, defaultTag string) BootData {
 	if err != nil && defaultTag != "" {
 		bds, tmpErr = lookupHost(defaultTag)
 		if tmpErr != nil {
-			debugf("Boot data for %s not available: %v\n", name, err)
+			debugf("Boot data for '%s' not available: %v\n", name, err)
 		} else {
 			err = nil
 		}

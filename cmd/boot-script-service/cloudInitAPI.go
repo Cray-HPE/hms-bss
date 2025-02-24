@@ -262,7 +262,6 @@ func userDataGetAPI(w http.ResponseWriter, r *http.Request) {
 		roleInitData = make(map[string]interface{})
 	}
 
-	log.Printf("GET /user-data, xname: %s ip: %s", xname, remoteaddr)
 	respData = bootdata.CloudInit.UserData
 	if len(respData) == 0 {
 		respData = make(map[string]interface{})
@@ -292,11 +291,11 @@ func userDataGetAPI(w http.ResponseWriter, r *http.Request) {
 }
 
 func endpointHistoryGetAPI(w http.ResponseWriter, r *http.Request) {
+	log.Printf("GET /endpoint-history, url: %v", r.URL)
+
 	r.ParseForm() // r.Form is empty until after parsing
 	name := strings.Join(r.Form["name"], "")
 	endpoint := strings.Join(r.Form["endpoint"], "")
-
-	log.Printf("GET /endpoint-history, name: %s endpoint: %s", name, endpoint)
 
 	var lastAccessTypeStruct bssTypes.EndpointType
 
@@ -328,8 +327,10 @@ func endpointHistoryGetAPI(w http.ResponseWriter, r *http.Request) {
 func phoneHomePostAPI(w http.ResponseWriter, r *http.Request) {
 	var bp bssTypes.BootParams
 	var hosts []string
-
 	var args bssTypes.PhoneHome
+
+	log.Printf("POST /phone-home, url: %v", r.URL)
+
 	dec := json.NewDecoder(r.Body)
 	err := dec.Decode(&args)
 	if err != nil {
@@ -348,8 +349,6 @@ func phoneHomePostAPI(w http.ResponseWriter, r *http.Request) {
 			fmt.Sprintf("XName not found for IP"))
 		return
 	}
-
-	log.Printf("POST /phone-home, xname: %s ip: %s", xname, remoteaddr)
 
 	hosts = append(hosts, xname)
 	bootdata, _ := LookupByName(xname)
