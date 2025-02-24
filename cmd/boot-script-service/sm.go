@@ -370,8 +370,10 @@ func getStateInfo() (ret *SMData) {
 // If ts <= smTimeStamp  return state from current cache
 
 func protectedGetState(ts int64) (*SMData, map[string]SMComponent) {
+	debugf("protectedGetState(): LOCK: waiting")
 	smMutex.Lock()
 	defer smMutex.Unlock()
+	debugf("protectedGetState(): LOCK: acquired")
 
 	debugf("protectedGetState(): ts=%s smTimeStamp=%s smData=%p\n",
          time.Unix(ts, 0).Format("15:04:05"),
