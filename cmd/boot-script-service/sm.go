@@ -380,6 +380,12 @@ func protectedGetState(ts int64) (*SMData, map[string]SMComponent) {
 	if ts < 0 || ts > smTimeStamp || smData == nil {
 		currTime := time.Now().Unix()
 
+    debugf("protectedGetState(): JW_DEBUG: currTime=%v + ts=%v minus=%v cacheEvictionTimeout=%v",
+             time.Unix(currTime, 0).Format("15:04:05"),
+             time.Unix(ts, 0).Format("15:04:05"),
+             time.Unix(currTime - ts, 0).Format("15:04:05"),
+             cacheEvictionTimeout)
+
 		if ts <= 0 {
 			smTimeStamp = currTime
 	    debugf("protectedGetState(): JW_DEBUG: setting smTimestamp to currTime")
