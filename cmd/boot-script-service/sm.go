@@ -409,6 +409,7 @@ func protectedGetState(ts int64) (*SMData, map[string]SMComponent) {
 			smDataMap = makeSmMap(smData)
 		}
 	}
+	debugf("protectedGetState(): LOCK: releasing")
 	return smData, smDataMap
 }
 
