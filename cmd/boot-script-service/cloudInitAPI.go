@@ -156,11 +156,12 @@ func metaDataGetAPI(w http.ResponseWriter, r *http.Request) {
 		log.Printf("CloudInit -> No XName found for: %s, using default data\n", remoteaddr)
 	}
 
+	log.Printf("GET /meta-data, xname: %s ip: %s", xname, remoteaddr)
+
 	// If name is "" here, LookupByName uses the default tag, which is what we want.
 	bootdata, _ := LookupByName(xname)
 	globaldata, _ := LookupGlobalData()
 
-	log.Printf("GET /meta-data, xname: %s ip: %s", xname, remoteaddr)
 	respData = bootdata.CloudInit.MetaData
 	// If empty, initialize an empty map
 	if len(respData) == 0 {
@@ -234,6 +235,8 @@ func userDataGetAPI(w http.ResponseWriter, r *http.Request) {
 		log.Printf("CloudInit -> No XName found for: %s, using default data\n", remoteaddr)
 	}
 
+	log.Printf("GET /user-data, xname: %s ip: %s", xname, remoteaddr)
+
 	// If name is "" here, LookupByName uses the default tag, which is what we want.
 	bootdata, _ := LookupByName(xname)
 	metaData := bootdata.CloudInit.MetaData
@@ -289,11 +292,11 @@ func userDataGetAPI(w http.ResponseWriter, r *http.Request) {
 }
 
 func endpointHistoryGetAPI(w http.ResponseWriter, r *http.Request) {
-	debugf("endpointHistoryGetAPI(): Received request %v\n", r.URL)
-
 	r.ParseForm() // r.Form is empty until after parsing
 	name := strings.Join(r.Form["name"], "")
 	endpoint := strings.Join(r.Form["endpoint"], "")
+
+	log.Printf("GET /endpoint-history, name: %s endpoint: %s", name, endpoint)
 
 	var lastAccessTypeStruct bssTypes.EndpointType
 
@@ -345,6 +348,9 @@ func phoneHomePostAPI(w http.ResponseWriter, r *http.Request) {
 			fmt.Sprintf("XName not found for IP"))
 		return
 	}
+
+	log.Printf("POST /phone-home, xname: %s ip: %s", xname, remoteaddr)
+
 	hosts = append(hosts, xname)
 	bootdata, _ := LookupByName(xname)
 

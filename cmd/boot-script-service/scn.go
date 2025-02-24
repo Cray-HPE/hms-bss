@@ -194,7 +194,9 @@ func stateChangeNotification(w http.ResponseWriter, r *http.Request) {
 		// FIXME: Add error return data
 		return
 	}
-	log.Printf("Received state change notification: %s", p)
+
+	log.Printf("POST /scn, Received state change notification: %s", p)
+
 	// We simply store a timestamp.  This is the approx. time that SM updated
 	// something.  The next time BSS needs to check a host, it will see if it
 	// is up-to-date, and if not, it will fetch new SM data at that time.
