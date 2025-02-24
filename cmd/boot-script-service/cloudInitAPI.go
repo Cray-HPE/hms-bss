@@ -235,8 +235,6 @@ func userDataGetAPI(w http.ResponseWriter, r *http.Request) {
 		log.Printf("CloudInit -> No XName found for: %s, using default data\n", remoteaddr)
 	}
 
-	log.Printf("GET /user-data, xname: %s ip: %s", xname, remoteaddr)
-
 	// If name is "" here, LookupByName uses the default tag, which is what we want.
 	bootdata, _ := LookupByName(xname)
 	metaData := bootdata.CloudInit.MetaData
@@ -262,6 +260,7 @@ func userDataGetAPI(w http.ResponseWriter, r *http.Request) {
 		roleInitData = make(map[string]interface{})
 	}
 
+	log.Printf("GET /user-data, xname: %s ip: %s", xname, remoteaddr)
 	respData = bootdata.CloudInit.UserData
 	if len(respData) == 0 {
 		respData = make(map[string]interface{})
