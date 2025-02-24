@@ -199,7 +199,7 @@ func metaDataGetAPI(w http.ResponseWriter, r *http.Request) {
 		lookupKey := strings.Split(lookupKeys[0], ".")
 		rval, err := mapLookup(mergedData, lookupKey...)
 		if err != nil {
-			debugf("metaDataGetAPI(%s): Query Not Found: %v\n", RemoteAddr, err)
+			debugf("metaDataGetAPI(%s): Query Not Found: %v\n", remoteaddr, err)
 			base.SendProblemDetailsGeneric(w, http.StatusNotFound,
 				fmt.Sprintf("Not Found"))
 			return
