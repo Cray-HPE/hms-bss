@@ -370,17 +370,17 @@ func getStateInfo() (ret *SMData) {
 // If ts <= smTimeStamp  return state from current cache
 
 func protectedGetState(ts int64) (*SMData, map[string]SMComponent) {
+	smMutex.Lock()
+	defer smMutex.Unlock()
+
 	debugf("protectedGetState(): ts=%s smTimeStamp=%s smData=%p\n",
          time.Unix(ts, 0).Format("15:04:05"),
          time.Unix(smTimeStamp, 0).Format("15:04:05"), smData)
 
-	smMutex.Lock()
-	defer smMutex.Unlock()
-
 	if ts < 0 || ts > smTimeStamp || smData == nil {
 		currTime := time.Now().Unix()
 
-    debugf("protectedGetState(): JW_DEBUG: currTime=%v + ts=%v minus=%v cacheEvictionTimeout=%v",
+    debugf("protectedGetState(): JW_DEBUG: currTime=%v ts=%v minus=%v cacheEvictionTimeout=%v",
              time.Unix(currTime, 0).Format("15:04:05"),
              time.Unix(ts, 0).Format("15:04:05"),
              time.Unix(currTime - ts, 0).Format("15:04:05"),
