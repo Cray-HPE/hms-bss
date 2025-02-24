@@ -382,10 +382,14 @@ func protectedGetState(ts int64) (*SMData, map[string]SMComponent) {
 
 		if ts <= 0 {
 			smTimeStamp = currTime
+	    debugf("protectedGetState(): JW_DEBUG: setting smTimestamp to currTime")
 		} else if currTime - ts > cacheEvictionTimeout {
 			smTimeStamp = ts + cacheEvictionTimeout
+	    debugf("protectedGetState(): JW_DEBUG: setting smTimestamp to ts=%v + cacheEvictionTimeout=%v",
+             time.Unix(ts, 0).Format("15:04:05"), cacheEvictionTimeout)
 		} else {
 			smTimeStamp = ts
+	    debugf("protectedGetState(): JW_DEBUG: setting smTimestamp to ts")
 		}
 
 		log.Printf("Re-caching HSM state at %s\n",
