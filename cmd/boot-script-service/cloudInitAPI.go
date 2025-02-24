@@ -71,7 +71,9 @@ func generateInstanceID(prefix string) string {
 
 func findRemoteAddr(r *http.Request) string {
 	remoteaddr := r.Header.Get("X-Forwarded-For")
+
 	debugf("findRemoteAddr(): X-Forwarder-For=%v\n", remoteaddr)
+
 	if remoteaddr == "" {
 		// Since IPV6 address have colons we only strip the last colon which
 		// is the port. We know this from the http docs indicating IP:PORT
@@ -81,6 +83,9 @@ func findRemoteAddr(r *http.Request) string {
 	} else {
 		// XFF is a comma seperated list of IPs forwarded through.
 		// Envoy will append the trusted client IP, which is what we want.
+		//
+		// Possible bug here.  Quick search online indicates that the original
+		// client IP should be first in the list, not last.
 		remoteaddrSlice := strings.Split(remoteaddr, ",")
 		remoteaddr = remoteaddrSlice[len(remoteaddrSlice)-1]
 	}
@@ -142,7 +147,7 @@ func metaDataGetAPI(w http.ResponseWriter, r *http.Request) {
 
 	remoteaddr := findRemoteAddr(r)
 
-	debugf("metaDataGetAPI(%s): Processing request %v\n", r.RemoteAddr, r.URL)
+	debugf("metaDataGetAPI(%s): Processing request %v\n", remoteaddr, r.URL)
 
 	// Get the xname to lookup metadata.
 	xname, found := FindXnameByIP(remoteaddr)
@@ -204,14 +209,14 @@ func metaDataGetAPI(w http.ResponseWriter, r *http.Request) {
 				fmt.Sprintf("Not Found"))
 			return
 		}
-		debugf("metaDataGetAPI(%s): Returning query data: %v\n", remoteaddr, rval)
+		debugf("metaDataGetAPI(%s): Returning query data\n", remoteaddr)
 		w.WriteHeader(httpStatus)
 		json.NewEncoder(w).Encode(rval)
 	} else {
 		// No query, return all data
 		w.WriteHeader(httpStatus)
 		json.NewEncoder(w).Encode(mergedData)
-		debugf("metaDataGetAPI(%s): No query, returning all data: %v\n", remoteaddr, mergedData)
+		debugf("metaDataGetAPI(%s): No query, returning all data\n", remoteaddr)
 	}
 }
 
@@ -325,7 +330,7 @@ func phoneHomePostAPI(w http.ResponseWriter, r *http.Request) {
 	dec := json.NewDecoder(r.Body)
 	err := dec.Decode(&args)
 	if err != nil {
-		debugf("CloudInit PhoneHome: Bad Request: %v\n", err)
+		debugf("phoneHomePostAPI(): Bad Request: %v\n", err)
 		base.SendProblemDetailsGeneric(w, http.StatusBadRequest,
 			fmt.Sprintf("Bad Request"))
 		return
@@ -335,7 +340,7 @@ func phoneHomePostAPI(w http.ResponseWriter, r *http.Request) {
 	// Get the xname to lookup metadata.
 	xname, found := FindXnameByIP(remoteaddr)
 	if !found {
-		debugf("CloudInit -> Phone Home called for unknown xname, ip: %s", remoteaddr)
+		debugf("phoneHomePostAPI(): Called for unknown xname, ip: %s", remoteaddr)
 		base.SendProblemDetailsGeneric(w, http.StatusNotFound,
 			fmt.Sprintf("XName not found for IP"))
 		return

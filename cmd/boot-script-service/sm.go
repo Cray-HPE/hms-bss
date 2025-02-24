@@ -92,13 +92,13 @@ func SmOpen(base, options string) error {
 		// purposes.  A canned set of pre-defined nodes are loaded into memory
 		// and used as state manager data.  This allows for testing of a larger
 		// set of nodes than is currently readily available.
-		debugf("Setting internal HSM data")
+		debugf("smOpen(): Setting internal HSM data")
 		buf := bytes.NewBufferString(state_manager_data_temp)
 		dec := json.NewDecoder(buf)
 		var comps SMData
 		err = dec.Decode(&comps)
 		if err != nil {
-			debugf("Internal data conversion failure: %v", err)
+      debugf("smOpen(): Internal data conversion failure: %v", err)
 		}
 		smData = &comps
 		smDataMap = makeSmMap(smData)
@@ -109,7 +109,7 @@ func SmOpen(base, options string) error {
 		// little more flexibilty than the mem: interface, but not quite as
 		// stand-alone.
 		smJSONFile = u.Path
-		debugf("Setting externel HSM data file: %s", smJSONFile)
+    debugf("smOpen(): Setting externel HSM data file: %s", smJSONFile)
 		return nil
 	}
 	https := u.Scheme == "https"
@@ -470,7 +470,7 @@ func FindXnameByIP(ip string) (string, bool) {
 	currTime := time.Now()
 	ts := currTime.Add(time.Duration(-cacheEvictionTimeout) * time.Minute)
 
-	debugf("FindXnameByIP(\"%s\"): currTime=%s ts=%s cacheEvictionTimeout=%d\n",
+	debugf("FindXnameByIP(%s): currTime=%s ts=%s cacheEvictionTimeout=%d\n",
          ip, currTime.Format("15:04:05"), ts.Format("15:04:05"), cacheEvictionTimeout)
 
 	state := refreshState(ts.Unix())
@@ -481,7 +481,7 @@ func FindXnameByIP(ip string) (string, bool) {
 		// to force getting new state from HSM. In case the hardware came up
 		// within the last cache eviction period.
 
-		log.Printf("FindXnameByIP(\"%s\"): IP not found in cache, forcing a state refresh\n", ip)
+		log.Printf("FindXnameByIP(%s): IP not found in cache, forcing a state refresh\n", ip)
 
 		state = refreshState(time.Now().Unix())
 		ethIFace, found = state.IPAddrs[ip]
