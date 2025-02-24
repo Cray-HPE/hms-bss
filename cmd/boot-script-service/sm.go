@@ -92,13 +92,13 @@ func SmOpen(base, options string) error {
 		// purposes.  A canned set of pre-defined nodes are loaded into memory
 		// and used as state manager data.  This allows for testing of a larger
 		// set of nodes than is currently readily available.
-		debugf("smOpen(): Setting internal HSM data")
+		debugf("SmOpen(): Setting internal HSM data")
 		buf := bytes.NewBufferString(state_manager_data_temp)
 		dec := json.NewDecoder(buf)
 		var comps SMData
 		err = dec.Decode(&comps)
 		if err != nil {
-      debugf("smOpen(): Internal data conversion failure: %v", err)
+			debugf("SmOpen(): Internal data conversion failure: %v", err)
 		}
 		smData = &comps
 		smDataMap = makeSmMap(smData)
@@ -109,7 +109,7 @@ func SmOpen(base, options string) error {
 		// little more flexibilty than the mem: interface, but not quite as
 		// stand-alone.
 		smJSONFile = u.Path
-    debugf("smOpen(): Setting externel HSM data file: %s", smJSONFile)
+		debugf("SmOpen(): Setting externel HSM data file: %s", smJSONFile)
 		return nil
 	}
 	https := u.Scheme == "https"
@@ -186,29 +186,23 @@ func getStateFromHSM() *SMData {
 		log.Printf("Retrieving state info from %s", smBaseURL)
 
 		url := smBaseURL + "/State/Components?type=Node"
-
 		debugf("getStateFromHSM(): url=%s, smClient=%v\n", url, smClient)
-
 		req, rerr := http.NewRequest(http.MethodGet, url, nil)
 		if rerr != nil {
 			log.Printf("Failed to create HTTP request for '%s': %v", url, rerr)
 			return nil
 		}
 		req.Close = true
-
 		base.SetHTTPUserAgent(req, serviceName)
 		r, err := smClient.Do(req)
 		if err != nil {
 			log.Printf("Sm State request %s failed: %v", url, err)
 			return nil
 		}
-
 		debugf("getStateFromHSM(): GET %s -> r: %v, err: %v\n", url, r, err)
-
 		var comps SMData
 		err = json.NewDecoder(r.Body).Decode(&comps)
 		r.Body.Close()
-
 		// Set up an indexing map to speed up lookup of components in the list
 		compsIndex := make(map[string]int, len(comps.Components))
 		for i, c := range comps.Components {
@@ -222,24 +216,18 @@ func getStateFromHSM() *SMData {
 			return nil
 		}
 		req.Close = true
-
 		base.SetHTTPUserAgent(req, serviceName)
 		r, err = smClient.Do(req)
 		if err != nil {
 			log.Printf("Sm Inventory request %s failed: %v", url, err)
 			return nil
 		}
-
 		debugf("getStateFromHSM(): GET %s -> r: %v, err: %v\n", url, r, err)
-
 		var ep sm.ComponentEndpointArray
 		ce, err := ioutil.ReadAll(r.Body)
 		err = json.Unmarshal(ce, &ep)
-
 		debugf("getStateFromHSM(): GET %s -> r: %v, err: %v\n", url, r, err)
-
 		r.Body.Close()
-
 		type myCompEndpt struct {
 			ID           string `json:"ID"`
 			Enabled      *bool  `json:"Enabled"`
@@ -259,7 +247,6 @@ func getStateFromHSM() *SMData {
 		cMap := make(map[string]bool)
 		for idx, e := range ep.ComponentEndpoints {
 			debugf("getStateFromHSM(): Endpoint=%v\n", e)
-
 			if cIndex, gotIt := compsIndex[e.ID]; gotIt {
 				comps.Components[cIndex].Fqdn = e.FQDN
 				if e.MACAddr != "" && !strings.EqualFold(e.MACAddr, badMAC) &&
@@ -270,7 +257,7 @@ func getStateFromHSM() *SMData {
 					debugf("getStateFromHSM(): %s: Enable: %s", e.ID, *mep.CompEndpts[idx].Enabled)
 					comps.Components[cIndex].EndpointEnabled = *mep.CompEndpts[idx].Enabled
 				} else {
-          debugf("getStateFromHSM(): %s: Enable: nil (true)", e.ID)
+					debugf("getStateFromHSM(): %s: Enable: nil (true)", e.ID)
 					comps.Components[cIndex].EndpointEnabled = true
 				}
 				switch e.ComponentEndpointType {
@@ -295,14 +282,12 @@ func getStateFromHSM() *SMData {
 			return nil
 		}
 		req.Close = true
-
 		base.SetHTTPUserAgent(req, serviceName)
 		r, err = smClient.Do(req)
 		if err != nil {
 			log.Printf("Sm Inventory request %s failed: %v", url, err)
 			return nil
 		}
-
 		debugf("getStateFromHSM(): GET %s -> r: %v, err: %v\n", url, r, err)
 
 		var ethIfaces []sm.CompEthInterfaceV2
@@ -345,7 +330,6 @@ func getStateFromHSM() *SMData {
 		notifier.subscribe(compList)
 		return &comps
 	}
-
 	return nil
 }
 
@@ -378,6 +362,13 @@ func getStateInfo() (ret *SMData) {
 	return ret
 }
 
+// Interpreting protectedGetState() ts argument:
+//
+// If ts < 0             force cache refresh before returning state
+// If ts == 0            return state from current cache
+// If ts > smTimeStamp   force cache refresh before returning state
+// If ts <= smTimeStamp  return state from current cache
+
 func protectedGetState(ts int64) (*SMData, map[string]SMComponent) {
 	debugf("protectedGetState(): ts=%s smTimeStamp=%s smData=%p\n",
          time.Unix(ts, 0).Format("15:04:05"),
@@ -386,14 +377,21 @@ func protectedGetState(ts int64) (*SMData, map[string]SMComponent) {
 	smMutex.Lock()
 	defer smMutex.Unlock()
 
-	if ts > smTimeStamp || smData == nil {
-		smTimeStamp = time.Now().Unix()
+	if ts < 0 || ts > smTimeStamp || smData == nil {
+		currTime := time.Now().Unix()
+
+		if ts <= 0 {
+			smTimeStamp = currTime
+		} else if currTime - ts > cacheEvictionTimeout {
+			smTimeStamp = ts + cacheEvictionTimeout
+		} else {
+			smTimeStamp = ts
+		}
 
 		log.Printf("Re-caching HSM state at %s\n",
                time.Unix(smTimeStamp, 0).Format("15:04:05"))
 
 		newSMData := getStateInfo()
-
 		if newSMData != nil {
 			smData = newSMData
 			smDataMap = makeSmMap(smData)
@@ -468,7 +466,7 @@ func FindXnameByIP(ip string) (string, bool) {
 	// due to DHCP lease expirations.
 
 	currTime := time.Now()
-	ts := currTime.Add(time.Duration(-cacheEvictionTimeout) * time.Minute)
+	ts := currTime.Add(time.Duration(-cacheEvictionTimeout) * time.Second)
 
 	debugf("FindXnameByIP(%s): currTime=%s ts=%s cacheEvictionTimeout=%d\n",
          ip, currTime.Format("15:04:05"), ts.Format("15:04:05"), cacheEvictionTimeout)
@@ -485,8 +483,7 @@ func FindXnameByIP(ip string) (string, bool) {
 
 		state = refreshState(time.Now().Unix())
 		ethIFace, found = state.IPAddrs[ip]
-  }
-
+	}
 	return ethIFace.CompID, found
 }
 

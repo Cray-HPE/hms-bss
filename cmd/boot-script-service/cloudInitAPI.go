@@ -156,7 +156,7 @@ func metaDataGetAPI(w http.ResponseWriter, r *http.Request) {
 		log.Printf("CloudInit -> No XName found for: %s, using default data\n", remoteaddr)
 	}
 
-	log.Printf("GET /meta-data, xname: %s ip: %s", xname, remoteaddr)
+	log.Printf("GET /meta-data, xname: '%s' ip: %s", xname, remoteaddr)
 
 	// If name is "" here, LookupByName uses the default tag, which is what we want.
 	bootdata, _ := LookupByName(xname)
@@ -173,7 +173,7 @@ func metaDataGetAPI(w http.ResponseWriter, r *http.Request) {
 	} else {
 		err := generateMetaData(xname, respData)
 		if err != nil {
-			log.Printf("Warning - %s: Some meta data could not be found!\n", xname)
+			log.Printf("Warning - '%s': Some meta data could not be found!\n", xname)
 		}
 	}
 
