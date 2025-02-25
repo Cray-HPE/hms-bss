@@ -225,9 +225,6 @@ func main() {
 	parseEnv("SPIRE_TOKEN_URL", &spireServiceURL)
 	parseEnv("BSS_ADVERTISE_ADDRESS", &advertiseAddress)
 
-//debugFlag = true // JOSH TODO: REMOVE BEFORE CHECKING IN
-//cacheEvictionTimeout = 60 // JOSH TODO: REMOVE BEFORE CHECKING IN
-
 	flag.StringVar(&httpListen, "http-listen", httpListen, "HTTP server IP + port binding")
 	flag.StringVar(&hsmBase, "hsm", hsmBase, "Hardware State Manager location as URI, e.g. [scheme]://[host[:port]]")
 	flag.StringVar(&nfdBase, "nfd", nfdBase, "Notification daemon location as URI, e.g. [scheme]://[host[:port]]")
@@ -246,7 +243,19 @@ func main() {
 	if snerr == nil {
 		serviceName = sn
 	}
+
 	log.Printf("Service %s started", serviceName)
+	log.Printf("        httpListen:           %v", httpListen)
+	log.Printf("        hsmBase:              %v", hsmBase)
+	log.Printf("        nfdBase:              %v", nfdBase)
+	log.Printf("        datastoreBase         %v", datastoreBase)
+	log.Printf("        debugFlag:            %v", debugFlag)
+	log.Printf("        cacheEvictionTimeout: %v", cacheEvictionTimeout)
+	log.Printf("        retryDelay:           %v", retryDelay)
+	log.Printf("        hsmRetrievalDelay:    %v", hsmRetrievalDelay)
+	log.Printf("        spireServiceURL:      %v", spireServiceURL)
+	log.Printf("        advertiseAddress:     %v", advertiseAddress)
+
 	initHandlers()
 
 	var svcOpts string

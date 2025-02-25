@@ -370,10 +370,8 @@ func getStateInfo() (ret *SMData) {
 // If ts <= smTimeStamp  return state from current cache
 
 func protectedGetState(ts int64) (*SMData, map[string]SMComponent) {
-	debugf("protectedGetState(): LOCK: waiting")
 	smMutex.Lock()
 	defer smMutex.Unlock()
-	debugf("protectedGetState(): LOCK: acquired")
 
 	debugf("protectedGetState(): ts=%s smTimeStamp=%s smData=%p\n",
          time.Unix(ts, 0).Format("15:04:05"),
@@ -382,22 +380,12 @@ func protectedGetState(ts int64) (*SMData, map[string]SMComponent) {
 	if ts < 0 || ts > smTimeStamp || smData == nil {
 		currTime := time.Now().Unix()
 
-    debugf("protectedGetState(): JW_DEBUG: currTime=%v ts=%v minus=%v cacheEvictionTimeout=%v",
-             time.Unix(currTime, 0).Format("15:04:05"),
-             time.Unix(ts, 0).Format("15:04:05"),
-             time.Unix(currTime - ts, 0).Format("15:04:05"),
-             cacheEvictionTimeout)
-
 		if ts <= 0 {
 			smTimeStamp = currTime
-	    debugf("protectedGetState(): JW_DEBUG: setting smTimestamp to currTime")
 		} else if currTime - ts >= cacheEvictionTimeout {
 			smTimeStamp = ts + cacheEvictionTimeout
-	    debugf("protectedGetState(): JW_DEBUG: setting smTimestamp to ts=%v + cacheEvictionTimeout=%v",
-             time.Unix(ts, 0).Format("15:04:05"), cacheEvictionTimeout)
 		} else {
 			smTimeStamp = ts
-	    debugf("protectedGetState(): JW_DEBUG: setting smTimestamp to ts")
 		}
 
 		log.Printf("Re-caching HSM state at %s\n",
@@ -409,7 +397,6 @@ func protectedGetState(ts int64) (*SMData, map[string]SMComponent) {
 			smDataMap = makeSmMap(smData)
 		}
 	}
-	debugf("protectedGetState(): LOCK: releasing")
 	return smData, smDataMap
 }
 
