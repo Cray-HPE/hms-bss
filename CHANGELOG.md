@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Disable debug logging by default and make it configurable via BSS_DEBUG
 - Since debug now disabled by default, log each incoming API request
 - Updated and added various log messages for added clarity
+- Optimize /meta-data to process only Global data for global queries
 - Fixed bug where the http response code was set in the response header after
   the /meta-data response was sent
 - Log configuration at startup

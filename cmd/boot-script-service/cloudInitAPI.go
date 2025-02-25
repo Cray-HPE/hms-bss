@@ -178,6 +178,7 @@ func metaDataGetAPI(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(httpStatus)
 			json.NewEncoder(w).Encode(rval)
 			debugf("metaDataGetAPI(): Returned Global data\n")
+			return
 		}
 	}
 
