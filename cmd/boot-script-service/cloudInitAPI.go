@@ -147,6 +147,29 @@ func metaDataGetAPI(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("GET /meta-data, url: %v", r.URL)
 
+	// First grab a copy of the global data
+	globaldata, _ := LookupGlobalData()
+	globalRespData := globaldata.CloudInit.MetaData
+	// If empty, initialize an empty map
+	if len(globalRespData) == 0 {
+		globalRespData = make(map[string]interface{})
+	}
+
+	// If the request is solely for Global data we don't need to continue
+	queries := r.URL.Query()
+	debugf("metaDataGetAPI(): JW_DEBUG: queries: %v\n", queries)
+	lookupKeys, lookupKeysOk := queries[QUERYKEY]
+	debugf("metaDataGetAPI(): JW_DEBUG: lookupKeys=%v lookupKeysOk=%v\n", lookupKeys, lookupKeysOk)
+	if lookupKeysOk && len(lookupKeys) > 0 {
+		lookupKey := strings.Split(lookupKeys[0], ".")
+		debugf("metaDataGetAPI(): JW_DEBUG: lookupKey: %v\n", lookupKey)
+		if lookupKey[0] == "Global" {
+			w.WriteHeader(httpStatus)
+			json.NewEncoder(w).Encode(globalRespData)
+			return
+		}
+	}
+
 	remoteaddr := findRemoteAddr(r)
 
 	// Get the xname to lookup metadata.
@@ -189,26 +212,11 @@ func metaDataGetAPI(w http.ResponseWriter, r *http.Request) {
 	// Override any role data from the per node data
 	mergedData := mergeMaps(roleInitData, respData)
 
-	globaldata, _ := LookupGlobalData()
-	globalRespData := globaldata.CloudInit.MetaData
-	// If empty, initialize an empty map
-	if len(globalRespData) == 0 {
-		globalRespData = make(map[string]interface{})
-	}
 	mergedData["Global"] = globalRespData
 
-	queries := r.URL.Query()
-
-	debugf("metaDataGetAPI(%s): JW_DEBUG: queries: %v\n", remoteaddr, queries)
-	lookupKeys, ok := queries[QUERYKEY]
-	debugf("metaDataGetAPI(%s): JW_DEBUG: lookupKeys=%v ok=%v\n", remoteaddr, lookupKeys, ok)
-	if ok && len(lookupKeys) > 0 {
+	if lookupKeysOk && len(lookupKeys) > 0 {
 		// Query string provided in request, return it.
 		lookupKey := strings.Split(lookupKeys[0], ".")
-		debugf("metaDataGetAPI(%s): JW_DEBUG: lookupKey: %v\n", remoteaddr, lookupKey)
-		debugf("metaDataGetAPI(%s): JW_DEBUG: mergedData: %v\n", remoteaddr, mergedData)
-		mergedDataJSON, _ := json.MarshalIndent(mergedData, "", "  ")
-		debugf("metaDataGetAPI(%s): JW_DEBUG: mergedData: %v\n", remoteaddr, string(mergedDataJSON))
 		rval, err := mapLookup(mergedData, lookupKey...)
 		if err != nil {
 			debugf("metaDataGetAPI(%s): Query Not Found: %v\n", remoteaddr, err)
