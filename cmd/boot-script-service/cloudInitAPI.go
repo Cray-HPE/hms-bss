@@ -168,7 +168,7 @@ func metaDataGetAPI(w http.ResponseWriter, r *http.Request) {
 			//w.WriteHeader(httpStatus)
 			//json.NewEncoder(w).Encode(globalRespData)
 			//return
-			rval, err := mapLookup(globalRespData, lookupKey...)
+			rval, err := mapLookup(globalRespData, lookupKey[1:]...)
 			if err != nil {
 				debugf("metaDataGetAPI(): Global Query Not Found: %v\n", err)
 				base.SendProblemDetailsGeneric(w, http.StatusNotFound,
