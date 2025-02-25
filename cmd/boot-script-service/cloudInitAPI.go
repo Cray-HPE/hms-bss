@@ -168,7 +168,7 @@ func metaDataGetAPI(w http.ResponseWriter, r *http.Request) {
 		debugf("metaDataGetAPI(): JW_DEBUG: lookupKey: %v\n", lookupKey)
 		if lookupKey[0] == "Global" {
 			// We have a query for Global data but may have a subquery into it
-			if len(lookupKeys) > 1 {
+			if len(lookupKey) > 1 {
 				// Process the subquery
 				rval, err := mapLookup(globalRespData, lookupKey[1:]...)
 				if err != nil {
