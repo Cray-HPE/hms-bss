@@ -373,7 +373,7 @@ func protectedGetState(ts int64) (*SMData, map[string]SMComponent) {
 	smMutex.Lock()
 	defer smMutex.Unlock()
 
-	debugf("protectedGetState(): ts=%s smTimeStamp=%s smData=%p\n cacheEvictionTimeout=%d",
+	debugf("protectedGetState(): ts=%s smTimeStamp=%s smData=%p cacheEvictionTimeout=%d",
          time.Unix(ts, 0).Format("15:04:05"),
          time.Unix(smTimeStamp, 0).Format("15:04:05"),
          smData, cacheEvictionTimeout)
