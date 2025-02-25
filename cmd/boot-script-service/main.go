@@ -226,7 +226,7 @@ func main() {
 	parseEnv("BSS_ADVERTISE_ADDRESS", &advertiseAddress)
 
 debugFlag = true // JOSH TODO: REMOVE BEFORE CHECKING IN
-cacheEvictionTimeout = 60 // JOSH TODO: REMOVE BEFORE CHECKING IN
+//cacheEvictionTimeout = 60 // JOSH TODO: REMOVE BEFORE CHECKING IN
 
 	flag.StringVar(&httpListen, "http-listen", httpListen, "HTTP server IP + port binding")
 	flag.StringVar(&hsmBase, "hsm", hsmBase, "Hardware State Manager location as URI, e.g. [scheme]://[host[:port]]")
