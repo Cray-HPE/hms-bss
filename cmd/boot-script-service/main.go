@@ -72,7 +72,7 @@ var (
 	advertiseAddress     = "" // i.e. http://{IP to reach this service}
 	insecure             = false
 	debugFlag            = false
-	cacheEvictionTimeout = int64(600) // In seconds
+	cacheEvictionTimeout = uint(600) // In seconds
 	kvstore              hmetcd.Kvi
 	retryDelay           = uint(30)
 	hsmRetrievalDelay    = uint(10)
@@ -234,7 +234,7 @@ func main() {
 	flag.StringVar(&advertiseAddress, "cloud-init-address", advertiseAddress, "IP:PORT to advertise for cloud-init calls. This needs to be an IP as we do not have DNS when cloud-init runs")
 	flag.BoolVar(&insecure, "insecure", insecure, "Don't enforce https certificate security")
 	flag.BoolVar(&debugFlag, "debug", debugFlag, "Enable debug output")
-	flag.Int64Var(&cacheEvictionTimeout, "cache-eviction-timeout", cacheEvictionTimeout, "Cache eviction timeout in seconds")
+	flag.UintVar(&cacheEvictionTimeout, "cache-eviction-timeout", cacheEvictionTimeout, "Cache eviction timeout in seconds")
 	flag.UintVar(&retryDelay, "retry-delay", retryDelay, "Retry delay in seconds")
 	flag.UintVar(&hsmRetrievalDelay, "hsm-retrieval-delay", hsmRetrievalDelay, "SM Retrieval delay in seconds")
 	flag.Parse()

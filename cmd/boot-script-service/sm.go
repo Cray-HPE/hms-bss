@@ -383,8 +383,8 @@ func protectedGetState(ts int64) (*SMData, map[string]SMComponent) {
 
 		if ts <= 0 {
 			smTimeStamp = currTime
-		} else if currTime - ts >= cacheEvictionTimeout {
-			smTimeStamp = ts + cacheEvictionTimeout
+    } else if currTime-ts >= int64(cacheEvictionTimeout) {
+			smTimeStamp = ts + int64(cacheEvictionTimeout)
 		} else {
 			smTimeStamp = ts
 		}
