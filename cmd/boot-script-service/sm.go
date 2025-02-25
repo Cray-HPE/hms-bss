@@ -373,9 +373,10 @@ func protectedGetState(ts int64) (*SMData, map[string]SMComponent) {
 	smMutex.Lock()
 	defer smMutex.Unlock()
 
-	debugf("protectedGetState(): ts=%s smTimeStamp=%s smData=%p\n",
+	debugf("protectedGetState(): ts=%s smTimeStamp=%s smData=%p\n cacheEvictionTimeout=%d",
          time.Unix(ts, 0).Format("15:04:05"),
-         time.Unix(smTimeStamp, 0).Format("15:04:05"), smData)
+         time.Unix(smTimeStamp, 0).Format("15:04:05"),
+         smData, cacheEvictionTimeout)
 
 	if ts < 0 || ts > smTimeStamp || smData == nil {
 		currTime := time.Now().Unix()
@@ -467,9 +468,6 @@ func FindXnameByIP(ip string) (string, bool) {
 
 	currTime := time.Now()
 	ts := currTime.Add(time.Duration(-cacheEvictionTimeout) * time.Second)
-
-	debugf("FindXnameByIP(%s): currTime=%s ts=%s cacheEvictionTimeout=%d\n",
-         ip, currTime.Format("15:04:05"), ts.Format("15:04:05"), cacheEvictionTimeout)
 
 	state := refreshState(ts.Unix())
 
