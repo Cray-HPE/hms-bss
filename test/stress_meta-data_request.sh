@@ -11,8 +11,8 @@ check_url() {
     return 0
 }
 
-BOOTS=2
-NODES=5
+BOOTS=1
+NODES=5000
 
 for ((i=1; i<=BOOTS; i++)); do
     pids=()
@@ -39,6 +39,7 @@ for ((i=1; i<=BOOTS; i++)); do
     # Wait for all requests to complete
 
     echo "Watiting for $numpids responses to complete"
+    sleep 1
 
     for pid in "${pids[@]}"; do
          wait "$pid"

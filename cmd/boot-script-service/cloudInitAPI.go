@@ -219,6 +219,7 @@ func metaDataGetAPI(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(mergedData)
 		debugf("metaDataGetAPI(%s): No query, returning all data\n", remoteaddr)
 	}
+	log.Printf("metaDataGetAPI(): JW_DEBUG: Returning")
 }
 
 func userDataGetAPI(w http.ResponseWriter, r *http.Request) {
