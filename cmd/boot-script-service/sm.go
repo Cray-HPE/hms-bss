@@ -208,7 +208,6 @@ func getStateFromHSM() *SMData {
 		for i, c := range comps.Components {
 			compsIndex[c.ID] = i
 		}
-
 		url = smBaseURL + "/Inventory/ComponentEndpoints?type=Node"
 		req, rerr = http.NewRequest(http.MethodGet, url, nil)
 		if err != nil {
@@ -228,6 +227,7 @@ func getStateFromHSM() *SMData {
 		err = json.Unmarshal(ce, &ep)
 		debugf("getStateFromHSM(): GET %s -> r: %v, err: %v\n", url, r, err)
 		r.Body.Close()
+
 		type myCompEndpt struct {
 			ID           string `json:"ID"`
 			Enabled      *bool  `json:"Enabled"`
@@ -460,9 +460,8 @@ func FindSMCompByNid(nid int) (SMComponent, bool) {
 }
 
 func FindXnameByIP(ip string) (string, bool) {
-	// cacheEvictionTimeout is how many minutes we subtract from time.Now().
-	// This will cause refreshState to refresh every `cacheEvictionTime` minutes.
-	// 10 minutes was chosen as the default because it seems reasonable.
+	// cacheEvictionTimeout is how many seconds we subtract from time.Now().
+	// This will cause refreshState to refresh every `cacheEvictionTime` seconds.
 	// We need to semi-frequently refresh this data in case IP addresses change
 	// due to DHCP lease expirations.
 

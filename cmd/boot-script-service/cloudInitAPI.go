@@ -145,9 +145,9 @@ func metaDataGetAPI(w http.ResponseWriter, r *http.Request) {
 	var httpStatus = http.StatusOK
 	var isDefault = false
 
-	remoteaddr := findRemoteAddr(r)
+	log.Printf("GET /meta-data, url: %v", r.URL)
 
-	debugf("metaDataGetAPI(%s): Processing request %v\n", remoteaddr, r.URL)
+	remoteaddr := findRemoteAddr(r)
 
 	// Get the xname to lookup metadata.
 	xname, found := FindXnameByIP(remoteaddr)
@@ -156,7 +156,7 @@ func metaDataGetAPI(w http.ResponseWriter, r *http.Request) {
 		log.Printf("CloudInit -> No XName found for: %s, using default data\n", remoteaddr)
 	}
 
-	log.Printf("GET /meta-data, xname: '%s' ip: %s", xname, remoteaddr)
+	log.Printf("metaDataGetAPI(%s): found xname '%s'", remoteaddr, xname)
 
 	// If name is "" here, LookupByName uses the default tag, which is what we want.
 	bootdata, _ := LookupByName(xname)
@@ -219,7 +219,6 @@ func metaDataGetAPI(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(mergedData)
 		debugf("metaDataGetAPI(%s): No query, returning all data\n", remoteaddr)
 	}
-	log.Printf("metaDataGetAPI(): JW_DEBUG: Returning")
 }
 
 func userDataGetAPI(w http.ResponseWriter, r *http.Request) {
@@ -349,7 +348,6 @@ func phoneHomePostAPI(w http.ResponseWriter, r *http.Request) {
 			fmt.Sprintf("XName not found for IP"))
 		return
 	}
-
 	hosts = append(hosts, xname)
 	bootdata, _ := LookupByName(xname)
 
