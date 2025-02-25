@@ -164,9 +164,19 @@ func metaDataGetAPI(w http.ResponseWriter, r *http.Request) {
 		lookupKey := strings.Split(lookupKeys[0], ".")
 		debugf("metaDataGetAPI(): JW_DEBUG: lookupKey: %v\n", lookupKey)
 		if lookupKey[0] == "Global" {
+			//w.WriteHeader(httpStatus)
+			//json.NewEncoder(w).Encode(globalRespData)
+			//return
+			rval, err := mapLookup(globalRespData, lookupKey...)
+			if err != nil {
+				debugf("metaDataGetAPI(): Global Query Not Found: %v\n", err)
+				base.SendProblemDetailsGeneric(w, http.StatusNotFound,
+					fmt.Sprintf("Not Found"))
+				return
+			}
 			w.WriteHeader(httpStatus)
-			json.NewEncoder(w).Encode(globalRespData)
-			return
+			json.NewEncoder(w).Encode(rval)
+			debugf("metaDataGetAPI(): Returned Global data\n")
 		}
 	}
 
