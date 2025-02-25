@@ -147,8 +147,7 @@ func metaDataGetAPI(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("GET /meta-data, url: %v", r.URL)
 
-	// First grab a copy of the global data
-//	var globalRespData map[string]interface{}
+	// First handle global data
 	globaldata, _ := LookupGlobalData()
 	globalRespData := globaldata.CloudInit.MetaData
 	// If empty, initialize an empty map
@@ -156,28 +155,36 @@ func metaDataGetAPI(w http.ResponseWriter, r *http.Request) {
 		globalRespData = make(map[string]interface{})
 	}
 
-	// If the request is solely for Global data we don't need to continue
+	// If there's a query for Global data, we can just return that and not
+	// gather all the other metadata
+
 	queries := r.URL.Query()
 	debugf("metaDataGetAPI(): JW_DEBUG: queries: %v\n", queries)
 	lookupKeys, lookupKeysOk := queries[QUERYKEY]
 	debugf("metaDataGetAPI(): JW_DEBUG: lookupKeys=%v lookupKeysOk=%v\n", lookupKeys, lookupKeysOk)
+
 	if lookupKeysOk && len(lookupKeys) > 0 {
 		lookupKey := strings.Split(lookupKeys[0], ".")
 		debugf("metaDataGetAPI(): JW_DEBUG: lookupKey: %v\n", lookupKey)
 		if lookupKey[0] == "Global" {
-			//w.WriteHeader(httpStatus)
-			//json.NewEncoder(w).Encode(globalRespData)
-			//return
-			rval, err := mapLookup(globalRespData, lookupKey[1:]...)
-			if err != nil {
-				debugf("metaDataGetAPI(): Global Query Not Found: %v\n", err)
-				base.SendProblemDetailsGeneric(w, http.StatusNotFound,
-					fmt.Sprintf("Not Found"))
-				return
+			// We have a query for Global data but may have a subquery into it
+			if len(lookupKeys) > 1 {
+				// Process the subquery
+				rval, err := mapLookup(globalRespData, lookupKey[1:]...)
+				if err != nil {
+					base.SendProblemDetailsGeneric(w, http.StatusNotFound, "Not Found")
+					debugf("metaDataGetAPI(): Global Query Not Found: %v\n", err)
+					return
+				}
+				w.WriteHeader(httpStatus)
+				json.NewEncoder(w).Encode(rval)
+				debugf("metaDataGetAPI(): Returned Global data subquery\n")
+			} else {
+				// No subquery so return all global data
+				w.WriteHeader(httpStatus)
+				json.NewEncoder(w).Encode(globalRespData)
+				debugf("metaDataGetAPI(): Returned all Global data\n")
 			}
-			w.WriteHeader(httpStatus)
-			json.NewEncoder(w).Encode(rval)
-			debugf("metaDataGetAPI(): Returned Global data\n")
 			return
 		}
 	}
