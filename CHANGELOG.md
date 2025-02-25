@@ -10,11 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Fix HSM caching bug
-- Convert caching timeout from minutes to seconds
+- Convert caching timeout from minutes to seconds for consistency
 - Make caching timeout configurable via BSS_CACHE_EVICTION_TIMEOUT
 - Disable debug logging by default and make it configurable via BSS_DEBUG
 - Since debug now disabled by default, log each incoming API request
-- Updating and added various log messages for added clarity
+- Updated and added various log messages for added clarity
 - Fixed bug where the http response code was set in the response header after
   the /meta-data response was sent
 

@@ -210,14 +210,14 @@ func metaDataGetAPI(w http.ResponseWriter, r *http.Request) {
 				fmt.Sprintf("Not Found"))
 			return
 		}
-		debugf("metaDataGetAPI(%s): Returning query data\n", remoteaddr)
 		w.WriteHeader(httpStatus)
 		json.NewEncoder(w).Encode(rval)
+		debugf("metaDataGetAPI(%s): Returned query data\n", remoteaddr)
 	} else {
 		// No query, return all data
 		w.WriteHeader(httpStatus)
 		json.NewEncoder(w).Encode(mergedData)
-		debugf("metaDataGetAPI(%s): No query, returning all data\n", remoteaddr)
+		debugf("metaDataGetAPI(%s): No query, returned all data\n", remoteaddr)
 	}
 }
 
@@ -225,6 +225,8 @@ func userDataGetAPI(w http.ResponseWriter, r *http.Request) {
 	var respData map[string]interface{}
 	var httpStatus = http.StatusOK
 	isDefault := false
+
+	log.Printf("GET /user-data, url: %v", r.URL)
 
 	remoteaddr := findRemoteAddr(r)
 
@@ -234,6 +236,7 @@ func userDataGetAPI(w http.ResponseWriter, r *http.Request) {
 		isDefault = true
 		log.Printf("CloudInit -> No XName found for: %s, using default data\n", remoteaddr)
 	}
+	log.Printf("userDataGetAPI(%s): found xname '%s'", remoteaddr, xname)
 
 	// If name is "" here, LookupByName uses the default tag, which is what we want.
 	bootdata, _ := LookupByName(xname)
@@ -246,7 +249,7 @@ func userDataGetAPI(w http.ResponseWriter, r *http.Request) {
 	if !isDefault {
 		err := generateMetaData(xname, metaData)
 		if err != nil {
-			log.Printf("Warning - %s: Some meta data could not be found!\n", xname)
+			log.Printf("Warning - '%s': Some meta data could not be found!\n", xname)
 		}
 	}
 
@@ -260,7 +263,6 @@ func userDataGetAPI(w http.ResponseWriter, r *http.Request) {
 		roleInitData = make(map[string]interface{})
 	}
 
-	log.Printf("GET /user-data, xname: %s ip: %s", xname, remoteaddr)
 	respData = bootdata.CloudInit.UserData
 	if len(respData) == 0 {
 		respData = make(map[string]interface{})
