@@ -199,12 +199,13 @@ func metaDataGetAPI(w http.ResponseWriter, r *http.Request) {
 	mergedData["Global"] = globalRespData
 	queries := r.URL.Query()
 
+	debugf("metaDataGetAPI(%s): JW_DEBUG: queries: %v\n", remoteaddr, queries)
 	lookupKeys, ok := queries[QUERYKEY]
-	debugf("metaDataGetAPI(%s): JW_DEBUG: lookupKeys: %v\n", lookupKeys)
+	debugf("metaDataGetAPI(%s): JW_DEBUG: lookupKeys=%v ok=%v\n", remoteaddr, lookupKeys, ok)
 	if ok && len(lookupKeys) > 0 {
 		// Query string provided in request, return it.
 		lookupKey := strings.Split(lookupKeys[0], ".")
-		debugf("metaDataGetAPI(%s): JW_DEBUG: lookupKey: %v\n", lookupKey)
+		debugf("metaDataGetAPI(%s): JW_DEBUG: lookupKey: %v\n", remoteaddr, lookupKey)
 		rval, err := mapLookup(mergedData, lookupKey...)
 		if err != nil {
 			debugf("metaDataGetAPI(%s): Query Not Found: %v\n", remoteaddr, err)
