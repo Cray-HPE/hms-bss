@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated and added various log messages for added clarity
 - Fixed bug where the http response code was set in the response header after
   the /meta-data response was sent
+- Log configuration at startup
 
 ## [1.32.0] - 2025-02-05
 

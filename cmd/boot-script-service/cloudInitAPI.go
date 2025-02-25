@@ -160,7 +160,6 @@ func metaDataGetAPI(w http.ResponseWriter, r *http.Request) {
 
 	// If name is "" here, LookupByName uses the default tag, which is what we want.
 	bootdata, _ := LookupByName(xname)
-	globaldata, _ := LookupGlobalData()
 
 	respData = bootdata.CloudInit.MetaData
 	// If empty, initialize an empty map
@@ -190,13 +189,14 @@ func metaDataGetAPI(w http.ResponseWriter, r *http.Request) {
 	// Override any role data from the per node data
 	mergedData := mergeMaps(roleInitData, respData)
 
+	globaldata, _ := LookupGlobalData()
 	globalRespData := globaldata.CloudInit.MetaData
 	// If empty, initialize an empty map
 	if len(globalRespData) == 0 {
 		globalRespData = make(map[string]interface{})
 	}
-
 	mergedData["Global"] = globalRespData
+
 	queries := r.URL.Query()
 
 	debugf("metaDataGetAPI(%s): JW_DEBUG: queries: %v\n", remoteaddr, queries)
@@ -206,6 +206,9 @@ func metaDataGetAPI(w http.ResponseWriter, r *http.Request) {
 		// Query string provided in request, return it.
 		lookupKey := strings.Split(lookupKeys[0], ".")
 		debugf("metaDataGetAPI(%s): JW_DEBUG: lookupKey: %v\n", remoteaddr, lookupKey)
+		debugf("metaDataGetAPI(%s): JW_DEBUG: mergedData: %v\n", remoteaddr, mergedData)
+		mergedDataJSON, _ := json.MarshalIndent(mergedData, "", "  ")
+		debugf("metaDataGetAPI(%s): JW_DEBUG: mergedData: %v\n", remoteaddr, string(mergedDataJSON))
 		rval, err := mapLookup(mergedData, lookupKey...)
 		if err != nil {
 			debugf("metaDataGetAPI(%s): Query Not Found: %v\n", remoteaddr, err)
