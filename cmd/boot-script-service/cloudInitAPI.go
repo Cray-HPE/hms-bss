@@ -148,8 +148,9 @@ func metaDataGetAPI(w http.ResponseWriter, r *http.Request) {
 	log.Printf("GET /meta-data, url: %v", r.URL)
 
 	// First grab a copy of the global data
+	var globalRespData map[string]interface{}
 	globaldata, _ := LookupGlobalData()
-	globalRespData := globaldata.CloudInit.MetaData
+	globalRespData = globaldata.CloudInit.MetaData
 	// If empty, initialize an empty map
 	if len(globalRespData) == 0 {
 		globalRespData = make(map[string]interface{})
