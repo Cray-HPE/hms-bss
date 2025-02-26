@@ -910,37 +910,35 @@ func LookupByRole(role string) (BootData, error) {
 // timeout window to mitigate that possibility.  We're just trying to
 // ratelimit the number of etcd reads to a reasonable level.
 
-func LookupGlobalData() func() (BootData, error) {
-	var (
-		gdMutex		      sync.Mutex
-		cachedGlobalData  BootData
-		lastUpdate        int64
-	)
+var (
+	gdMutex      sync.Mutex
+	gdCache      BootData
+	gdLastUpdate int64
+)
 
-	return func() (BootData, error) {
-		gdMutex.Lock()
-		defer gdMutex.Unlock()
+func LookupGlobalData() (BootData, error) {
+	gdMutex.Lock()
+	defer gdMutex.Unlock()
 
-		var err error
+	var err error
 
-		currTime := time.Now().Unix()
+	currTime := time.Now().Unix()
 
-		debugf("LookupGlobalData(): curtime=%s lastUpdate=%s cacheGDETimeout=%d",
-				time.Unix(currTime, 0).Format("15:04:05"),
-				time.Unix(lastUpdate, 0).Format("15:04:05"), cacheGDETimeout)
+	debugf("LookupGlobalData(): curtime=%s gdLastUpdate=%s cacheGDETimeout=%d",
+			time.Unix(currTime, 0).Format("15:04:05"),
+			time.Unix(gdLastUpdate, 0).Format("15:04:05"), cacheGDETimeout)
 
-		if currTime > lastUpdate + int64(cacheGDETimeout) {
-			cachedGlobalData, err = LookupByRole(GlobalTag)
-			if err == nil {
-				lastUpdate = currTime
-				debugf("LookupGlobalData(): Re-caching Global metadata at %s",
-						time.Unix(currTime, 0).Format("15:04:05"))
-			} else {
-				log.Printf("Failed to cache Global metadata: %v", err)
-			}
+	if currTime > gdLastUpdate + int64(cacheGDETimeout) {
+		gdCache , err = LookupByRole(GlobalTag)
+		if err == nil {
+			gdLastUpdate = currTime
+			debugf("LookupGlobalData(): Re-caching Global metadata at %s",
+					time.Unix(currTime, 0).Format("15:04:05"))
+		} else {
+			log.Printf("Failed to cache Global metadata: %v", err)
 		}
-		return cachedGlobalData, err
 	}
+	return gdCache , err
 }
 
 func LookupComponentByName(name string) SMComponent {
