@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.26.1] - 2025-02-28
+
+### Changed
+
+- Fixed HSM caching bug
+- Converted cache timeout from minutes to seconds for consistency
+- Made caching timeout configurable via BSS_CACHE_EVICTION_TIMEOUT
+- Disabled debug logging by default
+- Because debug now disabled by default, log each incoming API request
+- Updated and added various log messages for added clarity
+- Optimized /meta-data to collect only Global data for global queries
+- Write response header before sending response in /meta-data handling
+- Log BSS configuration at startup
+
 ## [1.26.0] - 2023-07-06
 
 ### Added
