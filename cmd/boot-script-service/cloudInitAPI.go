@@ -169,7 +169,7 @@ func metaDataGetAPI(w http.ResponseWriter, r *http.Request) {
 		if lookupKey[0] == "Global" {
 			// We have a query for Global data but may have a subquery into it
 			if len(lookupKey) > 1 {
-				// Process the subquery
+				// Process the subquery (after throwing away "Global")
 				rval, err := mapLookup(globalRespData, lookupKey[1:]...)
 				if err != nil {
 					base.SendProblemDetailsGeneric(w, http.StatusNotFound, "Not Found")

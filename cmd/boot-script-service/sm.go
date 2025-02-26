@@ -374,23 +374,24 @@ func protectedGetState(ts int64) (*SMData, map[string]SMComponent) {
 	defer smMutex.Unlock()
 
 	debugf("protectedGetState(): ts=%s smTimeStamp=%s smData=%p cacheEvictionTimeout=%d",
-         time.Unix(ts, 0).Format("15:04:05"),
-         time.Unix(smTimeStamp, 0).Format("15:04:05"),
-         smData, cacheEvictionTimeout)
+		     time.Unix(ts, 0).Format("15:04:05"),
+		     time.Unix(smTimeStamp, 0).Format("15:04:05"),
+		     smData, cacheEvictionTimeout)
 
 	if ts < 0 || ts > smTimeStamp || smData == nil {
 		currTime := time.Now().Unix()
 
 		if ts <= 0 {
 			smTimeStamp = currTime
-    } else if currTime-ts >= int64(cacheEvictionTimeout) {
+		} else if currTime - ts >= int64(cacheEvictionTimeout) {
+			// Must account for time substracted in FindXnameByIP()
 			smTimeStamp = ts + int64(cacheEvictionTimeout)
 		} else {
 			smTimeStamp = ts
 		}
 
 		log.Printf("Re-caching HSM state at %s\n",
-               time.Unix(smTimeStamp, 0).Format("15:04:05"))
+		           time.Unix(smTimeStamp, 0).Format("15:04:05"))
 
 		newSMData := getStateInfo()
 		if newSMData != nil {

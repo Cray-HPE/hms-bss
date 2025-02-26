@@ -72,7 +72,7 @@ var (
 	advertiseAddress     = "" // i.e. http://{IP to reach this service}
 	insecure             = false
 	debugFlag            = false
-	cacheEvictionTimeout = uint(600) // In seconds
+	cacheEvictionTimeout = uint(600) // In seconds (10 min default)
 	kvstore              hmetcd.Kvi
 	retryDelay           = uint(30)
 	hsmRetrievalDelay    = uint(10)
