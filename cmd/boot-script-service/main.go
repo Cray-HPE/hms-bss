@@ -73,7 +73,7 @@ var (
 	insecure             = false
 	debugFlag            = false
 	cacheEvictionTimeout = uint(600) // In seconds (10 min default)
-	cacheGDETimeout      = uint(2)   // In seconds (2 sec default)
+	cacheGDETimeout      = uint(1)   // In seconds (1 sec default)
 	kvstore              hmetcd.Kvi
 	retryDelay           = uint(30)
 	hsmRetrievalDelay    = uint(10)
