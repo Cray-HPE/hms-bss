@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Optimized /meta-data to collect only Global data for global queries
 - Write response header before sending response in /meta-data handling
 - Log BSS configuration at startup
+- Change "docker-compose" to "docker compose" in runUnitTest.sh
 
 ## [1.26.0] - 2023-07-06
 
