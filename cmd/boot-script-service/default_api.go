@@ -1,6 +1,6 @@
 // MIT License
 //
-// (C) Copyright [2021-2024] Hewlett Packard Enterprise Development LP
+// (C) Copyright [2021-2025] Hewlett Packard Enterprise Development LP
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -216,7 +216,8 @@ func BootparametersGetAll(w http.ResponseWriter, r *http.Request) {
 }
 
 func BootparametersGet(w http.ResponseWriter, r *http.Request) {
-	debugf("BootparametersGet(): Received request %v\n", r.URL)
+	log.Printf("GET /bootparameters, url: %v", r.URL)
+
 	var args bssTypes.BootParams
 	debugf("Ready to decode %v\n", r.Body)
 	p, err := ioutil.ReadAll(r.Body)
@@ -405,7 +406,8 @@ func LogBootParameters(prefix string, v interface{}) {
 }
 
 func BootparametersPost(w http.ResponseWriter, r *http.Request) {
-	debugf("BootparametersPost(): Received request %v\n", r.URL)
+	log.Printf("POST /bootparameters, url: %v", r.URL)
+
 	var args bssTypes.BootParams
 	dec := json.NewDecoder(r.Body)
 	err := dec.Decode(&args)
@@ -432,7 +434,8 @@ func BootparametersPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func BootparametersPut(w http.ResponseWriter, r *http.Request) {
-	debugf("BootparametersPut(): Received request %v\n", r.URL)
+	log.Printf("PUT /bootparameters, url: %v", r.URL)
+
 	var args bssTypes.BootParams
 	dec := json.NewDecoder(r.Body)
 	err := dec.Decode(&args)
@@ -463,7 +466,8 @@ func BootparametersPut(w http.ResponseWriter, r *http.Request) {
 }
 
 func BootparametersPatch(w http.ResponseWriter, r *http.Request) {
-	debugf("BootparametersPatch(): Received request %v\n", r.URL)
+	log.Printf("PATCH /bootparameters, url: %v", r.URL)
+
 	var args bssTypes.BootParams
 	dec := json.NewDecoder(r.Body)
 	err := dec.Decode(&args)
@@ -487,7 +491,8 @@ func BootparametersPatch(w http.ResponseWriter, r *http.Request) {
 }
 
 func BootparametersDelete(w http.ResponseWriter, r *http.Request) {
-	debugf("BootParametersDelete(): Received request %v\n", r.URL)
+	log.Printf("DELETE /bootparameters, url: %v", r.URL)
+
 	var args bssTypes.BootParams
 	dec := json.NewDecoder(r.Body)
 	err := dec.Decode(&args)
@@ -723,7 +728,7 @@ func blacklist(comp SMComponent) (err error) {
 }
 
 func BootscriptGet(w http.ResponseWriter, r *http.Request) {
-	debugf("BootscriptGet(): Received request %v\n", r.URL)
+	log.Printf("GET /bootscript, url: %v", r.URL)
 
 	r.ParseForm() // r.Form is empty until after parsing
 	mac := strings.Join(r.Form["mac"], "")
@@ -860,7 +865,8 @@ func BootscriptGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func HostsGet(w http.ResponseWriter, r *http.Request) {
-	debugf("HostsGet(): Received request %v\n", r.URL)
+	log.Printf("GET /hosts, url: %v", r.URL)
+
 	r.ParseForm() // r.Form is empty until after parsing
 	mac := strings.Join(r.Form["mac"], ",")
 	name := strings.Join(r.Form["name"], ",")
@@ -922,7 +928,8 @@ func HostsGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func HostsPost(w http.ResponseWriter, r *http.Request) {
-	debugf("HostsPost(): Received request %v\n", r.URL)
+	log.Printf("POST /hosts, url: %v", r.URL)
+
 	refreshState(time.Now().Unix())
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.Header().Set("Cache-Control", "no-cache")
@@ -934,7 +941,8 @@ func DumpstateGet(w http.ResponseWriter, r *http.Request) {
 		Components []SMComponent         `json:"Components"`
 		Params     []bssTypes.BootParams `json:"Params"`
 	}
-	debugf("DumpstateGet(): Received request %v\n", r.URL)
+	log.Printf("GET /dumpstate, url: %v", r.URL)
+
 	var results State
 	state := getState()
 	results.Components = state.Components

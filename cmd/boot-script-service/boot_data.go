@@ -1,6 +1,6 @@
 // MIT License
 //
-// (C) Copyright [2021-2022] Hewlett Packard Enterprise Development LP
+// (C) Copyright [2021-2022,2025] Hewlett Packard Enterprise Development LP
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -823,7 +823,7 @@ func lookup(name, altName, role, defaultTag string) BootData {
 	if err != nil && defaultTag != "" {
 		bds, tmpErr = lookupHost(defaultTag)
 		if tmpErr != nil {
-			debugf("Boot data for %s not available: %v\n", name, err)
+			debugf("Boot data for '%s' not available: %v\n", name, err)
 		} else {
 			err = nil
 		}
