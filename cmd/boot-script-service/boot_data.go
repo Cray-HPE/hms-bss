@@ -893,8 +893,54 @@ func LookupByRole(role string) (BootData, error) {
 	return bd, err
 }
 
-func LookupGlobalData() (BootData, error) {
-	return LookupByRole(GlobalTag)
+// LookupGlobalData() uses a closure to return a function that returns
+// Global metadata.  The first time it's called it will query etcd for the
+// Global metadata and cache it.  Subsequent calls will return the cached
+// data until the timeout period expires when it will be re-read from etcd.
+// This is done to prevent excessive etcd reads during bursts of requests.
+// We use a closure to retain state across calls, which is protected by a
+// mutex.
+//
+// This implementation is a complete hack! A proper implementation requires
+// invalidating and re-caching at every point where the Global metadata is
+// changed.  We choose this inferior approach to mitigate the risk of
+// hotfixing the proper changes, which would be more extensive and risky, on
+// to customer systems without extensive exposure.  The tradefoff is a
+// potentially stale cache during the timeout window.  We choose a very
+// timeout window to mitigate that possibility.  We're just trying to
+// ratelimit the number of etcd reads to a reasonable level.
+
+func LookupGlobalData() func() (BootData, error) {
+	var (
+		gdMutex		      sync.Mutex
+		cachedGlobalData  BootData
+		lastUpdate        int64
+	)
+
+	return func() (BootData, error) {
+		gdMutex.Lock()
+		defer gdMutex.Unlock()
+
+		var err error
+
+		currTime := time.Now().Unix()
+
+		debugf("LookupGlobalData(): curtime=%s lastUpdate=%s cacheGDETimeout=%d",
+				time.Unix(currTime, 0).Format("15:04:05"),
+				time.Unix(lastUpdate, 0).Format("15:04:05"), cacheGDETimeout)
+
+		if currTime > lastUpdate + int64(cacheGDETimeout) {
+			cachedGlobalData, err = LookupByRole(GlobalTag)
+			if err == nil {
+				lastUpdate = currTime
+				debugf("LookupGlobalData(): Re-caching Global metadata at %s",
+						time.Unix(currTime, 0).Format("15:04:05"))
+			} else {
+				log.Printf("Failed to cache Global metadata: %v", err)
+			}
+		}
+		return cachedGlobalData, err
+	}
 }
 
 func LookupComponentByName(name string) SMComponent {

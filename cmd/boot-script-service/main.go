@@ -73,6 +73,7 @@ var (
 	insecure             = false
 	debugFlag            = false
 	cacheEvictionTimeout = uint(600) // In seconds (10 min default)
+	cacheGDETimeout      = uint(2)   // In seconds (2 sec default)
 	kvstore              hmetcd.Kvi
 	retryDelay           = uint(30)
 	hsmRetrievalDelay    = uint(10)
@@ -220,6 +221,7 @@ func main() {
 	parseEnv("BSS_INSECURE", &insecure)
 	parseEnv("BSS_DEBUG", &debugFlag)
 	parseEnv("BSS_CACHE_EVICTION_TIMEOUT", &cacheEvictionTimeout)
+	parseEnv("BSS_GLOBAL_DATA_CACHE_EVICTION_TIMEOUT", &cacheGDETimeout)
 	parseEnv("BSS_RETRY_DELAY", &retryDelay)
 	parseEnv("BSS_RETRIEVAL_DELAY", &hsmRetrievalDelay)
 	parseEnv("SPIRE_TOKEN_URL", &spireServiceURL)
@@ -235,6 +237,7 @@ func main() {
 	flag.BoolVar(&insecure, "insecure", insecure, "Don't enforce https certificate security")
 	flag.BoolVar(&debugFlag, "debug", debugFlag, "Enable debug output")
 	flag.UintVar(&cacheEvictionTimeout, "cache-eviction-timeout", cacheEvictionTimeout, "Cache eviction timeout in seconds")
+	flag.UintVar(&cacheGDETimeout, "cache-GD-eviction-timeout", cacheGDETimeout, "Global data cache eviction timeout in seconds")
 	flag.UintVar(&retryDelay, "retry-delay", retryDelay, "Retry delay in seconds")
 	flag.UintVar(&hsmRetrievalDelay, "hsm-retrieval-delay", hsmRetrievalDelay, "SM Retrieval delay in seconds")
 	flag.Parse()
@@ -251,6 +254,7 @@ func main() {
 	log.Printf("        datastoreBase         %v", datastoreBase)
 	log.Printf("        debugFlag:            %v", debugFlag)
 	log.Printf("        cacheEvictionTimeout: %v", cacheEvictionTimeout)
+	log.Printf("        cacheGTETimeout:      %v", cacheGDETimeout)
 	log.Printf("        retryDelay:           %v", retryDelay)
 	log.Printf("        hsmRetrievalDelay:    %v", hsmRetrievalDelay)
 	log.Printf("        spireServiceURL:      %v", spireServiceURL)
