@@ -55,7 +55,7 @@ for ((i=1; i<=BOOTS; i++)); do
 
          # Request that includes weave IP
 
-         check_url "http://api-gw-service-nmn.local:8888/meta-data" &
+         check_url "http://api-gw-service-nmn.local:8888/meta-data?key=Global" &
          pids+=($!)
 
          numpids=$((numpids + 2))

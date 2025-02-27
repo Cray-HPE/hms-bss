@@ -10,12 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Fixed HSM caching bug
-- Converted cache timeout from minutes to seconds for consistency
-- Made caching timeout configurable via BSS_CACHE_EVICTION_TIMEOUT
+- Converted HSM cache timeout from minutes to seconds for consistency
+- Made HSM caching timeout configurable via BSS_CACHE_EVICTION_TIMEOUT
 - Disabled debug logging by default
 - Because debug now disabled by default, log each incoming API request
 - Updated and added various log messages for added clarity
-- Optimized /meta-data to collect only Global data for global queries
+- Optimized /meta-data to collect only Global data when qeury is for global
+- Created new Global data cache configurable with BSS_GLOBAL_DATA_TIMEOUT
 - Write response header before sending response in /meta-data handling
 - Log BSS configuration at startup
 
