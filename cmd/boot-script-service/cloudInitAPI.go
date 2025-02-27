@@ -159,13 +159,10 @@ func metaDataGetAPI(w http.ResponseWriter, r *http.Request) {
 	// gather all the other metadata
 
 	queries := r.URL.Query()
-	debugf("metaDataGetAPI(): JW_DEBUG: queries: %v\n", queries)
 	lookupKeys, lookupKeysOk := queries[QUERYKEY]
-	debugf("metaDataGetAPI(): JW_DEBUG: lookupKeys=%v lookupKeysOk=%v\n", lookupKeys, lookupKeysOk)
 
 	if lookupKeysOk && len(lookupKeys) > 0 {
 		lookupKey := strings.Split(lookupKeys[0], ".")
-		debugf("metaDataGetAPI(): JW_DEBUG: lookupKey: %v\n", lookupKey)
 		if lookupKey[0] == "Global" {
 			// We have a query for Global data but may have a subquery into it
 			if len(lookupKey) > 1 {

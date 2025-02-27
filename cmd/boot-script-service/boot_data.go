@@ -893,8 +893,47 @@ func LookupByRole(role string) (BootData, error) {
 	return bd, err
 }
 
+// LookupGlobalData() implements a cache for Global metadata to prevent
+// excessive etcd reads during bursts of requests. It uses a very short
+// caching window because BSS does not currently intercept incoming
+// changes to the Global data to invalidate the cache.  This decision
+// was made to mitigate the risk of hotfixing the proper changes, which
+// would be more extensive and risky, on to customer systems without
+// extensive prolonged internal exposure.  The tradefoff is a potentially
+// stale cache during the timeout window.  We choose a very small timeout
+// window (1 second by default) to minimize that possibility.  Global
+// data is rarely updated and then is usually done when compute nodes are
+// not being booted (eg. rebuilding master nodes).
+
+var (
+	gdMutex      sync.Mutex
+	gdCache      BootData
+	gdLastUpdate int64
+)
+
 func LookupGlobalData() (BootData, error) {
-	return LookupByRole(GlobalTag)
+	gdMutex.Lock()
+	defer gdMutex.Unlock()
+
+	var err error
+
+	currTime := time.Now().Unix()
+
+	debugf("LookupGlobalData(): curtime=%s gdLastUpdate=%s globalDataTimeout=%d",
+			time.Unix(currTime, 0).Format("15:04:05"),
+			time.Unix(gdLastUpdate, 0).Format("15:04:05"), globalDataTimeout)
+
+	if currTime >= gdLastUpdate + int64(globalDataTimeout) {
+		gdCache , err = LookupByRole(GlobalTag)
+		if err == nil {
+			gdLastUpdate = currTime
+			debugf("LookupGlobalData(): Re-caching Global metadata at %s",
+					time.Unix(currTime, 0).Format("15:04:05"))
+		} else {
+			log.Printf("Failed to cache Global metadata: %v", err)
+		}
+	}
+	return gdCache , err
 }
 
 func LookupComponentByName(name string) SMComponent {
