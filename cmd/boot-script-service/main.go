@@ -48,7 +48,7 @@ import (
 	"strings"
 	"time"
 
-	base "github.com/Cray-HPE/hms-base/v2"
+	base "github.com/Cray-HPE/hms-base"
 	hmetcd "github.com/Cray-HPE/hms-hmetcd"
 )
 
