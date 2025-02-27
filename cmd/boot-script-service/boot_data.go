@@ -894,15 +894,16 @@ func LookupByRole(role string) (BootData, error) {
 }
 
 // LookupGlobalData() implements a cache for Global metadata to prevent
-// excessive etcd reads during bursts of requests. This implementation is
-// a complete hack! A proper implementation requires invalidating and
-// re-caching at every point where the Global metadata is changed.  We
-// choose this inferior approach to mitigate the risk of hotfixing the
-// proper changes, which would be more extensive and risky, on to customer
-// systems without extensive exposure.  The tradefoff is a potentially
-// stale cache during the timeout window.  We choose a very timeout window
-// to mitigate that possibility.  We're just trying to ratelimit the
-// number of etcd reads to a reasonable level.
+// excessive etcd reads during bursts of requests. It uses a very short
+// caching window because BSS does not currently intercept incoming
+// changes to the Global data to invalidate the cache.  This decision
+// was made to mitigate the risk of hotfixing the proper changes, which
+// would be more extensive and risky, on to customer systems without
+// extensive prolonged internal exposure.  The tradefoff is a potentially
+// stale cache during the timeout window.  We choose a very small timeout
+// window (1 second by default) to minimize that possibility.  Global
+// data is rarely updated and then is usually done when compute nodes are
+// not being booted (eg. rebuilding master nodes).
 
 var (
 	gdMutex      sync.Mutex
@@ -918,11 +919,11 @@ func LookupGlobalData() (BootData, error) {
 
 	currTime := time.Now().Unix()
 
-	debugf("LookupGlobalData(): curtime=%s gdLastUpdate=%s cacheGDETimeout=%d",
+	debugf("LookupGlobalData(): curtime=%s gdLastUpdate=%s globalDataTimeout=%d",
 			time.Unix(currTime, 0).Format("15:04:05"),
-			time.Unix(gdLastUpdate, 0).Format("15:04:05"), cacheGDETimeout)
+			time.Unix(gdLastUpdate, 0).Format("15:04:05"), globalDataTimeout)
 
-	if currTime >= gdLastUpdate + int64(cacheGDETimeout) {
+	if currTime >= gdLastUpdate + int64(globalDataTimeout) {
 		gdCache , err = LookupByRole(GlobalTag)
 		if err == nil {
 			gdLastUpdate = currTime
