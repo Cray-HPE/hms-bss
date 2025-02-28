@@ -20,12 +20,10 @@
 // ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-//
 // Shasta boot script server state change notification management
 //
 // Set up state change notification subscriptions in order to keep the known
 // configuration up-to-date with the state manager.
-//
 package main
 
 import (
@@ -121,7 +119,7 @@ func (notifier *ScnNotifier) subscribe(comps []string) error {
 	if n == 0 {
 		return fmt.Errorf("Empty component subscription list")
 	}
-	debugf("New notifier subscription, current: %v, incoming: %v", notifier.Components, comps)
+	debugf("subscribe(): New notifier subscription, current: %v, incoming: %v", notifier.Components, comps)
 	sort.Strings(comps)
 	if n == len(notifier.Components) {
 		i := 0
@@ -143,7 +141,7 @@ func (notifier *ScnNotifier) subscribe(comps []string) error {
 		Enabled:    &enabled,
 		Url:        notifier.NotifierURL,
 	}
-	debugf("Subscribing for comps: %v", comps)
+	debugf("subscribe(): Subscribing for comps: %v", comps)
 	payload, err := json.Marshal(sub)
 	if err != nil {
 		log.Printf("ERROR: marshalling failed: %s", err)
@@ -157,7 +155,7 @@ func (notifier *ScnNotifier) subscribe(comps []string) error {
 		req.Header.Set("Content-Type", "application/json")
 		base.SetHTTPUserAgent(req, serviceName)
 		req.Close = true
-		debugf("Ready to %s to %s: %s, Request: %+v", method, notifier.SubscriberURL, payload, req)
+		debugf("subscribe(): Ready to %s to %s: %s, Request: %+v", method, notifier.SubscriberURL, payload, req)
 		rsp, err := notifier.Client.Do(req)
 		if err != nil {
 			log.Printf("ERROR sending %s to hmnfd %s: %s", method, notifier.SubscriberURL, err)
@@ -196,7 +194,9 @@ func stateChangeNotification(w http.ResponseWriter, r *http.Request) {
 		// FIXME: Add error return data
 		return
 	}
-	log.Printf("Received state change notification: %s", p)
+
+	log.Printf("POST /scn, Received state change notification: %s", p)
+
 	// We simply store a timestamp.  This is the approx. time that SM updated
 	// something.  The next time BSS needs to check a host, it will see if it
 	// is up-to-date, and if not, it will fetch new SM data at that time.
@@ -230,7 +230,7 @@ func checkState(force bool) bool {
 		ts, err = strconv.ParseInt(timestamp, 0, 64)
 	}
 	if force || exists && err == nil && smTimeStamp < ts {
-		debugf("force: %t, exists: %t, timestamp = %s, ts = %d, smTimeStamp = %d", force, exists, timestamp, ts, smTimeStamp)
+		debugf("checkState(): force: %t, exists: %t, timestamp = %s, ts = %d, smTimeStamp = %d", force, exists, timestamp, ts, smTimeStamp)
 		go refreshState(ts)
 		return true
 	}

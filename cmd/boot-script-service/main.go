@@ -69,13 +69,15 @@ var (
 	// TODO: Set the default to a well known link local address when we have it.
 	// This will also mean we change the virtual service into an Ingress with
 	// this well known IP.
-	advertiseAddress  = "" // i.e. http://{IP to reach this service}
-	insecure          = false
-	debugFlag         = true
-	kvstore           hmetcd.Kvi
-	retryDelay        = uint(30)
-	hsmRetrievalDelay = uint(10)
-	notifier          *ScnNotifier
+	advertiseAddress     = "" // i.e. http://{IP to reach this service}
+	insecure             = false
+	debugFlag            = false
+	cacheEvictionTimeout = uint(600) // In seconds (10 min default)
+	globalDataTimeout    = uint(1)   // In seconds (1 sec default)
+	kvstore              hmetcd.Kvi
+	retryDelay           = uint(30)
+	hsmRetrievalDelay    = uint(10)
+	notifier             *ScnNotifier
 )
 
 func parseEnv(evar string, v interface{}) (ret error) {
@@ -218,6 +220,8 @@ func main() {
 	parseEnv("DATASTORE_BASE", &datastoreBase)
 	parseEnv("BSS_INSECURE", &insecure)
 	parseEnv("BSS_DEBUG", &debugFlag)
+	parseEnv("BSS_CACHE_EVICTION_TIMEOUT", &cacheEvictionTimeout)
+	parseEnv("BSS_GLOBAL_DATA_TIMEOUT", &globalDataTimeout)
 	parseEnv("BSS_RETRY_DELAY", &retryDelay)
 	parseEnv("BSS_RETRIEVAL_DELAY", &hsmRetrievalDelay)
 	parseEnv("SPIRE_TOKEN_URL", &spireServiceURL)
@@ -232,6 +236,8 @@ func main() {
 	flag.StringVar(&advertiseAddress, "cloud-init-address", advertiseAddress, "IP:PORT to advertise for cloud-init calls. This needs to be an IP as we do not have DNS when cloud-init runs")
 	flag.BoolVar(&insecure, "insecure", insecure, "Don't enforce https certificate security")
 	flag.BoolVar(&debugFlag, "debug", debugFlag, "Enable debug output")
+	flag.UintVar(&cacheEvictionTimeout, "cache-eviction-timeout", cacheEvictionTimeout, "Cache eviction timeout in seconds")
+	flag.UintVar(&globalDataTimeout, "global-data-timeout", globalDataTimeout, "Global data cache eviction timeout in seconds")
 	flag.UintVar(&retryDelay, "retry-delay", retryDelay, "Retry delay in seconds")
 	flag.UintVar(&hsmRetrievalDelay, "hsm-retrieval-delay", hsmRetrievalDelay, "SM Retrieval delay in seconds")
 	flag.Parse()
@@ -240,7 +246,20 @@ func main() {
 	if snerr == nil {
 		serviceName = sn
 	}
+
 	log.Printf("Service %s started", serviceName)
+	log.Printf("        httpListen:           %v", httpListen)
+	log.Printf("        hsmBase:              %v", hsmBase)
+	log.Printf("        nfdBase:              %v", nfdBase)
+	log.Printf("        datastoreBase         %v", datastoreBase)
+	log.Printf("        debugFlag:            %v", debugFlag)
+	log.Printf("        cacheEvictionTimeout: %v", cacheEvictionTimeout)
+	log.Printf("        globalDataTimeout:    %v", globalDataTimeout)
+	log.Printf("        retryDelay:           %v", retryDelay)
+	log.Printf("        hsmRetrievalDelay:    %v", hsmRetrievalDelay)
+	log.Printf("        spireServiceURL:      %v", spireServiceURL)
+	log.Printf("        advertiseAddress:     %v", advertiseAddress)
+
 	initHandlers()
 
 	var svcOpts string

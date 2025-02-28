@@ -28,11 +28,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/Cray-HPE/hms-bss/pkg/bssTypes"
 	"log"
 	"math/rand"
 	"net/http"
 	"strings"
+
+	"github.com/Cray-HPE/hms-bss/pkg/bssTypes"
 
 	yaml "gopkg.in/yaml.v2"
 
@@ -70,6 +71,9 @@ func generateInstanceID(prefix string) string {
 
 func findRemoteAddr(r *http.Request) string {
 	remoteaddr := r.Header.Get("X-Forwarded-For")
+
+	debugf("findRemoteAddr(): X-Forwarder-For=%v\n", remoteaddr)
+
 	if remoteaddr == "" {
 		// Since IPV6 address have colons we only strip the last colon which
 		// is the port. We know this from the http docs indicating IP:PORT
@@ -79,6 +83,9 @@ func findRemoteAddr(r *http.Request) string {
 	} else {
 		// XFF is a comma seperated list of IPs forwarded through.
 		// Envoy will append the trusted client IP, which is what we want.
+		//
+		// Possible bug here.  Quick search online indicates that the original
+		// client IP should be first in the list, not last.
 		remoteaddrSlice := strings.Split(remoteaddr, ",")
 		remoteaddr = remoteaddrSlice[len(remoteaddrSlice)-1]
 	}
@@ -138,6 +145,47 @@ func metaDataGetAPI(w http.ResponseWriter, r *http.Request) {
 	var httpStatus = http.StatusOK
 	var isDefault = false
 
+	log.Printf("GET /meta-data, url: %v", r.URL)
+
+	// First handle global data
+	globaldata, _ := LookupGlobalData()
+	globalRespData := globaldata.CloudInit.MetaData
+	// If empty, initialize an empty map
+	if len(globalRespData) == 0 {
+		globalRespData = make(map[string]interface{})
+	}
+
+	// If there's a query for Global data, we can just return that and not
+	// gather all the other metadata
+
+	queries := r.URL.Query()
+	lookupKeys, lookupKeysOk := queries[QUERYKEY]
+
+	if lookupKeysOk && len(lookupKeys) > 0 {
+		lookupKey := strings.Split(lookupKeys[0], ".")
+		if lookupKey[0] == "Global" {
+			// We have a query for Global data but may have a subquery into it
+			if len(lookupKey) > 1 {
+				// Process the subquery (after throwing away "Global")
+				rval, err := mapLookup(globalRespData, lookupKey[1:]...)
+				if err != nil {
+					base.SendProblemDetailsGeneric(w, http.StatusNotFound, "Not Found")
+					debugf("metaDataGetAPI(): Global Query Not Found: %v\n", err)
+					return
+				}
+				w.WriteHeader(httpStatus)
+				json.NewEncoder(w).Encode(rval)
+				debugf("metaDataGetAPI(): Returned Global data subquery\n")
+			} else {
+				// No subquery so return all global data
+				w.WriteHeader(httpStatus)
+				json.NewEncoder(w).Encode(globalRespData)
+				debugf("metaDataGetAPI(): Returned all Global data\n")
+			}
+			return
+		}
+	}
+
 	remoteaddr := findRemoteAddr(r)
 
 	// Get the xname to lookup metadata.
@@ -147,11 +195,11 @@ func metaDataGetAPI(w http.ResponseWriter, r *http.Request) {
 		log.Printf("CloudInit -> No XName found for: %s, using default data\n", remoteaddr)
 	}
 
+	log.Printf("metaDataGetAPI(%s): found xname '%s'", remoteaddr, xname)
+
 	// If name is "" here, LookupByName uses the default tag, which is what we want.
 	bootdata, _ := LookupByName(xname)
-	globaldata, _ := LookupGlobalData()
 
-	log.Printf("GET /meta-data, xname: %s ip: %s", xname, remoteaddr)
 	respData = bootdata.CloudInit.MetaData
 	// If empty, initialize an empty map
 	if len(respData) == 0 {
@@ -163,7 +211,7 @@ func metaDataGetAPI(w http.ResponseWriter, r *http.Request) {
 	} else {
 		err := generateMetaData(xname, respData)
 		if err != nil {
-			log.Printf("Warning - %s: Some meta data could not be found!\n", xname)
+			log.Printf("Warning - '%s': Some meta data could not be found!\n", xname)
 		}
 	}
 
@@ -180,41 +228,35 @@ func metaDataGetAPI(w http.ResponseWriter, r *http.Request) {
 	// Override any role data from the per node data
 	mergedData := mergeMaps(roleInitData, respData)
 
-	globalRespData := globaldata.CloudInit.MetaData
-	// If empty, initialize an empty map
-	if len(globalRespData) == 0 {
-		globalRespData = make(map[string]interface{})
-	}
-
 	mergedData["Global"] = globalRespData
-	queries := r.URL.Query()
 
-	lookupKeys, ok := queries[QUERYKEY]
-	if ok && len(lookupKeys) > 0 {
+	if lookupKeysOk && len(lookupKeys) > 0 {
 		// Query string provided in request, return it.
 		lookupKey := strings.Split(lookupKeys[0], ".")
 		rval, err := mapLookup(mergedData, lookupKey...)
 		if err != nil {
-			debugf("CloudInit MetaData: Query Not Found: %v\n", err)
+			debugf("metaDataGetAPI(%s): Query Not Found: %v\n", remoteaddr, err)
 			base.SendProblemDetailsGeneric(w, http.StatusNotFound,
 				fmt.Sprintf("Not Found"))
 			return
 		}
+		w.WriteHeader(httpStatus)
 		json.NewEncoder(w).Encode(rval)
+		debugf("metaDataGetAPI(%s): Returned query data\n", remoteaddr)
 	} else {
 		// No query, return all data
+		w.WriteHeader(httpStatus)
 		json.NewEncoder(w).Encode(mergedData)
+		debugf("metaDataGetAPI(%s): No query, returned all data\n", remoteaddr)
 	}
-
-	w.WriteHeader(httpStatus)
-	return
-
 }
 
 func userDataGetAPI(w http.ResponseWriter, r *http.Request) {
 	var respData map[string]interface{}
 	var httpStatus = http.StatusOK
 	isDefault := false
+
+	log.Printf("GET /user-data, url: %v", r.URL)
 
 	remoteaddr := findRemoteAddr(r)
 
@@ -224,6 +266,7 @@ func userDataGetAPI(w http.ResponseWriter, r *http.Request) {
 		isDefault = true
 		log.Printf("CloudInit -> No XName found for: %s, using default data\n", remoteaddr)
 	}
+	log.Printf("userDataGetAPI(%s): found xname '%s'", remoteaddr, xname)
 
 	// If name is "" here, LookupByName uses the default tag, which is what we want.
 	bootdata, _ := LookupByName(xname)
@@ -236,7 +279,7 @@ func userDataGetAPI(w http.ResponseWriter, r *http.Request) {
 	if !isDefault {
 		err := generateMetaData(xname, metaData)
 		if err != nil {
-			log.Printf("Warning - %s: Some meta data could not be found!\n", xname)
+			log.Printf("Warning - '%s': Some meta data could not be found!\n", xname)
 		}
 	}
 
@@ -250,7 +293,6 @@ func userDataGetAPI(w http.ResponseWriter, r *http.Request) {
 		roleInitData = make(map[string]interface{})
 	}
 
-	log.Printf("GET /user-data, xname: %s ip: %s", xname, remoteaddr)
 	respData = bootdata.CloudInit.UserData
 	if len(respData) == 0 {
 		respData = make(map[string]interface{})
@@ -280,7 +322,7 @@ func userDataGetAPI(w http.ResponseWriter, r *http.Request) {
 }
 
 func endpointHistoryGetAPI(w http.ResponseWriter, r *http.Request) {
-	debugf("endpointHistoryGetAPI(): Received request %v\n", r.URL)
+	log.Printf("GET /endpoint-history, url: %v", r.URL)
 
 	r.ParseForm() // r.Form is empty until after parsing
 	name := strings.Join(r.Form["name"], "")
@@ -316,12 +358,14 @@ func endpointHistoryGetAPI(w http.ResponseWriter, r *http.Request) {
 func phoneHomePostAPI(w http.ResponseWriter, r *http.Request) {
 	var bp bssTypes.BootParams
 	var hosts []string
-
 	var args bssTypes.PhoneHome
+
+	log.Printf("POST /phone-home, url: %v", r.URL)
+
 	dec := json.NewDecoder(r.Body)
 	err := dec.Decode(&args)
 	if err != nil {
-		debugf("CloudInit PhoneHome: Bad Request: %v\n", err)
+		debugf("phoneHomePostAPI(): Bad Request: %v\n", err)
 		base.SendProblemDetailsGeneric(w, http.StatusBadRequest,
 			fmt.Sprintf("Bad Request"))
 		return
@@ -331,7 +375,7 @@ func phoneHomePostAPI(w http.ResponseWriter, r *http.Request) {
 	// Get the xname to lookup metadata.
 	xname, found := FindXnameByIP(remoteaddr)
 	if !found {
-		debugf("CloudInit -> Phone Home called for unknown xname, ip: %s", remoteaddr)
+		debugf("phoneHomePostAPI(): Called for unknown xname, ip: %s", remoteaddr)
 		base.SendProblemDetailsGeneric(w, http.StatusNotFound,
 			fmt.Sprintf("XName not found for IP"))
 		return
