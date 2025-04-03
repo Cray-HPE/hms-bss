@@ -52,8 +52,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Cray-HPE/bss/pkg/bssTypes"
 	base "github.com/Cray-HPE/hms-base"
-	"github.com/Cray-HPE/hms-bss/pkg/bssTypes"
+	hmetcd "github.com/Cray-HPE/hms-hmetcd"
 	hms_s3 "github.com/Cray-HPE/hms-s3"
 )
 
@@ -175,38 +176,55 @@ func checkURL(u string) (string, error) {
 
 func BootparametersGetAll(w http.ResponseWriter, r *http.Request) {
 	var results []bssTypes.BootParams
-	for _, image := range GetKernelInfo() {
-		var bp bssTypes.BootParams
-		bp.Params = image.Params
-		bp.Kernel = image.Path
-		results = append(results, bp)
-	}
-	for _, image := range GetInitrdInfo() {
-		var bp bssTypes.BootParams
-		bp.Params = image.Params
-		bp.Initrd = image.Path
-		results = append(results, bp)
-	}
-	var names []string
-	if kvl, e := getTags(); e == nil {
-		for _, x := range kvl {
-			name := extractParamName(x)
-			names = append(names, name)
-			var bds BootDataStore
-			e = json.Unmarshal([]byte(x.Value), &bds)
-			if e == nil {
-				bd := bdConvert(bds)
-				var bp bssTypes.BootParams
-				bp.Hosts = append(bp.Hosts, name)
-				bp.Params = bd.Params
-				bp.Kernel = bd.Kernel.Path
-				bp.Initrd = bd.Initrd.Path
-				bp.CloudInit = bd.CloudInit
-				results = append(results, bp)
+	if useSQL {
+		var (
+			err   error
+			nodes []string
+		)
+		results, err = bssdb.GetBootParamsAll()
+		if err != nil {
+			log.Printf("Yikes, I couldn't retrieve boot parameters from Postgres: %v\n", err)
+		}
+		for _, bp := range results {
+			for _, node := range bp.Hosts {
+				nodes = append(nodes, node)
 			}
 		}
+		debugf("Retrieved boot configs for nodes: %v", nodes)
+	} else {
+		for _, image := range GetKernelInfo() {
+			var bp bssTypes.BootParams
+			bp.Params = image.Params
+			bp.Kernel = image.Path
+			results = append(results, bp)
+		}
+		for _, image := range GetInitrdInfo() {
+			var bp bssTypes.BootParams
+			bp.Params = image.Params
+			bp.Initrd = image.Path
+			results = append(results, bp)
+		}
+		var names []string
+		if kvl, e := getTags(); e == nil {
+			for _, x := range kvl {
+				name := extractParamName(x)
+				names = append(names, name)
+				var bds BootDataStore
+				e = json.Unmarshal([]byte(x.Value), &bds)
+				if e == nil {
+					bd := bdConvert(bds)
+					var bp bssTypes.BootParams
+					bp.Hosts = append(bp.Hosts, name)
+					bp.Params = bd.Params
+					bp.Kernel = bd.Kernel.Path
+					bp.Initrd = bd.Initrd.Path
+					bp.CloudInit = bd.CloudInit
+					results = append(results, bp)
+				}
+			}
+		}
+		debugf("Retrieved names: %v", names)
 	}
-	debugf("Retreived names: %v", names)
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	err := json.NewEncoder(w).Encode(results)
@@ -267,89 +285,97 @@ func BootparametersGet(w http.ResponseWriter, r *http.Request) {
 
 	debugf("Received boot parameters: %v\n", args)
 	var results []bssTypes.BootParams
-	if args.Kernel != "" || args.Initrd != "" {
-		for _, image := range GetKernelInfo() {
-			if image.Path == args.Kernel {
+	if useSQL {
+		debugf("SqlGetBootParams(%v, %v, %v)", args.Macs, args.Hosts, args.Nids)
+		results, err = SqlGetBootParams(args.Macs, args.Hosts, args.Nids)
+		if err != nil {
+			log.Printf("Could not retrieve all boot parameters from PostgreSQL: %v", err)
+		}
+	} else {
+		if args.Kernel != "" || args.Initrd != "" {
+			for _, image := range GetKernelInfo() {
+				if image.Path == args.Kernel {
+					var bp bssTypes.BootParams
+					bp.Params = image.Params
+					bp.Kernel = image.Path
+					results = append(results, bp)
+				}
+			}
+			for _, image := range GetInitrdInfo() {
+				if image.Path == args.Initrd {
+					var bp bssTypes.BootParams
+					bp.Params = image.Params
+					bp.Initrd = image.Path
+					results = append(results, bp)
+				}
+			}
+		}
+		var unfoundHosts []string
+		for _, v := range args.Hosts {
+			bd, err := LookupBootData(v)
+			if err == nil {
 				var bp bssTypes.BootParams
-				bp.Params = image.Params
-				bp.Kernel = image.Path
-				results = append(results, bp)
-			}
-		}
-		for _, image := range GetInitrdInfo() {
-			if image.Path == args.Initrd {
-				var bp bssTypes.BootParams
-				bp.Params = image.Params
-				bp.Initrd = image.Path
-				results = append(results, bp)
-			}
-		}
-	}
-	var unfoundHosts []string
-	for _, v := range args.Hosts {
-		bd, err := LookupBootData(v)
-		if err == nil {
-			var bp bssTypes.BootParams
-			bp.Hosts = append(bp.Hosts, v)
-			bp.Params = bd.Params
-			bp.Kernel = bd.Kernel.Path
-			bp.Initrd = bd.Initrd.Path
-			bp.CloudInit = bd.CloudInit
-			results = append(results, bp)
-		} else {
-			unfoundHosts = append(unfoundHosts, v)
-		}
-	}
-	args.Hosts = unfoundHosts
-
-	if len(args.Hosts) > 0 || len(args.Macs) > 0 || len(args.Nids) > 0 {
-
-		nameValues := GetNamesAndValues()
-
-		kernelImages := make(map[string]ImageData)
-		initrdImages := make(map[string]ImageData)
-		for name, value := range nameValues {
-			smc := LookupComponentByName(name)
-			bd, parseErr := ToBootData(value, kernelImages, initrdImages)
-			if parseErr != nil {
-				log.Printf("Failed to parse etcd value for %s: %v\n", name, parseErr)
-			}
-
-			debugf("Found %s: %v | %v\n", name, bd, smc)
-			var bp bssTypes.BootParams
-			ok := false
-			for _, v := range args.Hosts {
-				if v == smc.ID || v == smc.Fqdn || v == name {
-					ok = true
-					break
-				}
-			}
-			if !ok {
-			Outer:
-				for _, v := range args.Macs {
-					for _, m := range smc.Mac {
-						if strings.EqualFold(v, m) {
-							ok = true
-							break Outer
-						}
-					}
-				}
-			}
-			if !ok {
-				for _, v := range args.Nids {
-					if nid, err := smc.NID.Int64(); err == nil && int64(v) == nid {
-						ok = true
-						break
-					}
-				}
-			}
-			if ok {
-				bp.Hosts = append(bp.Hosts, name)
+				bp.Hosts = append(bp.Hosts, v)
 				bp.Params = bd.Params
 				bp.Kernel = bd.Kernel.Path
 				bp.Initrd = bd.Initrd.Path
 				bp.CloudInit = bd.CloudInit
 				results = append(results, bp)
+			} else {
+				unfoundHosts = append(unfoundHosts, v)
+			}
+		}
+		args.Hosts = unfoundHosts
+
+		if len(args.Hosts) > 0 || len(args.Macs) > 0 || len(args.Nids) > 0 {
+
+			nameValues := GetNamesAndValues()
+
+			kernelImages := make(map[string]ImageData)
+			initrdImages := make(map[string]ImageData)
+			for name, value := range nameValues {
+				smc := LookupComponentByName(name)
+				bd, parseErr := ToBootData(value, kernelImages, initrdImages)
+				if parseErr != nil {
+					log.Printf("Failed to parse etcd value for %s: %v\n", name, parseErr)
+				}
+
+				debugf("Found %s: %v | %v\n", name, bd, smc)
+				var bp bssTypes.BootParams
+				ok := false
+				for _, v := range args.Hosts {
+					if v == smc.ID || v == smc.Fqdn || v == name {
+						ok = true
+						break
+					}
+				}
+				if !ok {
+				Outer:
+					for _, v := range args.Macs {
+						for _, m := range smc.Mac {
+							if strings.EqualFold(v, m) {
+								ok = true
+								break Outer
+							}
+						}
+					}
+				}
+				if !ok {
+					for _, v := range args.Nids {
+						if nid, err := smc.NID.Int64(); err == nil && int64(v) == nid {
+							ok = true
+							break
+						}
+					}
+				}
+				if ok {
+					bp.Hosts = append(bp.Hosts, name)
+					bp.Params = bd.Params
+					bp.Kernel = bd.Kernel.Path
+					bp.Initrd = bd.Initrd.Path
+					bp.CloudInit = bd.CloudInit
+					results = append(results, bp)
+				}
 			}
 		}
 	}
@@ -415,6 +441,25 @@ func BootparametersPost(w http.ResponseWriter, r *http.Request) {
 			fmt.Sprintf("Bad Request: %s", err))
 		return
 	}
+	// Check that MAC address(es) is/are valid format
+	err = args.CheckMacs()
+	if err != nil {
+		// Invalid MAC address format (if included), invalid request
+		LogBootParameters(fmt.Sprintf("/bootparameters POST FAILED: %s", err.Error()), args)
+		base.SendProblemDetailsGeneric(w, http.StatusBadRequest,
+			fmt.Sprintf("Bad Request: %s", err))
+		return
+	}
+	// Check that the xnames are valid
+	err = args.CheckXnames()
+	if err != nil {
+		// Invalid xname format (if included), invalid request
+		LogBootParameters(fmt.Sprintf("/bootparameters POST FAILED: %s", err.Error()), args)
+		base.SendProblemDetailsGeneric(w, http.StatusBadRequest,
+			fmt.Sprintf("Bad Request: %s", err))
+		return
+	}
+	// Fields appear to be correct.  Continue with processing.
 	debugf("Received boot parameters: %v\n", args)
 	err, referralToken := StoreNew(args)
 	if err == nil {
@@ -442,6 +487,15 @@ func BootparametersPut(w http.ResponseWriter, r *http.Request) {
 			fmt.Sprintf("Bad Request: %s", err))
 		return
 	}
+	// Check that MAC address(es) is/are valid format
+	err = args.CheckMacs()
+	if err != nil {
+		// Invalid MAC address format (if included), invalid request
+		LogBootParameters(fmt.Sprintf("/bootparameters PUT FAILED: %s", err.Error()), args)
+		base.SendProblemDetailsGeneric(w, http.StatusBadRequest,
+			fmt.Sprintf("Bad Request: %s", err))
+		return
+	}
 	debugf("Received boot parameters: %v\n", args)
 	err, referralToken := Store(args)
 	if err == nil {
@@ -452,7 +506,7 @@ func BootparametersPut(w http.ResponseWriter, r *http.Request) {
 		}
 		w.WriteHeader(http.StatusOK)
 	} else {
-		LogBootParameters(fmt.Sprintf("/bootparameters PATCH FAILED: %s", err.Error()), args)
+		LogBootParameters(fmt.Sprintf("/bootparameters PUT FAILED: %s", err.Error()), args)
 		herr, ok := base.GetHMSError(err)
 		if ok && herr.GetProblem() != nil {
 			base.SendProblemDetails(w, herr.GetProblem(), 0)
@@ -469,6 +523,15 @@ func BootparametersPatch(w http.ResponseWriter, r *http.Request) {
 	err := dec.Decode(&args)
 	if err != nil {
 		debugf("BootparametersPatch: Bad Request: %v\n", err)
+		base.SendProblemDetailsGeneric(w, http.StatusBadRequest,
+			fmt.Sprintf("Bad Request: %s", err))
+		return
+	}
+	// Check that MAC address(es) is/are valid format
+	err = args.CheckMacs()
+	if err != nil {
+		// Invalid MAC address format (if included), invalid request
+		LogBootParameters(fmt.Sprintf("/bootparameters PATCH FAILED: %s", err.Error()), args)
 		base.SendProblemDetailsGeneric(w, http.StatusBadRequest,
 			fmt.Sprintf("Bad Request: %s", err))
 		return
@@ -821,7 +884,11 @@ func BootscriptGet(w http.ResponseWriter, r *http.Request) {
 				chain += "?name=" + comp.ID
 			}
 			chain += fmt.Sprintf("&retry=%d", retry+1)
-			retreivingState = checkState(false)
+			if useSQL {
+				retreivingState = false
+			} else {
+				retreivingState = checkState(false)
+			}
 			if retreivingState {
 				// We want to respond with a delayed chain response so that the
 				// node will retry in a bit after we have updated our state info
@@ -936,42 +1003,65 @@ func DumpstateGet(w http.ResponseWriter, r *http.Request) {
 	var results State
 	state := getState()
 	results.Components = state.Components
-	for _, image := range GetKernelInfo() {
-		var bp bssTypes.BootParams
-		bp.Params = image.Params
-		bp.Kernel = image.Path
-		results.Params = append(results.Params, bp)
-	}
-	for _, image := range GetInitrdInfo() {
-		var bp bssTypes.BootParams
-		bp.Params = image.Params
-		bp.Initrd = image.Path
-		results.Params = append(results.Params, bp)
-	}
+	var err error
+	if useSQL {
+		results.Params, err = bssdb.GetBootParamsAll()
+		if err != nil {
+			log.Printf("DumpStateGet(): GetBootParamsAll(): Could not get boot parameters from SQL DB: %v", err)
+			err = fmt.Errorf("Error retrieving boot parameters from database")
+		}
+	} else {
+		for _, image := range GetKernelInfo() {
+			var bp bssTypes.BootParams
+			bp.Params = image.Params
+			bp.Kernel = image.Path
+			results.Params = append(results.Params, bp)
+		}
+		for _, image := range GetInitrdInfo() {
+			var bp bssTypes.BootParams
+			bp.Params = image.Params
+			bp.Initrd = image.Path
+			results.Params = append(results.Params, bp)
+		}
 
-	kvl, err := getTags()
-	var names []string
-	if err == nil {
-		for _, x := range kvl {
-			name := extractParamName(x)
-			names = append(names, name)
-			var bds BootDataStore
-			if e := json.Unmarshal([]byte(x.Value), &bds); e == nil {
-				bd := bdConvert(bds)
-				var bp bssTypes.BootParams
-				bp.Hosts = append(bp.Hosts, name)
-				bp.Params = bd.Params
-				bp.Kernel = bd.Kernel.Path
-				bp.Initrd = bd.Initrd.Path
-				results.Params = append(results.Params, bp)
+		var (
+			kvl   []hmetcd.Kvi_KV
+			names []string
+		)
+		kvl, err = getTags()
+		if err == nil {
+			for _, x := range kvl {
+				name := extractParamName(x)
+				names = append(names, name)
+				var bds BootDataStore
+				if e := json.Unmarshal([]byte(x.Value), &bds); e == nil {
+					bd := bdConvert(bds)
+					var bp bssTypes.BootParams
+					bp.Hosts = append(bp.Hosts, name)
+					bp.Params = bd.Params
+					bp.Kernel = bd.Kernel.Path
+					bp.Initrd = bd.Initrd.Path
+					results.Params = append(results.Params, bp)
+				} else {
+					debugf("WARNING: Unmarshalling boot data store for name %q and tag %v failed (not including in results): %v", name, x, err)
+				}
 			}
+			debugf("Retrieved names: %v", names)
+			debugf("Retrieved params: %v", results.Params)
+		} else {
+			log.Printf("DumpStateGet(): getTags(): %v", err)
+			err = fmt.Errorf("Error retrieving names from key-value store")
 		}
 	}
-	debugf("Retreived names: %v", names)
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(results)
 	if err != nil {
-		log.Printf("Yikes, I couldn't encode '%v' as a JSON status response: %s\n", results, err)
+		base.SendProblemDetailsGeneric(w, http.StatusInternalServerError,
+			fmt.Sprintf("Retrieving state failed: %v", err))
+	} else {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusOK)
+		err = json.NewEncoder(w).Encode(results)
+		if err != nil {
+			log.Printf("Yikes, I couldn't encode '%v' as a JSON status response: %s\n", results, err)
+		}
 	}
 }

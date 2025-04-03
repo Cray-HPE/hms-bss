@@ -37,36 +37,84 @@ package main
 
 import (
 	"fmt"
-	base "github.com/Cray-HPE/hms-base"
+	"log"
 	"net/http"
+	net_url "net/url"
+	"os"
+	"time"
+
+	base "github.com/Cray-HPE/hms-base"
+	"github.com/Cray-HPE/jwtauth/v5"
+	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/chi/v5"
+	"github.com/hashicorp/go-retryablehttp"
+	openchami_authenticator "github.com/openchami/chi-middleware/auth"
+	openchami_logger "github.com/openchami/chi-middleware/log"
+	"github.com/rs/zerolog"
+	zlog "github.com/rs/zerolog/log"
 )
 
 const (
 	baseEndpoint     = "/boot/v1"
 	notifierEndpoint = baseEndpoint + "/scn"
 	// We don't use the baseEndpoint here because cloud-init doesn't like them
-	metaDataRoute   = "/meta-data"
-	userDataRoute   = "/user-data"
-	phoneHomeRoute  = "/phone-home"
+	metaDataRoute  = "/meta-data"
+	userDataRoute  = "/user-data"
+	phoneHomeRoute = "/phone-home"
 )
 
-func initHandlers() {
-	http.HandleFunc(baseEndpoint+"/", Index)
-	// config
-	http.HandleFunc(baseEndpoint+"/bootparameters", bootParameters)
+var (
+	tokenAuth *jwtauth.JWTAuth
+)
+
+func initHandlers() *chi.Mux {
+	// Setup logger
+	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+	logger := zlog.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+
+	router := chi.NewRouter()
+	router.Use(middleware.RequestID)
+	router.Use(middleware.RealIP)
+	router.Use(middleware.Logger)
+	router.Use(middleware.Recoverer)
+	router.Use(middleware.StripSlashes)
+	router.Use(openchami_logger.OpenCHAMILogger(logger))
+	router.Use(middleware.Timeout(60 * time.Second))
+	if jwksURL != "" {
+		router.Group(func(r chi.Router) {
+			r.Use(
+				jwtauth.Verifier(tokenAuth),
+				openchami_authenticator.AuthenticatorWithRequiredClaims(tokenAuth, []string{"sub", "iss", "aud"}),
+			)
+
+			// protected routes if using auth
+			r.HandleFunc(baseEndpoint+"/", Index)
+			r.HandleFunc(baseEndpoint+"/bootparameters", bootParameters)
+		})
+	} else {
+		// public routes without auth
+		router.HandleFunc(baseEndpoint+"/", Index)
+		router.HandleFunc(baseEndpoint+"/bootparameters", bootParameters)
+	}
+	// every thing else is public
 	// boot
-	http.HandleFunc(baseEndpoint+"/bootscript", bootScript)
-	http.HandleFunc(baseEndpoint+"/hosts", hosts)
-	http.HandleFunc(baseEndpoint+"/dumpstate", dumpstate)
-	http.HandleFunc(baseEndpoint+"/service/", service)
+	router.HandleFunc(baseEndpoint+"/bootscript", bootScript)
+	router.HandleFunc(baseEndpoint+"/hosts", hosts)
+	router.HandleFunc(baseEndpoint+"/dumpstate", dumpstate)
+	router.HandleFunc(baseEndpoint+"/service/status", serviceStatusResponse)
+	router.HandleFunc(baseEndpoint+"/service/status/all", service)
+	router.HandleFunc(baseEndpoint+"/service/version", serviceVersionResponse)
+	router.HandleFunc(baseEndpoint+"/service/hsm", serviceHSMResponse)
+	router.HandleFunc(baseEndpoint+"/service/storage/status", serviceStorageResponse)
 	// cloud-init
-	http.HandleFunc(metaDataRoute, metaDataGet)
-	http.HandleFunc(userDataRoute, userDataGet)
-	http.HandleFunc(phoneHomeRoute, phoneHomePost)
+	router.HandleFunc(metaDataRoute, metaDataGet)
+	router.HandleFunc(userDataRoute, userDataGet)
+	router.HandleFunc(phoneHomeRoute, phoneHomePost)
 	// notifications
-	http.HandleFunc(notifierEndpoint, scn)
+	router.HandleFunc(notifierEndpoint, scn)
 	// endpoint-access
-	http.HandleFunc(baseEndpoint+"/endpoint-history", endpointHistoryGet)
+	router.HandleFunc(baseEndpoint+"/endpoint-history", endpointHistoryGet)
+	return router
 }
 
 func Index(w http.ResponseWriter, r *http.Request) {
@@ -96,6 +144,9 @@ func bootParameters(w http.ResponseWriter, r *http.Request) {
 }
 
 func bootScript(w http.ResponseWriter, r *http.Request) {
+	if bootscriptNotifyURL != "" {
+		go notifyTarget(bootscriptNotifyURL, r.RemoteAddr)
+	}
 	switch r.Method {
 	case http.MethodGet:
 		BootscriptGet(w, r)
@@ -176,4 +227,13 @@ func endpointHistoryGet(w http.ResponseWriter, r *http.Request) {
 	default:
 		sendAllowable(w, "GET")
 	}
+}
+
+func notifyTarget(url string, data string) {
+	resp, err := retryablehttp.PostForm(url, net_url.Values{"data": {data}})
+	if err != nil {
+		log.Printf("WARNING: HTTP POST of \"%v\" failed: %v\n", data, err)
+		return
+	}
+	defer resp.Body.Close()
 }

@@ -41,8 +41,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Cray-HPE/bss/pkg/bssTypes"
 	base "github.com/Cray-HPE/hms-base"
-	"github.com/Cray-HPE/hms-bss/pkg/bssTypes"
 	hmetcd "github.com/Cray-HPE/hms-hmetcd"
 	jsonpatch "github.com/evanphx/json-patch"
 	"github.com/google/uuid"
@@ -238,6 +238,19 @@ func nidName(nid int) string {
 func Remove(bp bssTypes.BootParams) error {
 	debugf("Remove(): Ready to remove %v\n", bp)
 	var err error
+	if useSQL {
+		var (
+			nodesDeleted []string
+			bcsDeleted   []string
+		)
+		nodesDeleted, bcsDeleted, err = bssdb.Delete(bp)
+		if err != nil {
+			return err
+		}
+		debugf("Node IDs deleted: %v", nodesDeleted)
+		debugf("Boot Config IDs deleted: %v", bcsDeleted)
+		return err
+	}
 	for _, h := range bp.Hosts {
 		e := removeHost(h)
 		if err == nil {
@@ -339,7 +352,149 @@ func extractParamName(x hmetcd.Kvi_KV) (ret string) {
 	return ret
 }
 
+func SqlGetBootParams(macs, xnames []string, nids []int32) (results []bssTypes.BootParams, err error) {
+	// Get all boot configurations corresponding to any passed MACs, XNames, and NIDs.
+	var (
+		paramsByMac  []bssTypes.BootParams
+		paramsByName []bssTypes.BootParams
+		paramsByNid  []bssTypes.BootParams
+	)
+	paramsByMac, err = bssdb.GetBootParamsByMac(macs)
+	if err != nil {
+		err = fmt.Errorf("Error getting boot parameters for macs=%v: %v", macs, err)
+		return
+	}
+	paramsByName, err = bssdb.GetBootParamsByName(xnames)
+	if err != nil {
+		err = fmt.Errorf("Error getting boot parameters for names=%v: %v", xnames, err)
+		return
+	}
+	paramsByNid, err = bssdb.GetBootParamsByNid(nids)
+	if err != nil {
+		err = fmt.Errorf("Error getting boot parameters for nids=%v: %v", nids, err)
+		return
+	}
+
+	// Organize boot configs into a map that maps the configuration items
+	// (kernel/initrd uri, kernel params) to the nodes (MACs/XNames/NIDs)
+	// that correspond to them.
+	//
+	// This is so that it is easier to have all MACs/XNames/NIDs corresponding to a
+	// particular boot config in a single BootParams struct rather than having multiple
+	// BootParams structs with possibly the same boot config but different MACs/XNames/NIDs.
+	// In other words, it is not desired to have multiple BootParams structs with
+	// itentical kernel/initrd uri and kernel params. This is so that the output is
+	// compact.
+	type bcfg struct {
+		Params string
+		Kernel string
+		Initrd string
+	}
+	type bid struct {
+		Macs  []string
+		Hosts []string
+		Nids  []int32
+	}
+	// "Boot config" to "boot ID"
+	bcfgToBid := make(map[bcfg]bid)
+	for _, pMac := range paramsByMac {
+		// Create boot config information for this set of MACs.
+		bcfgMac := bcfg{
+			Params: pMac.Params,
+			Kernel: pMac.Kernel,
+			Initrd: pMac.Initrd,
+		}
+		// If the map doesn't already have this config, add it.
+		if _, ok := bcfgToBid[bcfgMac]; !ok {
+			bcfgToBid[bcfgMac] = bid{
+				Macs:  []string{},
+				Hosts: []string{},
+				Nids:  []int32{},
+			}
+		}
+		for _, mac := range pMac.Macs {
+			// Add each MAC address to the list for this boot config.
+			tempBcfgMac := bcfgToBid[bcfgMac]
+			tempBcfgMac.Macs = append(tempBcfgMac.Macs, mac)
+			bcfgToBid[bcfgMac] = tempBcfgMac
+		}
+	}
+	for _, pName := range paramsByName {
+		// Create boot config information for this set of XNames.
+		bcfgName := bcfg{
+			Params: pName.Params,
+			Kernel: pName.Kernel,
+			Initrd: pName.Initrd,
+		}
+		// If the map doesn't already have this config, add it.
+		if _, ok := bcfgToBid[bcfgName]; !ok {
+			bcfgToBid[bcfgName] = bid{
+				Macs:  []string{},
+				Hosts: []string{},
+				Nids:  []int32{},
+			}
+		}
+		for _, name := range pName.Hosts {
+			// Add each XName to the list for this boot config.
+			tempBcfgName := bcfgToBid[bcfgName]
+			tempBcfgName.Hosts = append(tempBcfgName.Hosts, name)
+			bcfgToBid[bcfgName] = tempBcfgName
+		}
+	}
+	for _, pNid := range paramsByNid {
+		// Create boot config information for this set of NIDs.
+		bcfgNid := bcfg{
+			Params: pNid.Params,
+			Kernel: pNid.Kernel,
+			Initrd: pNid.Initrd,
+		}
+		// If the map doesn't already have this config, add it.
+		if _, ok := bcfgToBid[bcfgNid]; !ok {
+			bcfgToBid[bcfgNid] = bid{
+				Macs:  []string{},
+				Hosts: []string{},
+				Nids:  []int32{},
+			}
+		}
+		for _, nid := range pNid.Nids {
+			// Add each NID to the list for this boot config.
+			tempBcfgNid := bcfgToBid[bcfgNid]
+			tempBcfgNid.Nids = append(tempBcfgNid.Nids, nid)
+			bcfgToBid[bcfgNid] = tempBcfgNid
+		}
+	}
+
+	// At this point, the bcfgToBid map should contain unique boot configs as keys
+	// with the MACs/XNames/NIDs that correspond to them as values.
+	//
+	// Iterate through the map and create a slice of BootParams to return.
+	for cfg, ids := range bcfgToBid {
+		bp := bssTypes.BootParams{
+			Params: cfg.Params,
+			Kernel: cfg.Kernel,
+			Initrd: cfg.Initrd,
+			Macs:   ids.Macs,
+			Hosts:  ids.Hosts,
+			Nids:   ids.Nids,
+		}
+		results = append(results, bp)
+	}
+
+	return
+}
+
 func StoreNew(bp bssTypes.BootParams) (error, string) {
+	// postgres.Add will handle duplicates.
+	if useSQL {
+		debugf("postgres.Add(%v)\n", bp)
+		if result, err := bssdb.Add(bp); err != nil {
+			return err, ""
+		} else {
+			debugf("postgres.Add(%v) result: %v\n", bp, result)
+			return err, uuid.New().String()
+		}
+	}
+
 	item := ""
 	// Go through the entire struct.  We must be storing to new hosts or this
 	// request must fail.
@@ -392,6 +547,15 @@ func StoreNew(bp bssTypes.BootParams) (error, string) {
 
 func Store(bp bssTypes.BootParams) (error, string) {
 	debugf("Store(%v)\n", bp)
+
+	if useSQL {
+		debugf("postgres.Set(%v)\n", bp)
+		if err := bssdb.Set(bp); err != nil {
+			return err, ""
+		} else {
+			return err, uuid.New().String()
+		}
+	}
 
 	var kernel_id, initrd_id string
 	if bp.Kernel != "" {
@@ -474,6 +638,18 @@ func Store(bp bssTypes.BootParams) (error, string) {
 // The update function will update entries but not NULL out existing entries.
 func Update(bp bssTypes.BootParams) error {
 	debugf("Update(%v)\n", bp)
+
+	// Perform postgres.Update() and return if postgres is enabled.
+	if useSQL {
+		debugf("postgres.Update(%v)", bp)
+		nodesUpdated, err := bssdb.Update(bp)
+		if err != nil {
+			return err
+		}
+		debugf("Node IDs updated: %v", nodesUpdated)
+		return err
+	}
+
 	var kernel_id, initrd_id string
 	var err error
 	if bp.Kernel != "" {
@@ -628,11 +804,19 @@ func updateCloudInit(d *bssTypes.CloudInit, p bssTypes.CloudInit) bool {
 }
 
 func updateEndpointAccessed(name string, accessType bssTypes.EndpointType) {
-	timestamp := strconv.FormatInt(time.Now().Unix(), 10)
-	key := fmt.Sprintf("%s/%s/%s", endpointAccessPfx, name, accessType)
-	if err := kvstore.Store(key, timestamp); err != nil {
-		log.Printf("Failed to store last access timestamp %s to key %s: %s",
-			timestamp, key, err)
+	if useSQL {
+		err := bssdb.LogEndpointAccess(name, accessType)
+		if err != nil {
+			log.Printf("Failed to store last access timestamp for endpoint=%q name=%q to postgres DB: %s",
+				accessType, name, err)
+		}
+	} else {
+		timestamp := strconv.FormatInt(time.Now().Unix(), 10)
+		key := fmt.Sprintf("%s/%s/%s", endpointAccessPfx, name, accessType)
+		if err := kvstore.Store(key, timestamp); err != nil {
+			log.Printf("Failed to store last access timestamp %s to key %s: %s",
+				timestamp, key, err)
+		}
 	}
 }
 
@@ -925,6 +1109,27 @@ func LookupByName(name string) (BootData, SMComponent) {
 		comp_name = comp.ID
 		role = comp.Role
 	}
+	if useSQL {
+		var result BootData
+		bps, err := bssdb.GetBootParamsByName([]string{name})
+		if err != nil {
+			err = fmt.Errorf("Could not retrieve boot parameters with name %q: %v", name, err)
+			log.Printf("ERROR: %v", err)
+			return result, comp
+		}
+		if len(bps) == 0 {
+			// Not found.
+			log.Printf("WARNING: Name %q did not return any results.", name)
+			return result, comp
+		} else if len(bps) > 1 {
+			debugf("BootParams returned: %v", bps)
+			log.Printf("WARNING: More than 1 node found for name %q, taking first one: %v", name, bps[0])
+		}
+		result.Kernel = ImageData{bps[0].Kernel, ""}
+		result.Initrd = ImageData{bps[0].Initrd, ""}
+		result.Params = bps[0].Params
+		return result, comp
+	}
 	return lookup(comp_name, name, role, DefaultTag), comp
 }
 
@@ -935,6 +1140,27 @@ func LookupByMAC(mac string) (BootData, SMComponent) {
 	if ok {
 		comp_name = comp.ID
 		role = comp.Role
+	}
+	if useSQL {
+		var result BootData
+		bps, err := bssdb.GetBootParamsByMac([]string{mac})
+		if err != nil {
+			err = fmt.Errorf("Could not retrieve boot parameters with mac %q: %v", mac, err)
+			log.Printf("ERROR: %v", err)
+			return result, comp
+		}
+		if len(bps) == 0 {
+			// Not found.
+			log.Printf("WARNING: MAC %q did not return any results.", mac)
+			return result, comp
+		} else if len(bps) > 1 {
+			debugf("BootParams returned: %v", bps)
+			log.Printf("WARNING: More than 1 node found for MAC %q, taking first one: %v", mac, bps[0])
+		}
+		result.Kernel = ImageData{bps[0].Kernel, ""}
+		result.Initrd = ImageData{bps[0].Initrd, ""}
+		result.Params = bps[0].Params
+		return result, comp
 	}
 	return lookup(comp_name, mac, role, DefaultTag), comp
 }
@@ -947,6 +1173,27 @@ func LookupByNid(nid int) (BootData, SMComponent) {
 	if ok {
 		comp_name = comp.ID
 		role = comp.Role
+	}
+	if useSQL {
+		var result BootData
+		bps, err := bssdb.GetBootParamsByNid([]int32{int32(nid)})
+		if err != nil {
+			err = fmt.Errorf("Could not retrieve boot parameters with NID %d: %v", nid, err)
+			log.Printf("ERROR: %v", err)
+			return result, comp
+		}
+		if len(bps) == 0 {
+			// Not found.
+			log.Printf("WARNING: NID %d did not return any results.", nid)
+			return result, comp
+		} else if len(bps) > 1 {
+			debugf("BootParams returned: %v", bps)
+			log.Printf("WARNING: More than 1 node found for NID %d, taking first one: %v", nid, bps[0])
+		}
+		result.Kernel = ImageData{bps[0].Kernel, ""}
+		result.Initrd = ImageData{bps[0].Initrd, ""}
+		result.Params = bps[0].Params
+		return result, comp
 	}
 	return lookup(comp_name, nid_str, role, DefaultTag), comp
 }

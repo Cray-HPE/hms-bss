@@ -28,11 +28,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/Cray-HPE/hms-bss/pkg/bssTypes"
 	"log"
 	"math/rand"
 	"net/http"
 	"strings"
+
+	"github.com/Cray-HPE/bss/pkg/bssTypes"
 
 	yaml "gopkg.in/yaml.v2"
 
@@ -292,9 +293,17 @@ func endpointHistoryGetAPI(w http.ResponseWriter, r *http.Request) {
 		lastAccessTypeStruct = bssTypes.EndpointType(endpoint)
 	}
 
-	accesses, err := SearchEndpointAccessed(name, lastAccessTypeStruct)
+	var (
+		accesses []bssTypes.EndpointAccess
+		err      error
+	)
+	if useSQL {
+		accesses, err = bssdb.SearchEndpointAccesses(name, bssTypes.EndpointType(endpoint))
+	} else {
+		accesses, err = SearchEndpointAccessed(name, lastAccessTypeStruct)
+	}
 	if err != nil {
-		errMsg := fmt.Sprintf("Failed to search for name: %s, endpoint: %s", name, endpoint)
+		errMsg := fmt.Sprintf("Failed to search for name=%q, endpoint=%q: %v", name, endpoint, err)
 		base.SendProblemDetailsGeneric(w, http.StatusInternalServerError, errMsg)
 		log.Printf("BSS request failed: %s", errMsg)
 		return
