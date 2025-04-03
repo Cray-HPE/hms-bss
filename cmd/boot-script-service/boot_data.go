@@ -41,8 +41,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Cray-HPE/bss/pkg/bssTypes"
 	base "github.com/Cray-HPE/hms-base"
+	"github.com/Cray-HPE/hms-bss/pkg/bssTypes"
 	hmetcd "github.com/Cray-HPE/hms-hmetcd"
 	jsonpatch "github.com/evanphx/json-patch"
 	"github.com/google/uuid"

@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Cray-HPE/bss/pkg/bssTypes"
+	"github.com/Cray-HPE/hms-bss/pkg/bssTypes"
 	"github.com/Cray-HPE/hms-xname/xnames"
 	"github.com/docker/distribution/uuid"
 	"github.com/jmoiron/sqlx"

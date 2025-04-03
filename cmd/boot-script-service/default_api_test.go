@@ -31,7 +31,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/Cray-HPE/bss/pkg/bssTypes"
+	"github.com/Cray-HPE/hms-bss/pkg/bssTypes"
 )
 
 func mockGetSignedS3Url(s3Url string) (string, error) {

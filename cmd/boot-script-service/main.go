@@ -48,7 +48,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Cray-HPE/bss/internal/postgres"
+	"github.com/Cray-HPE/hms-bss/internal/postgres"
 	hmetcd "github.com/Cray-HPE/hms-hmetcd"
 )
 

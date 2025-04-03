@@ -24,7 +24,7 @@
 
 ### build-base stage ###
 # Build base just has the packages installed we need.
-FROM artifactory.algol60.net/docker.io/library/golang:1.16-alpine AS build-base
+FROM artifactory.algol60.net/docker.io/library/golang:1.23-alpine AS build-base
 
 RUN set -ex \
     && apk -U upgrade \
@@ -39,13 +39,14 @@ RUN go env -w GO111MODULE=auto
 # Copy all the necessary files to the image.
 COPY cmd $GOPATH/src/github.com/Cray-HPE/hms-bss/cmd
 COPY pkg $GOPATH/src/github.com/Cray-HPE/hms-bss/pkg
+COPY internal $GOPATH/src/github.com/Cray-HPE/hms-bss/internal
 COPY vendor $GOPATH/src/github.com/Cray-HPE/hms-bss/vendor
 COPY .version $GOPATH/src/github.com/Cray-HPE/hms-bss/.version
 
 ### Build Stage ###
 FROM base AS builder
 
-RUN set -ex && go build -v -i -o /usr/local/bin/boot-script-service github.com/Cray-HPE/hms-bss/cmd/boot-script-service
+RUN set -ex && go build -v -o /usr/local/bin/boot-script-service github.com/Cray-HPE/hms-bss/cmd/boot-script-service
 
 ### Final Stage ###
 FROM artifactory.algol60.net/docker.io/alpine:3.15

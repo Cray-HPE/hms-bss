@@ -33,7 +33,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Cray-HPE/bss/pkg/bssTypes"
+	"github.com/Cray-HPE/hms-bss/pkg/bssTypes"
 
 	yaml "gopkg.in/yaml.v2"
 

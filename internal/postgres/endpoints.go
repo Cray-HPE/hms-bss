@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Cray-HPE/bss/pkg/bssTypes"
+	"github.com/Cray-HPE/hms-bss/pkg/bssTypes"
 )
 
 type EndpointAccess struct {
