@@ -41,6 +41,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -48,6 +49,7 @@ import (
 	"strings"
 	"time"
 
+	base "github.com/Cray-HPE/hms-base"
 	"github.com/Cray-HPE/hms-bss/internal/postgres"
 	hmetcd "github.com/Cray-HPE/hms-hmetcd"
 )
@@ -96,6 +98,7 @@ var (
 	sqlRetryWait        = sqlDefaultRetryWait
 	notifier            *ScnNotifier
 	useSQL              = false // Use ETCD by default
+	openCHAMI           = false
 	authRetryCount      = authDefaultRetryCount
 	authRetryWait       = authDefaultRetryWait
 	jwksURL             = ""
@@ -366,6 +369,10 @@ func parseEnvVars() error {
 	if parseErr != nil {
 		errList = append(errList, fmt.Errorf("BSS_USESQL: %q", parseErr))
 	}
+	parseErr = parseEnv("BSS_OPEN_CHAMI", &openCHAMI)
+	if parseErr != nil {
+		errList = append(errList, fmt.Errorf("BSS_OPEN_CHAMI: %q", parseErr))
+	}
 	parseErr = parseEnv("BSS_DEBUG", &debugFlag)
 	if parseErr != nil {
 		errList = append(errList, fmt.Errorf("BSS_DEBUG: %q", parseErr))
@@ -429,6 +436,7 @@ func parseCmdLine() {
 	flag.BoolVar(&insecure, "insecure", insecure, "(BSS_INSECURE) Don't enforce https certificate security")
 	flag.BoolVar(&debugFlag, "debug", debugFlag, "(BSS_DEBUG) Enable debug output")
 	flag.BoolVar(&useSQL, "postgres", useSQL, "(BSS_USESQL) Use Postgres instead of ETCD")
+	flag.BoolVar(&openCHAMI, "openchami", openCHAMI, "(BSS_OPEN_CHAMI) Enable OpenCHAMI behavior")
 	flag.UintVar(&retryDelay, "retry-delay", retryDelay, "(BSS_RETRY_DELAY) Retry delay in seconds")
 	flag.UintVar(&hsmRetrievalDelay, "hsm-retrieval-delay", hsmRetrievalDelay, "(BSS_HSM_RETRIEVAL_DELAY) SM Retrieval delay in seconds")
 	flag.UintVar(&sqlPort, "postgres-port", sqlPort, "(BSS_DBPORT) Postgres port")
@@ -448,7 +456,26 @@ func main() {
 	}
 	parseCmdLine()
 
-	sn, snerr := os.Hostname()
+	if Version == "" && !openCHAMI {
+		dat, err := ioutil.ReadFile(".version")
+		if err != nil {
+			dat, err = ioutil.ReadFile("../../.version")
+			if err != nil {
+				dat = []byte("error")
+				log.Printf("Cannot read version file: %s", err)
+			}
+		}
+		Version = strings.TrimSpace(string(dat))
+		log.Printf("Version: %s\n", Version)
+	}
+
+	var snerr error
+	var sn string
+	if openCHAMI {
+		sn, snerr = os.Hostname()
+	} else {
+		sn, snerr = base.GetServiceInstanceName()
+	}
 	if snerr == nil {
 		serviceName = sn
 	}

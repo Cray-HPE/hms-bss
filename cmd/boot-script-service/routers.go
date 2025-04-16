@@ -101,11 +101,12 @@ func initHandlers() *chi.Mux {
 	router.HandleFunc(baseEndpoint+"/bootscript", bootScript)
 	router.HandleFunc(baseEndpoint+"/hosts", hosts)
 	router.HandleFunc(baseEndpoint+"/dumpstate", dumpstate)
-	router.HandleFunc(baseEndpoint+"/service/status", serviceStatusResponse)
+	router.HandleFunc(baseEndpoint+"/service/etcd", serviceEtcd)
+	router.HandleFunc(baseEndpoint+"/service/status", serviceStatusGet)
 	router.HandleFunc(baseEndpoint+"/service/status/all", service)
-	router.HandleFunc(baseEndpoint+"/service/version", serviceVersionResponse)
-	router.HandleFunc(baseEndpoint+"/service/hsm", serviceHSMResponse)
-	router.HandleFunc(baseEndpoint+"/service/storage/status", serviceStorageResponse)
+	router.HandleFunc(baseEndpoint+"/service/version", serviceVersion)
+	router.HandleFunc(baseEndpoint+"/service/hsm", serviceHSM)
+	router.HandleFunc(baseEndpoint+"/service/storage/status", serviceStorage)
 	// cloud-init
 	router.HandleFunc(metaDataRoute, metaDataGet)
 	router.HandleFunc(userDataRoute, userDataGet)
@@ -179,6 +180,51 @@ func service(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		serviceStatusAPI(w, r)
+	default:
+		sendAllowable(w, "GET")
+	}
+}
+
+func serviceEtcd(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		serviceEtcdResponse(w, r)
+	default:
+		sendAllowable(w, "GET")
+	}
+}
+
+func serviceStatusGet(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		serviceStatusResponse(w, r)
+	default:
+		sendAllowable(w, "GET")
+	}
+}
+
+func serviceVersion(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		serviceVersionResponse(w, r)
+	default:
+		sendAllowable(w, "GET")
+	}
+}
+
+func serviceHSM(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		serviceHSMResponse(w, r)
+	default:
+		sendAllowable(w, "GET")
+	}
+}
+
+func serviceStorage(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		serviceStorageResponse(w, r)
 	default:
 		sendAllowable(w, "GET")
 	}

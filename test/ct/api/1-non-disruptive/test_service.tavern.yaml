@@ -160,3 +160,13 @@ stages:
             bss-version:
               type: str
               required: True
+            bss-storage-backend:
+              type: map
+              required: True
+              mapping:
+                name:
+                  type: str
+                  required: True
+                status:
+                  type: str
+                  required: True

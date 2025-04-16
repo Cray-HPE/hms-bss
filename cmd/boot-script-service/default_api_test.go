@@ -260,6 +260,12 @@ func TestBootparametersPost_InvalidMac(t *testing.T) {
 
 func TestBootparametersPost_InvalidXname(t *testing.T) {
 
+	originalOpenCHAMI := openCHAMI
+	openCHAMI = true
+	defer func() {
+		openCHAMI = originalOpenCHAMI
+	}()
+
 	args := bssTypes.BootParams{
 		Macs:   []string{"00:11:22:33:44:55"},
 		Hosts:  []string{"invalid-xname"},
@@ -286,6 +292,12 @@ func TestBootparametersPost_InvalidXname(t *testing.T) {
 }
 
 func TestBootparametersPost_StoreError(t *testing.T) {
+
+	originalOpenCHAMI := openCHAMI
+	openCHAMI = true
+	defer func() {
+		openCHAMI = originalOpenCHAMI
+	}()
 
 	args := bssTypes.BootParams{
 		Macs:   []string{"00:11:22:33:44:55"},

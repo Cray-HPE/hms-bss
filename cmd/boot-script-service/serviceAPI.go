@@ -38,6 +38,7 @@ type serviceStatus struct {
 	Status         string          `json:"bss-status,omitempty"`
 	HSMStatus      string          `json:"bss-status-hsm,omitempty"`
 	StorageBackend *storageBackend `json:"bss-storage-backend,omitempty"`
+	EctdStatus     string          `json:"bss-status-etcd,omitempty"`
 }
 
 type storageBackend struct {
@@ -114,6 +115,9 @@ func serviceStatusAPI(w http.ResponseWriter, req *http.Request) {
 					}
 				}
 			}
+			if !openCHAMI {
+				bssStatus.EctdStatus = bssStatus.StorageBackend.Status
+			}
 		}
 	}
 	w.WriteHeader(httpStatus)
@@ -150,6 +154,39 @@ func serviceVersionResponse(w http.ResponseWriter, req *http.Request) {
 	w.WriteHeader(httpStatus)
 	out, _ := json.Marshal(bssStatus)
 	fmt.Fprintln(w, string(out))
+}
+
+func serviceEtcdResponse(w http.ResponseWriter, req *http.Request) {
+	var bssStatus serviceStatus
+	var httpStatus = http.StatusOK
+
+	if useSQL {
+		bssStatus.EctdStatus = "unconnected"
+	} else {
+		bssStatus.EctdStatus = "connected"
+		randnum := rand.Intn(255)
+		err := etcdTestStore(randnum)
+		if err != nil {
+			httpStatus = http.StatusInternalServerError
+			bssStatus.EctdStatus = "error"
+			log.Printf("Test store to etcd failed: %s", err)
+		} else {
+			ret, err := etcdTestGet()
+			if err != nil || ret != randnum {
+				httpStatus = http.StatusInternalServerError
+				bssStatus.EctdStatus = "error"
+				if err != nil {
+					log.Printf("Test read from etcd failed: %s", err)
+				} else {
+					log.Printf("Test read from etcd miscompare: Expected %d, Actual %d", randnum, ret)
+				}
+			}
+		}
+	}
+	w.WriteHeader(httpStatus)
+	out, _ := json.Marshal(bssStatus)
+	fmt.Fprintln(w, string(out))
+
 }
 
 func serviceHSMResponse(w http.ResponseWriter, req *http.Request) {
