@@ -11,4 +11,4 @@ kubernetes/.packaged/
 *.pem
 
 # compiled go command
-boot-script-service
+/boot-script-service
