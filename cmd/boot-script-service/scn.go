@@ -157,12 +157,12 @@ func (notifier *ScnNotifier) subscribe(comps []string) error {
 		req.Close = true
 		debugf("subscribe(): Ready to %s to %s: %s, Request: %+v", method, notifier.SubscriberURL, payload, req)
 		rsp, err := notifier.Client.Do(req)
+		defer base.DrainAndCloseResponseBody(rsp)
 		if err != nil {
 			log.Printf("ERROR sending %s to hmnfd %s: %s", method, notifier.SubscriberURL, err)
 			return err
 		}
 		rspBody, err := ioutil.ReadAll(rsp.Body)
-		rsp.Body.Close()
 
 		switch rsp.StatusCode {
 		case http.StatusOK, http.StatusNoContent, http.StatusAccepted:
@@ -182,6 +182,8 @@ func (notifier *ScnNotifier) subscribe(comps []string) error {
 
 // This function is called when hmnfd POSTs something to our notification URL
 func stateChangeNotification(w http.ResponseWriter, r *http.Request) {
+	defer base.DrainAndCloseRequestBody(r)
+
 	p, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		log.Printf("ERROR reading body of POST from hmnfd")

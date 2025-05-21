@@ -195,6 +195,7 @@ func getStateFromHSM() *SMData {
 		req.Close = true
 		base.SetHTTPUserAgent(req, serviceName)
 		r, err := smClient.Do(req)
+		defer base.DrainAndCloseResponseBody(r)
 		if err != nil {
 			log.Printf("Sm State request %s failed: %v", url, err)
 			return nil
@@ -202,7 +203,6 @@ func getStateFromHSM() *SMData {
 		debugf("getStateFromHSM(): GET %s -> r: %v, err: %v\n", url, r, err)
 		var comps SMData
 		err = json.NewDecoder(r.Body).Decode(&comps)
-		r.Body.Close()
 		// Set up an indexing map to speed up lookup of components in the list
 		compsIndex := make(map[string]int, len(comps.Components))
 		for i, c := range comps.Components {
@@ -217,6 +217,7 @@ func getStateFromHSM() *SMData {
 		req.Close = true
 		base.SetHTTPUserAgent(req, serviceName)
 		r, err = smClient.Do(req)
+		defer base.DrainAndCloseResponseBody(r)
 		if err != nil {
 			log.Printf("Sm Inventory request %s failed: %v", url, err)
 			return nil
@@ -226,7 +227,6 @@ func getStateFromHSM() *SMData {
 		ce, err := ioutil.ReadAll(r.Body)
 		err = json.Unmarshal(ce, &ep)
 		debugf("getStateFromHSM(): GET %s -> r: %v, err: %v\n", url, r, err)
-		r.Body.Close()
 
 		type myCompEndpt struct {
 			ID           string `json:"ID"`
@@ -284,6 +284,7 @@ func getStateFromHSM() *SMData {
 		req.Close = true
 		base.SetHTTPUserAgent(req, serviceName)
 		r, err = smClient.Do(req)
+		defer base.DrainAndCloseResponseBody(r)
 		if err != nil {
 			log.Printf("Sm Inventory request %s failed: %v", url, err)
 			return nil
@@ -294,7 +295,6 @@ func getStateFromHSM() *SMData {
 
 		ce, err = ioutil.ReadAll(r.Body)
 		err = json.Unmarshal(ce, &ethIfaces)
-		r.Body.Close()
 
 		addresses := make(map[string]sm.CompEthInterfaceV2)
 		for _, e := range ethIfaces {
