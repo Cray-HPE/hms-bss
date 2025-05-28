@@ -18,7 +18,7 @@ services:
 
   vault:
     hostname: vault
-    image: artifactory.algol60.net/docker.io/library/vault:1.5.5
+    image: artifactory.algol60.net/docker.io/library/vault:1.6.1
     environment:
       - VAULT_DEV_ROOT_TOKEN_ID=hms
       - VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200
@@ -29,7 +29,7 @@ services:
       - bss
 
   vault-kv-enabler:
-    image: artifactory.algol60.net/csm-docker/stable/vault-kv-enabler:1.13.4
+    image: artifactory.algol60.net/csm-docker/stable/vault-kv-enabler:1.29.0
     environment:
       - VAULT_ADDR=http://vault:8200
       - VAULT_TOKEN=hms
@@ -49,7 +49,7 @@ services:
     networks:
       - bss
   cray-smd-init:
-    image: artifactory.algol60.net/csm-docker/stable/cray-smd:2.33.0
+    image: artifactory.algol60.net/csm-docker/stable/cray-smd:2.38.0
     environment:
       - SMD_DBHOST=hmsds-postgres
       - SMD_DBPORT=5432
@@ -60,7 +60,7 @@ services:
     command: /entrypoint.sh smd-init
 
   cray-smd:
-    image: artifactory.algol60.net/csm-docker/stable/cray-smd:2.33.0
+    image: artifactory.algol60.net/csm-docker/stable/cray-smd:2.38.0
     environment:
       - POSTGRES_HOST=hmsds-postgres
       - POSTGRES_PORT=5432
@@ -105,7 +105,7 @@ services:
       - bss
 
   cray-hms-hmcollector:
-    image: artifactory.algol60.net/csm-docker/stable/hms-hmcollector:2.35.0
+    image: artifactory.algol60.net/csm-docker/stable/hms-hmcollector:2.38.0
     environment:
       - LOG_LEVEL=TRACE
       - SM_URL=http://cray-smd:27779
@@ -137,7 +137,7 @@ services:
 
   cray-hmnfd:
     hostname: cray-hmnfd
-    image: artifactory.algol60.net/csm-docker/stable/cray-hmnfd:1.23.0
+    image: artifactory.algol60.net/csm-docker/stable/cray-hmnfd:1.24.0
     environment:
       - DEBUG=0
       - SM_URL=http://cray-smd:27779/hsm/v2
@@ -158,7 +158,7 @@ services:
   # Emulated hardware
   #
   emulator-loader:
-    image: artifactory.algol60.net/docker.io/library/golang:1.23-alpine
+    image: artifactory.algol60.net/docker.io/library/golang:1.24-alpine
     command: >
       sh -c "apk add curl && sleep 10 &&
       curl -X POST -d '{\"RedfishEndpoints\":[{
@@ -182,7 +182,7 @@ services:
       - bss
   rfemulator0:
     hostname: x0c0s1b0
-    image: artifactory.algol60.net/csm-docker/stable/csm-rie:1.6.0
+    image: artifactory.algol60.net/csm-docker/stable/csm-rie:1.7.0
     environment:
       - MOCKUPFOLDER=EX235a
       - MAC_SCHEMA=Mountain
@@ -194,7 +194,7 @@ services:
           - x0c0s1b0
   rfemulator1:
     hostname: x0c0s2b0
-    image: artifactory.algol60.net/csm-docker/stable/csm-rie:1.6.0
+    image: artifactory.algol60.net/csm-docker/stable/csm-rie:1.7.0
     environment:
       - MOCKUPFOLDER=EX235a
       - MAC_SCHEMA=Mountain

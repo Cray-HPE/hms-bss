@@ -147,6 +147,8 @@ func metaDataGetAPI(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("GET /meta-data, url: %v", r.URL)
 
+	defer base.DrainAndCloseRequestBody(r)
+
 	// First handle global data
 	globaldata, _ := LookupGlobalData()
 	globalRespData := globaldata.CloudInit.MetaData
@@ -258,6 +260,8 @@ func userDataGetAPI(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("GET /user-data, url: %v", r.URL)
 
+	defer base.DrainAndCloseRequestBody(r)
+
 	remoteaddr := findRemoteAddr(r)
 
 	// Get the xname to lookup metadata.
@@ -324,6 +328,8 @@ func userDataGetAPI(w http.ResponseWriter, r *http.Request) {
 func endpointHistoryGetAPI(w http.ResponseWriter, r *http.Request) {
 	log.Printf("GET /endpoint-history, url: %v", r.URL)
 
+	defer base.DrainAndCloseRequestBody(r)
+
 	r.ParseForm() // r.Form is empty until after parsing
 	name := strings.Join(r.Form["name"], "")
 	endpoint := strings.Join(r.Form["endpoint"], "")
@@ -361,6 +367,8 @@ func phoneHomePostAPI(w http.ResponseWriter, r *http.Request) {
 	var args bssTypes.PhoneHome
 
 	log.Printf("POST /phone-home, url: %v", r.URL)
+
+	defer base.DrainAndCloseRequestBody(r)
 
 	dec := json.NewDecoder(r.Body)
 	err := dec.Decode(&args)

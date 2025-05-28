@@ -175,6 +175,9 @@ func checkURL(u string) (string, error) {
 
 func BootparametersGetAll(w http.ResponseWriter, r *http.Request) {
 	var results []bssTypes.BootParams
+
+	defer base.DrainAndCloseRequestBody(r)
+
 	for _, image := range GetKernelInfo() {
 		var bp bssTypes.BootParams
 		bp.Params = image.Params
@@ -217,6 +220,8 @@ func BootparametersGetAll(w http.ResponseWriter, r *http.Request) {
 
 func BootparametersGet(w http.ResponseWriter, r *http.Request) {
 	log.Printf("GET /bootparameters, url: %v", r.URL)
+
+	defer base.DrainAndCloseRequestBody(r)
 
 	var args bssTypes.BootParams
 	debugf("Ready to decode %v\n", r.Body)
@@ -408,6 +413,8 @@ func LogBootParameters(prefix string, v interface{}) {
 func BootparametersPost(w http.ResponseWriter, r *http.Request) {
 	log.Printf("POST /bootparameters, url: %v", r.URL)
 
+	defer base.DrainAndCloseRequestBody(r)
+
 	var args bssTypes.BootParams
 	dec := json.NewDecoder(r.Body)
 	err := dec.Decode(&args)
@@ -435,6 +442,8 @@ func BootparametersPost(w http.ResponseWriter, r *http.Request) {
 
 func BootparametersPut(w http.ResponseWriter, r *http.Request) {
 	log.Printf("PUT /bootparameters, url: %v", r.URL)
+
+	defer base.DrainAndCloseRequestBody(r)
 
 	var args bssTypes.BootParams
 	dec := json.NewDecoder(r.Body)
@@ -468,6 +477,8 @@ func BootparametersPut(w http.ResponseWriter, r *http.Request) {
 func BootparametersPatch(w http.ResponseWriter, r *http.Request) {
 	log.Printf("PATCH /bootparameters, url: %v", r.URL)
 
+	defer base.DrainAndCloseRequestBody(r)
+
 	var args bssTypes.BootParams
 	dec := json.NewDecoder(r.Body)
 	err := dec.Decode(&args)
@@ -492,6 +503,8 @@ func BootparametersPatch(w http.ResponseWriter, r *http.Request) {
 
 func BootparametersDelete(w http.ResponseWriter, r *http.Request) {
 	log.Printf("DELETE /bootparameters, url: %v", r.URL)
+
+	defer base.DrainAndCloseRequestBody(r)
 
 	var args bssTypes.BootParams
 	dec := json.NewDecoder(r.Body)
@@ -730,6 +743,8 @@ func blacklist(comp SMComponent) (err error) {
 func BootscriptGet(w http.ResponseWriter, r *http.Request) {
 	log.Printf("GET /bootscript, url: %v", r.URL)
 
+	defer base.DrainAndCloseRequestBody(r)
+
 	r.ParseForm() // r.Form is empty until after parsing
 	mac := strings.Join(r.Form["mac"], "")
 	name := strings.Join(r.Form["name"], "")
@@ -867,6 +882,8 @@ func BootscriptGet(w http.ResponseWriter, r *http.Request) {
 func HostsGet(w http.ResponseWriter, r *http.Request) {
 	log.Printf("GET /hosts, url: %v", r.URL)
 
+	defer base.DrainAndCloseRequestBody(r)
+
 	r.ParseForm() // r.Form is empty until after parsing
 	mac := strings.Join(r.Form["mac"], ",")
 	name := strings.Join(r.Form["name"], ",")
@@ -930,6 +947,8 @@ func HostsGet(w http.ResponseWriter, r *http.Request) {
 func HostsPost(w http.ResponseWriter, r *http.Request) {
 	log.Printf("POST /hosts, url: %v", r.URL)
 
+	defer base.DrainAndCloseRequestBody(r)
+
 	refreshState(time.Now().Unix())
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.Header().Set("Cache-Control", "no-cache")
@@ -942,6 +961,8 @@ func DumpstateGet(w http.ResponseWriter, r *http.Request) {
 		Params     []bssTypes.BootParams `json:"Params"`
 	}
 	log.Printf("GET /dumpstate, url: %v", r.URL)
+
+	defer base.DrainAndCloseRequestBody(r)
 
 	var results State
 	state := getState()

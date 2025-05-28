@@ -98,6 +98,7 @@ func getJoinToken(xname, role, subRole string) (string, error) {
 	base.SetHTTPUserAgent(req, serviceName)
 	req.Close = true
 	rsp, err := spireTokenClient.Do(req)
+	defer base.DrainAndCloseResponseBody(rsp)
 	if err != nil {
 		log.Printf("ERROR: %s: sending request to spire token service: %s", url, err)
 		return "", err
@@ -110,7 +111,6 @@ func getJoinToken(xname, role, subRole string) (string, error) {
 		log.Printf("ERROR: %s: reading response from spire token service: %s", url, err)
 		return "", err
 	}
-	rsp.Body.Close()
 
 	var spireResp spireRespType
 	err = json.Unmarshal(rspBody, &spireResp)
