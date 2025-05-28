@@ -15,6 +15,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed bug with jq use in runSnyk.sh
 - Internal tracking ticket: CASMHMS-6389
 
+## [1.33.1] - 2025-05-28
+
+### Changed
+
+- CASMHMS-6535: Update test values and API spec examples to use SBPS instead of CPS/DVS
+
 ## [1.33.0] - 2025-02-28
 
 ### Changed
