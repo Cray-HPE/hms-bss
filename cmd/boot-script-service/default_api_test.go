@@ -1,6 +1,6 @@
 // MIT License
 //
-// (C) Copyright [2022] Hewlett Packard Enterprise Development LP
+// (C) Copyright [2022, 2025] Hewlett Packard Enterprise Development LP
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -89,14 +89,14 @@ func TestReplaceS3Params_replace_kernel_metal(t *testing.T) {
 		"metal.server=s3://ncn-images/k8s/0.2.78/filesystem.squashfs",
 		"bond=bond0",
 		"metal.server=s3://bucket/path",
-		"root=craycps-s3:s3://boot-images",
+		"root=sbps-s3:s3://boot-images",
 		"m=s3://b/p")
 
 	expected_params := fmt.Sprintf("%s %s %s %s %s",
 		"metal.server=s3://ncn-images/k8s/0.2.78/filesystem.squashfs_signed",
 		"bond=bond0",
 		"metal.server=s3://bucket/path_signed",
-		"root=craycps-s3:s3://boot-images",
+		"root=sbps-s3:s3://boot-images",
 		"m=s3://b/p")
 
 	newParams, err := replaceS3Params(params, mockGetSignedS3Url)
@@ -156,7 +156,7 @@ func TestReplaceS3Params_no_replace(t *testing.T) {
 		"xmetal.server=s3://ncn-images/k8s/0.2.78/filesystem.squashfs",
 		"nmd_data=url=s3://boot-images/bb-86/rootfs,etag=c8-204",
 		"bos_update_frequency=4h",
-		"root=craycps-s3:s3://boot-images/bb-78/rootfs:c8-204:dvs:api-gw-service-nmn.local:300:hsn0,nmn0:0")
+		"root=sbps-s3:s3://boot-images/bb-78/rootfs:c8-204:sbps:v1:iqn.2023-06.csm.iscsi:_sbps-hsn._tcp.my-system.my-site-domain")
 	expected_params := params
 
 	newParams, err := replaceS3Params(params, mockGetSignedS3Url)
