@@ -48,7 +48,7 @@ FROM base AS builder
 RUN set -ex && go build -v -o /usr/local/bin/boot-script-service github.com/Cray-HPE/hms-bss/cmd/boot-script-service
 
 ### Final Stage ###
-FROM artifactory.algol60.net/docker.io/alpine:3.21
+FROM artifactory.algol60.net/docker.io/alpine:3.22
 LABEL maintainer="Hewlett Packard Enterprise"
 EXPOSE 27778
 STOPSIGNAL SIGTERM
