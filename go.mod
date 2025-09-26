@@ -8,14 +8,14 @@ require (
 	github.com/Cray-HPE/hms-base/v2 v2.3.0
 	github.com/Cray-HPE/hms-hmetcd v1.13.0
 	github.com/Cray-HPE/hms-s3 v1.12.0
-	github.com/Cray-HPE/hms-smd/v2 v2.38.0
+	github.com/Cray-HPE/hms-smd/v2 v2.43.0
 	github.com/evanphx/json-patch v5.9.11+incompatible
 	github.com/google/uuid v1.6.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
-	github.com/Cray-HPE/hms-certs v1.7.0 // indirect
+	github.com/Cray-HPE/hms-certs v1.7.1 // indirect
 	github.com/Cray-HPE/hms-securestorage v1.17.0 // indirect
 	github.com/Cray-HPE/hms-xname v1.4.0 // indirect
 	github.com/aws/aws-sdk-go v1.55.7 // indirect
