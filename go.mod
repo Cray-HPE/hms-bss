@@ -8,7 +8,7 @@ require (
 	github.com/Cray-HPE/hms-base/v2 v2.3.0
 	github.com/Cray-HPE/hms-hmetcd v1.13.0
 	github.com/Cray-HPE/hms-s3 v1.12.0
-	github.com/Cray-HPE/hms-smd/v2 v2.43.0
+	github.com/Cray-HPE/hms-smd/v2 v2.44.0
 	github.com/evanphx/json-patch v5.9.11+incompatible
 	github.com/google/uuid v1.6.0
 	gopkg.in/yaml.v2 v2.4.0
